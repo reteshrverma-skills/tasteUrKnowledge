@@ -1,0 +1,371 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  STUDENT
+  PARENT
+  ADMIN
+}
+
+/// User's login Id
+model UserProfile {
+  id               Int      @id @default(autoincrement())
+  fName            String?
+  mName            String?
+  lName            String?
+  /// Login user id
+  profileName      String   @unique
+  /// bcrypt hash of the login password
+  profilePassword  String
+  userType         UserType @default(STUDENT)
+  /// Legacy one-to-one link, kept only so older data is not lost. The live
+  /// link is UserStudentDetails.parentId, which lets one parent hold many
+  /// children. Nothing reads this.
+  studentParentRef String?  @map("student_parent_ref")
+  isActive         Boolean  @default(true)
+  createDate       DateTime @default(now())
+
+  personalDetails UserPersonalDetails?
+  studentDetails  UserStudentDetails?
+  /// Children, when this profile is a PARENT.
+  children        UserStudentDetails[] @relation("ParentChildren")
+  paymentDetails  UserPaymentDetails[]
+  attempts        Attempt[]
+  mathsTests      TestTrackerMathMain[]
+  mathsAnswers    TestTrackerMath[]
+  englishTests    TestTrackerEnglishMain[]
+  englishAnswers  TestTrackerEnglish[]
+
+  @@map("userProfile")
+}
+
+model UserPersonalDetails {
+  id             Int         @id @default(autoincrement())
+  userDetailsId  Int         @unique @map("userDetails_Id")
+  profile        UserProfile @relation(fields: [userDetailsId], references: [id], onDelete: Cascade)
+  userAdd1       String?
+  userAdd2       String?
+  userAdd3       String?
+  userCity       String?
+  userCounty     String?
+  userZipCode    String?
+  contactNumber1 String?
+  contactNumber2 String?
+  emailAddress   String?
+
+  @@map("userPersonalDetails")
+}
+
+/// School details for a STUDENT profile, including which Year they are in.
+model UserStudentDetails {
+  id            Int         @id @default(autoincrement())
+  studentId     Int         @unique
+  student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  /// The PARENT account that manages this child.
+  /// SetNull, not Cascade: a child's work must outlive the parent account that
+  /// happened to create it.
+  parentId      Int?
+  parent        UserProfile? @relation("ParentChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  /// Year.id - drives which comprehensions the student is shown
+  studentYear   String?
+  year          Year?       @relation(fields: [studentYear], references: [id], onDelete: SetNull)
+  schoolAdd1    String?
+  schoolAdd2    String?
+  schoolAdd3    String?
+  schoolCity    String?
+  schoolCountry String?
+
+  /// Difficulty levels this student may access; false locks the level away.
+  starter     Boolean? @default(false)
+  explorer    Boolean? @default(false)
+  challenger  Boolean? @default(false)
+  thinkHarder Boolean? @default(false)
+
+  @@index([studentYear])
+  @@index([parentId])
+  @@map("userStudentDetails")
+}
+
+model UserPaymentDetails {
+  id            Int         @id @default(autoincrement())
+  userProfileId Int         @map("userProfile_Id")
+  profile       UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  paymentId     String?
+  paymentAmount Decimal?    @db.Decimal(10, 2)
+  profileActive DateTime?   @db.Date
+
+  @@map("userPaymentDetails")
+}
+
+/// English comprehension: the story plus the year/subject it belongs to.
+model GsEnglishComp {
+  id              Int     @id @default(autoincrement())
+  compStory       String?
+  difficultyLevel String?
+  yearName        String?
+  subjectName     String?
+  label           String?
+
+  questions GsEnglishQuestion[]
+  attempts  Attempt[]
+  tests     TestTrackerEnglishMain[]
+
+  @@map("gsEnglishComp")
+}
+
+/// Questions hanging off a comprehension - selecting a comp shows all of these.
+model GsEnglishQuestion {
+  id              Int           @id @default(autoincrement())
+  topic           String?
+  quest           String?
+  optionA         String?
+  optionB         String?
+  optionC         String?
+  optionD         String?
+  optionE         String?
+  ansChoice       String?
+  gsEngCompId     Int
+  comp            GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
+  /// The comprehension skill this question tests - "Retrieval", "sequencing",
+  /// "basic vocabulary" and so on. Difficulty now lives only on the
+  /// comprehension; a question is described by what it asks for, not how hard
+  /// it is, and this is what the parent report groups by.
+  typeOfQuestion  String?       @db.VarChar(256)
+
+  answers     Answer[]
+  trackerRows TestTrackerEnglish[]
+
+  @@index([gsEngCompId])
+  @@map("gsEnglishQuestions")
+}
+
+/// Standalone Maths MCQs, picked by subTopic + difficultyLevel.
+/// Unlike English these are not tied to a year or a comprehension.
+model GsMathsQuestion {
+  id              Int     @id @default(autoincrement())
+  topic           String?
+  subTopic        String?
+  quest           String?
+  optionA         String?
+  optionB         String?
+  optionC         String?
+  optionD         String?
+  optionE         String?
+  ansChoice       String?
+  difficultyLevel String?
+  explanation     String?
+
+  trackerRows TestTrackerMath[]
+
+  @@index([subTopic, difficultyLevel])
+  @@index([topic])
+  @@map("gsMathsQuestions")
+}
+
+/// One row per Maths practice round; its id identifies the test.
+model TestTrackerMathMain {
+  id            Int         @id @default(autoincrement())
+  studentId     Int
+  student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  testStartTime DateTime    @default(now()) @db.Timestamptz(3)
+
+  /// What the round was, snapshotted so re-tagging a question later cannot
+  /// move a past result into a different bucket.
+  topic           String?
+  /// Null marks a topic-level test spanning several subtopics.
+  subTopic        String?
+  difficultyLevel String?
+  /// "submitted" | "timed_out" | "abandoned" - a low score that ran out of
+  /// time is a different finding from one handed in early.
+  completionReason String?
+
+  questions TestTrackerMath[]
+
+  @@index([studentId, testStartTime])
+  @@index([studentId, topic, subTopic, difficultyLevel, testStartTime], map: "testTrackerMathMain_student_round_idx")
+  @@map("testTrackerMathMain")
+}
+
+/// One row per question answered within a test.
+model TestTrackerMath {
+  id         Int                 @id @default(autoincrement())
+  questionId Int
+  /// Restrict: deleting a question must not erase a child's history of it.
+  question   GsMathsQuestion     @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  studentId  Int
+  student    UserProfile         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  isAnsRight Boolean             @default(false)
+  isSkipped  Boolean             @default(false)
+  testId     Int
+  test       TestTrackerMathMain @relation(fields: [testId], references: [id], onDelete: Cascade)
+  /// Seconds, to 2dp, clamped server-side before it is stored.
+  timeSpentOnQuestion Decimal?   @db.Decimal(7, 2)
+
+  /// Which answer was given and which was right - the wrong answer a child
+  /// reaches for repeatedly says more than the fact that they were wrong.
+  chosenOption  String? @db.VarChar(1)
+  correctOption String? @db.VarChar(1)
+  /// Position in the round as presented, for spotting a late fall-off.
+  questionOrder Int?    @db.SmallInt
+
+  @@index([testId])
+  @@index([studentId, questionId])
+  @@map("testTrackerMath")
+}
+
+/// One row per English comprehension round; its id identifies the test.
+///
+/// Deliberately a mirror of TestTrackerMathMain: the common core columns are
+/// named and typed identically in both, so one union across subjects answers
+/// "which subject is weakest" without per-subject special casing.
+model TestTrackerEnglishMain {
+  id            Int         @id @default(autoincrement())
+  studentId     Int
+  student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  testStartTime DateTime    @default(now()) @db.Timestamptz(3)
+
+  /// Which comprehension was sat. Restrict: retiring one must not erase the
+  /// history of it.
+  gsEngCompId Int
+  comp        GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Restrict)
+
+  /// Snapshots taken at submission, so re-tagging a comprehension later cannot
+  /// move a past result into a different bucket.
+  /// topic holds the comprehension's title.
+  topic           String?
+  /// Reserved: an English round spans several question types, so this stays
+  /// null until rounds can be narrowed to one type.
+  subTopic        String?
+  difficultyLevel String?
+  yearName        String?
+
+  /// Seconds from the story appearing to the first interaction with the
+  /// question pane. English is read-then-answer, and a careful reader and a
+  /// skimmer can land on the same score for opposite reasons.
+  /// Per-question timing starts at this same instant, so nothing is counted twice.
+  passageReadSeconds Decimal? @db.Decimal(7, 2)
+
+  /// "submitted" | "timed_out" | "abandoned"
+  completionReason String?
+
+  /// Source Attempt.id when the round was carried in by migration 012;
+  /// null for everything recorded live. Unique so a re-run cannot import the
+  /// same attempt twice - Postgres treats nulls as distinct, so live rounds
+  /// are unaffected.
+  legacyAttemptId String? @unique
+
+  questions TestTrackerEnglish[]
+
+  @@index([studentId, testStartTime])
+  @@index([studentId, gsEngCompId, difficultyLevel, testStartTime], map: "testTrackerEnglishMain_student_round_idx")
+  @@map("testTrackerEnglishMain")
+}
+
+/// One row per question answered within an English test.
+model TestTrackerEnglish {
+  id         Int                    @id @default(autoincrement())
+  testId     Int
+  test       TestTrackerEnglishMain @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questionId Int
+  /// Restrict: deleting a question must not erase a child's history of it.
+  question   GsEnglishQuestion      @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  studentId  Int
+  student    UserProfile            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  isAnsRight Boolean                @default(false)
+  isSkipped  Boolean                @default(false)
+
+  /// Seconds, to 2dp, clamped server-side before it is stored.
+  timeSpentOnQuestion Decimal? @db.Decimal(7, 2)
+
+  chosenOption  String? @db.VarChar(1)
+  correctOption String? @db.VarChar(1)
+  /// Position in the round. Questions about a passage run in text order, so a
+  /// fall-off in the later ones separates "did not finish reading" from
+  /// "did not understand".
+  questionOrder Int?    @db.SmallInt
+  /// Snapshot of the question's type tag (inference, vocabulary, retrieval).
+  topic         String?
+
+  @@index([testId])
+  @@index([studentId, questionId])
+  @@map("testTrackerEnglish")
+}
+
+model Year {
+  id             String               @id @default(cuid())
+  name           String               @unique
+  order          Int                  @default(0)
+  subjects       Subject[]
+  studentDetails UserStudentDetails[]
+}
+
+model Subject {
+  id     String @id @default(cuid())
+  name   String
+  order  Int    @default(0)
+  yearId String
+  year   Year   @relation(fields: [yearId], references: [id], onDelete: Cascade)
+  days   Day[]
+
+  @@unique([yearId, name])
+}
+
+model Day {
+  id        String     @id @default(cuid())
+  label     String
+  content   String?    // Story/content for the day
+  order     Int        @default(0)
+  subjectId String
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@unique([subjectId, label])
+}
+
+model Question {
+  id            String @id @default(cuid())
+  dayId         String
+  day           Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  text          String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption String
+  order         Int    @default(0)
+}
+
+model Attempt {
+  id          String   @id @default(cuid())
+  userId      Int
+  user        UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gsEngCompId Int
+  comp        GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
+  score       Int
+  totalCount  Int
+  submittedAt DateTime @default(now())
+  answers     Answer[]
+
+  @@index([gsEngCompId])
+}
+
+model Answer {
+  id           String   @id @default(cuid())
+  attemptId    String
+  attempt      Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  gsEngQuestionId Int
+  question        GsEnglishQuestion @relation(fields: [gsEngQuestionId], references: [id], onDelete: Cascade)
+  chosenOption    String?
+  isCorrect       Boolean
+
+  @@index([gsEngQuestionId])
+}
