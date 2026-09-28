@@ -3,6 +3,10 @@
 
 generator client {
   provider = "prisma-client-js"
+  // The query engine is a native binary, so the host it runs on must be built
+  // for. "native" covers this Windows machine; the debian target covers Azure
+  // App Service and every other Linux host.
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -44,8 +48,31 @@ model UserProfile {
   mathsAnswers    TestTrackerMath[]
   englishTests    TestTrackerEnglishMain[]
   englishAnswers  TestTrackerEnglish[]
+  nvrTests        TestTrackerNvrMain[]
+  nvrAnswers      TestTrackerNvr[]
+  resetTokens     PasswordResetToken[]
 
   @@map("userProfile")
+}
+
+/// A single-use, short-lived password reset link.
+///
+/// Only the SHA-256 of the token is kept. A password cannot be recovered and
+/// sent - profilePassword is a bcrypt hash - so the person follows a link and
+/// chooses a new one instead.
+model PasswordResetToken {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// SHA-256 hex of the token that went out in the link; never the token.
+  tokenHash String      @unique
+  expiresAt DateTime    @db.Timestamptz(3)
+  /// Set the moment the link is spent, so it works exactly once.
+  usedAt    DateTime?   @db.Timestamptz(3)
+  createdAt DateTime    @default(now()) @db.Timestamptz(3)
+
+  @@index([userId])
+  @@map("passwordResetToken")
 }
 
 model UserPersonalDetails {
@@ -85,9 +112,13 @@ model UserStudentDetails {
   schoolCountry String?
 
   /// Difficulty levels this student may access; false locks the level away.
+  /// The ladder is Starter, Explorer, Navigator, Challenger, Master.
   starter     Boolean? @default(false)
   explorer    Boolean? @default(false)
+  navigator   Boolean? @default(false)
   challenger  Boolean? @default(false)
+  master      Boolean? @default(false)
+  /// Retired from the ladder. Kept so past grants are not thrown away.
   thinkHarder Boolean? @default(false)
 
   @@index([studentYear])
@@ -163,12 +194,106 @@ model GsMathsQuestion {
   ansChoice       String?
   difficultyLevel String?
   explanation     String?
+  /// Present in the database and declared here so a schema sync can never
+  /// drop it. Nothing reads it - Maths is not scoped by year.
+  yearName        String?  @db.VarChar(255)
 
   trackerRows TestTrackerMath[]
 
   @@index([subTopic, difficultyLevel])
   @@index([topic])
   @@map("gsMathsQuestions")
+}
+
+/// Non-Verbal Reasoning questions.
+///
+/// Figures are SVG markup rendered inline, which makes this the one bank whose
+/// content becomes live markup in a browser. The database refuses anything
+/// executable (see the nvr_no_markup check in migration 018) and the renderer
+/// strips what survives - a regex blacklist is a second line, never the only one.
+model GsNvrQuestion {
+  id              Int      @id @default(autoincrement())
+  /// Metadata only. Year stopped gating content; difficulty does that.
+  yearName        String?
+  subjectName     String   @default("Non-Verbal Reasoning")
+  topic           String
+  subTopic        String
+  /// "Mirror image", "Quarter turn", "Sequence"... Same column name as
+  /// gsEnglishQuestions, so the parent report groups by skill here too.
+  typeOfQuestion  String
+  difficultyLevel String
+  quest           String
+
+  /// "svg" | "url" | "none" - both formats are constrained in the database.
+  stemFormat   String  @default("svg")
+  stemFigure   String?
+  optionFormat String  @default("svg")
+  optionA      String
+  optionB      String
+  optionC      String
+  optionD      String
+  /// Four options is kinder at this age, so E stays optional.
+  optionE      String?
+  ansChoice    String  @db.Char(1)
+  /// The "why", for a parent going through a wrong answer.
+  ansExplain   String?
+
+  /// Where the figure came from; keeps the bank clear of third-party material.
+  assetOrigin String   @default("original-generated")
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+
+  trackerRows TestTrackerNvr[]
+
+  @@index([topic, difficultyLevel], map: "gsNvrQuestions_topic_level_idx")
+  @@index([subTopic, difficultyLevel], map: "gsNvrQuestions_subTopic_level_idx")
+  @@index([typeOfQuestion], map: "gsNvrQuestions_typeOfQuestion_idx")
+  @@map("gsNvrQuestions")
+}
+
+/// One row per Non-Verbal Reasoning round; its id identifies the test.
+/// Mirrors the Maths and English pairs so one union spans every subject.
+model TestTrackerNvrMain {
+  id            Int         @id @default(autoincrement())
+  studentId     Int
+  student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  testStartTime DateTime    @default(now()) @db.Timestamptz(3)
+
+  topic            String?
+  /// Null marks a whole-topic test spanning several subtopics.
+  subTopic         String?
+  difficultyLevel  String?
+  completionReason String?
+
+  questions TestTrackerNvr[]
+
+  @@index([studentId, testStartTime])
+  @@index([studentId, topic, subTopic, difficultyLevel, testStartTime], map: "testTrackerNvrMain_student_round_idx")
+  @@map("testTrackerNvrMain")
+}
+
+/// One row per question answered within a Non-Verbal round.
+model TestTrackerNvr {
+  id         Int                @id @default(autoincrement())
+  testId     Int
+  test       TestTrackerNvrMain @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questionId Int
+  /// Restrict: deleting a question must not erase a child's history of it.
+  question   GsNvrQuestion      @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  studentId  Int
+  student    UserProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  isAnsRight Boolean            @default(false)
+  isSkipped  Boolean            @default(false)
+
+  timeSpentOnQuestion Decimal? @db.Decimal(7, 2)
+  chosenOption        String?  @db.VarChar(1)
+  correctOption       String?  @db.VarChar(1)
+  questionOrder       Int?     @db.SmallInt
+  /// Snapshot of the question type, which the parent report groups by.
+  topic               String?
+
+  @@index([testId])
+  @@index([studentId, questionId])
+  @@map("testTrackerNvr")
 }
 
 /// One row per Maths practice round; its id identifies the test.

@@ -1,26 +1,217 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Design tokens.
+ *
+ * Every colour the app uses is named here rather than picked per component,
+ * so a screen cannot quietly invent its own grey. Tailwind v4 turns each entry
+ * into a utility: --color-ink becomes text-ink, bg-ink, border-ink.
+ *
+ * The palette is deliberately not the Tailwind default blue/indigo. The ground
+ * is a cool off-white rather than pure white so cards have something to sit
+ * against, and the brand is a deep teal-blue: calm enough for a parent reading
+ * a report, distinct from the difficulty colours it sits beside.
+ */
+@theme {
+  /* Text */
+  --color-ink: #12212b;
+  --color-ink-soft: #52646f;
+  --color-ink-faint: #8497a1;
+
+  /* Surfaces */
+  --color-ground: #f2f5f7;
+  --color-surface: #ffffff;
+  --color-line: #e2e9ec;
+  --color-line-strong: #c9d5da;
+
+  /* Brand */
+  --color-brand: #0e5a70;
+  --color-brand-hover: #0a4557;
+  --color-brand-tint: #e6f1f4;
+
+  /* Used sparingly, for the one action on a screen that should pull the eye */
+  --color-warm: #b45f16;
+  --color-warm-tint: #fbf0e4;
+
+  /* The difficulty ladder, in ladder order. These are the only strong hues in
+     the app, so a level is recognisable by colour alone. */
+  --color-starter: #2f7d5c;
+  --color-starter-tint: #e4f2ea;
+  --color-explorer: #2563a8;
+  --color-explorer-tint: #e6eff8;
+  --color-navigator: #0d8a82;
+  --color-navigator-tint: #e0f2f0;
+  --color-challenger: #6b4aa8;
+  --color-challenger-tint: #eee9f7;
+  --color-master: #a8365a;
+  --color-master-tint: #f9e8ed;
+
+  /* Score bands, shared by every chip that shows a percentage */
+  --color-good: #2f7d5c;
+  --color-good-tint: #e4f2ea;
+  --color-fair: #9a6512;
+  --color-fair-tint: #fbf1de;
+  --color-poor: #b23b3b;
+  --color-poor-tint: #fae9e9;
+
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings carry the display face; body text never does. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  /* Long headings and short labels need different tracking, and the display
+     face is too tight by default at large sizes. */
+  h1 {
+    letter-spacing: -0.025em;
+  }
+
+  ::selection {
+    background: var(--color-brand-tint);
+    color: var(--color-brand-hover);
+  }
+
+  /* One focus treatment everywhere, visible against both white and the ground */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* Figures that line up in columns - scores, times, question counts */
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /*
+   * Shared surfaces. Pages used to repeat these strings, which is how the
+   * shadow on one card drifted from the shadow on the next.
+   */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 0.875rem;
+    box-shadow:
+      0 1px 2px rgb(18 33 43 / 0.04),
+      0 12px 28px -20px rgb(18 33 43 / 0.28);
+  }
+
+  .card-quiet {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 0.75rem;
+  }
+
+  /* The one primary action on a screen */
+  .btn-primary {
+    background: var(--color-brand);
+    color: #fff;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-brand-hover);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+  }
+
+  .btn-quiet {
+    background: var(--color-surface);
+    color: var(--color-ink-soft);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 0.625rem;
+    font-weight: 500;
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .btn-quiet:hover:not(:disabled) {
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+  }
+  .btn-quiet:disabled {
+    opacity: 0.4;
+  }
+
+  .field {
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 0.625rem;
+    padding: 0.55rem 0.8rem;
+    color: var(--color-ink);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .field::placeholder {
+    color: var(--color-ink-faint);
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px var(--color-brand-tint);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink-soft);
+    margin-bottom: 0.3rem;
+  }
+
+  /* Small uppercase section markers */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  /* Pills: one shape for every level and score chip in the app */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.45;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chip-lg {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8125rem;
+  }
 }

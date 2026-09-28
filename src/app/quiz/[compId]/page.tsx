@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { difficultyStyle } from "@/lib/level-style";
 
 interface Question {
   id: number;
@@ -374,64 +375,70 @@ export default function QuizPage() {
   /* the whole thing fits one screen on desktop.                          */
   /* ------------------------------------------------------------------ */
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-ground">
       {/* Navigation */}
-      <nav className="bg-white shadow shrink-0">
+      <nav className="bg-surface border-b border-line shrink-0">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-3">
           <Link
             href="/dashboard"
-            className="text-indigo-600 hover:text-indigo-700 font-medium text-sm shrink-0"
+            className="text-sm font-medium text-ink-soft hover:text-brand transition shrink-0"
           >
             ← Dashboard
           </Link>
-          <p className="text-sm text-gray-600 truncate hidden sm:block">
-            <span className="font-semibold text-gray-800">{comp.label}</span>
+          <p className="text-sm text-ink-soft truncate hidden sm:block">
+            <span className="font-medium text-ink">{comp.label}</span>
             {comp.difficultyLevel && ` · ${comp.difficultyLevel}`}
           </p>
-          <h1 className="text-lg font-bold text-indigo-600 shrink-0">
+          <span className="font-display text-base font-bold text-brand shrink-0">
             TasteUrKnowledge
-          </h1>
+          </span>
         </div>
       </nav>
 
       {/* Two panes */}
       <div className="flex-1 lg:min-h-0 w-full max-w-[1600px] mx-auto px-3 sm:px-4 py-3 grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 lg:gap-4">
         {/* Story - scrolls within its own pane */}
-        <section className="bg-white rounded-lg shadow-lg flex flex-col lg:min-h-0 overflow-hidden">
-          <header className="px-5 py-2.5 border-b border-gray-200 shrink-0 flex items-center justify-between gap-2">
-            <h2 className="font-bold text-gray-800 truncate">
-              📖 {comp.label}
+        <section className="card flex flex-col lg:min-h-0 overflow-hidden">
+          <header className="px-5 py-3 border-b border-line shrink-0 flex items-center justify-between gap-2">
+            <h2 className="font-display font-semibold text-ink truncate">
+              {comp.label}
             </h2>
             {comp.difficultyLevel && (
-              <span className="px-2 py-0.5 text-xs font-bold rounded bg-amber-100 text-amber-700 border border-amber-300 shrink-0">
+              <span
+                className={`chip shrink-0 ${difficultyStyle(
+                  comp.difficultyLevel
+                )}`}
+              >
                 {comp.difficultyLevel}
               </span>
             )}
           </header>
-          <div className="overflow-y-auto px-5 py-4 max-h-[42vh] lg:max-h-none lg:flex-1 text-gray-700 leading-relaxed whitespace-pre-line">
+          {/* Reading measure: the passage is the one place in the app with
+              real prose, so it gets generous line height and a wider size. */}
+          <div className="overflow-y-auto px-5 sm:px-7 py-5 max-h-[42vh] lg:max-h-none lg:flex-1 text-[15px] text-ink leading-[1.75] whitespace-pre-line">
             {comp.compStory || "No story for this comprehension."}
           </div>
         </section>
 
         {/* Question - header and footer pinned, body scrolls */}
-        <section className="bg-white rounded-lg shadow-lg flex flex-col lg:min-h-0 overflow-hidden">
+        <section className="card flex flex-col lg:min-h-0 overflow-hidden">
           {/* Progress */}
-          <header className="px-5 py-2.5 border-b border-gray-200 shrink-0">
+          <header className="px-5 py-3 border-b border-line shrink-0">
             <div className="flex justify-between items-center mb-2">
-              <p className="font-bold text-gray-800 text-sm">
+              <p className="text-sm font-medium text-ink tabular">
                 Question {safeIndex + 1} of {totalQuestions}
               </p>
-              <p className="text-xs text-gray-600">
-                Answered:{" "}
-                <span className="font-bold text-indigo-600">
+              <p className="text-xs text-ink-faint tabular">
+                <span className="font-semibold text-brand">
                   {answeredCount}
                 </span>
-                /{totalQuestions}
+                {" / "}
+                {totalQuestions} answered
               </p>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div className="w-full bg-line rounded-full h-1">
               <div
-                className="bg-indigo-600 h-1.5 rounded-full transition-all"
+                className="bg-brand h-1 rounded-full transition-all duration-300"
                 style={{
                   width: `${
                     totalQuestions ? (answeredCount / totalQuestions) * 100 : 0
@@ -450,56 +457,76 @@ export default function QuizPage() {
               {currentQuestion && (
                 <div className="w-full my-auto">
                   {currentQuestion.typeOfQuestion && (
-                    <div className="flex gap-2 mb-2 flex-wrap">
-                      <span className="px-2 py-0.5 text-xs font-bold rounded bg-indigo-100 text-indigo-700 border border-indigo-300">
-                        {currentQuestion.typeOfQuestion}
-                      </span>
-                    </div>
+                    <span className="chip bg-brand-tint text-brand border-brand/20 mb-3">
+                      {currentQuestion.typeOfQuestion}
+                    </span>
                   )}
 
-                  <h3 className="font-bold text-gray-800 mb-3">
-                    <span className="text-indigo-600">Q{safeIndex + 1}:</span>{" "}
+                  <h3 className="font-display text-[17px] font-semibold text-ink mb-4 leading-snug">
                     {currentQuestion.quest}
                   </h3>
 
                   <div className="space-y-2">
-                    {optionsFor(currentQuestion).map((option) => (
-                      <label
-                        key={option.label}
-                        className={`flex items-start p-2.5 rounded-lg border-2 cursor-pointer transition ${
-                          answers[currentQuestion.id] === option.label
-                            ? "border-indigo-600 bg-indigo-50"
-                            : "border-gray-300 hover:border-indigo-300"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={String(currentQuestion.id)}
-                          value={option.label}
-                          checked={answers[currentQuestion.id] === option.label}
-                          onChange={() =>
-                            handleAnswerChange(currentQuestion.id, option.label)
-                          }
-                          className="w-4 h-4 mt-0.5 shrink-0"
-                        />
-                        <span className="ml-3 text-sm font-medium text-gray-700">
-                          <strong>{option.label}:</strong> {option.text}
-                        </span>
-                      </label>
-                    ))}
+                    {optionsFor(currentQuestion).map((option) => {
+                      const chosen =
+                        answers[currentQuestion.id] === option.label;
+                      return (
+                        <label
+                          key={option.label}
+                          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                            chosen
+                              ? "border-brand bg-brand-tint"
+                              : "border-line hover:border-line-strong hover:bg-ground/60"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={String(currentQuestion.id)}
+                            value={option.label}
+                            checked={chosen}
+                            onChange={() =>
+                              handleAnswerChange(
+                                currentQuestion.id,
+                                option.label
+                              )
+                            }
+                            className="sr-only"
+                          />
+                          {/* The letter doubles as the radio, so the whole row
+                              is the target rather than a 16px circle. */}
+                          <span
+                            aria-hidden="true"
+                            className={`w-6 h-6 shrink-0 rounded-md grid place-items-center text-xs font-semibold transition ${
+                              chosen
+                                ? "bg-brand text-white"
+                                : "bg-ground text-ink-soft"
+                            }`}
+                          >
+                            {option.label}
+                          </span>
+                          <span
+                            className={`text-sm leading-relaxed ${
+                              chosen ? "text-ink font-medium" : "text-ink-soft"
+                            }`}
+                          >
+                            {option.text}
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               )}
             </div>
 
             {/* Controls stay put so they are always reachable */}
-            <footer className="px-5 py-3 border-t border-gray-200 shrink-0 space-y-3">
-              <div className="flex gap-3">
+            <footer className="px-5 py-3.5 border-t border-line shrink-0 space-y-3">
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => goToIndex(Math.max(safeIndex - 1, 0))}
                   disabled={safeIndex === 0}
-                  className="flex-1 bg-gray-200 text-gray-700 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  className="btn-quiet flex-1 py-2 text-sm disabled:cursor-not-allowed"
                 >
                   ← Previous
                 </button>
@@ -509,13 +536,14 @@ export default function QuizPage() {
                     goToIndex(Math.min(safeIndex + 1, totalQuestions - 1))
                   }
                   disabled={safeIndex === totalQuestions - 1}
-                  className="flex-1 bg-indigo-600 text-white py-1.5 rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  className="btn-quiet flex-1 py-2 text-sm disabled:cursor-not-allowed"
                 >
                   Next →
                 </button>
               </div>
 
-              {/* Jump to any question */}
+              {/* Jump to any question. Answered ones are filled, so the gaps
+                  are what stands out. */}
               <div className="flex flex-wrap gap-1.5">
                 {comp.questions.map((question, idx) => {
                   const isCurrent = idx === safeIndex;
@@ -529,12 +557,12 @@ export default function QuizPage() {
                       title={`Question ${idx + 1}${
                         isAnswered ? " (answered)" : ""
                       }`}
-                      className={`w-8 h-8 rounded font-bold text-xs border-2 transition ${
+                      className={`w-8 h-8 rounded-lg font-semibold text-xs border transition tabular ${
                         isCurrent
-                          ? "bg-indigo-600 text-white border-indigo-600"
+                          ? "bg-brand text-white border-brand"
                           : isAnswered
-                          ? "bg-green-100 text-green-700 border-green-500 hover:border-green-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-indigo-300"
+                          ? "bg-good-tint text-good border-good/30"
+                          : "bg-surface text-ink-faint border-line hover:border-line-strong"
                       }`}
                     >
                       {idx + 1}
@@ -546,9 +574,9 @@ export default function QuizPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700 disabled:opacity-50 transition"
+                className="btn-primary w-full py-2.5"
               >
-                {submitting ? "Submitting..." : "Submit Answers"}
+                {submitting ? "Submitting…" : "Submit answers"}
               </button>
             </footer>
           </form>

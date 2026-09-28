@@ -31,12 +31,18 @@ export async function resolveStudentId(
  * The flags are not subject-specific: a level unlocked here is unlocked for
  * English and Maths alike.
  */
-const ENTITLEMENT_LEVELS = [
+export const ENTITLEMENT_LEVELS = [
   { level: "Starter", column: "starter" },
   { level: "Explorer", column: "explorer" },
+  { level: "Navigator", column: "navigator" },
   { level: "Challenger", column: "challenger" },
-  { level: "Think Harder", column: "thinkHarder" },
+  { level: "Master", column: "master" },
 ] as const;
+
+// "Think Harder" left the ladder. Its column is still on the table, but no
+// content carries the level and nothing grants it, so it is absent here on
+// purpose - a level listed without a column behind it can never be granted,
+// which is exactly how Navigator stayed invisible.
 
 export type EntitlementColumn = (typeof ENTITLEMENT_LEVELS)[number]["column"];
 
@@ -62,18 +68,29 @@ export async function allowedLevels(
 
   const details = await prisma.userStudentDetails.findUnique({
     where: { studentId },
+    // One column per rung in ENTITLEMENT_LEVELS. A rung missing from this
+    // select is a rung nobody can ever be granted, which is how Navigator
+    // stayed invisible despite having content.
     select: {
       starter: true,
       explorer: true,
+      navigator: true,
       challenger: true,
-      thinkHarder: true,
+      master: true,
     },
   });
   if (!details) return [];
 
-  return ENTITLEMENT_LEVELS.filter(
-    (entry) => details[entry.column] === true
-  ).map((entry) => entry.level);
+  return grantedLevels(details);
+}
+
+/** The ladder rungs these flags unlock, in ladder order. */
+export function grantedLevels(
+  flags: Partial<Record<EntitlementColumn, boolean | null>>
+): string[] {
+  return ENTITLEMENT_LEVELS.filter((entry) => flags[entry.column] === true).map(
+    (entry) => entry.level
+  );
 }
 
 /**
@@ -96,6 +113,7 @@ export function canAccessLevel(
 export const DIFFICULTY_ORDER = [
   "Starter",
   "Explorer",
+  "Navigator",
   "Challenger",
   "Master",
 ] as const;
@@ -116,21 +134,11 @@ export function sortDifficulties(levels: string[]): string[] {
   });
 }
 
-/** Styling per band, so the difficulty groups read at a glance. */
-export function difficultyStyle(level: string): string {
-  switch (level.toLowerCase()) {
-    case "starter":
-      return "bg-green-100 text-green-800 border-green-300";
-    case "explorer":
-      return "bg-blue-100 text-blue-800 border-blue-300";
-    case "challenger":
-      return "bg-purple-100 text-purple-800 border-purple-300";
-    case "master":
-      return "bg-rose-100 text-rose-800 border-rose-300";
-    default:
-      return "bg-gray-100 text-gray-700 border-gray-300";
-  }
-}
+/**
+ * Re-exported from level-style.ts, which holds no Prisma import so a client
+ * component can pull the same colours without bundling the database client.
+ */
+export { difficultyStyle, scoreStyle } from "@/lib/level-style";
 
 export interface RecentAttempt {
   percentage: number;
@@ -183,11 +191,4 @@ export async function recentAttemptsByComp(
   }
 
   return byComp;
-}
-
-/** Green / amber / red band for a score chip. */
-export function scoreStyle(percentage: number): string {
-  if (percentage >= 70) return "bg-green-100 text-green-800 border-green-300";
-  if (percentage >= 40) return "bg-amber-100 text-amber-800 border-amber-300";
-  return "bg-red-100 text-red-700 border-red-300";
 }

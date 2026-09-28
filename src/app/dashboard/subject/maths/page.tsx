@@ -51,45 +51,46 @@ export default async function MathsPage({
     : new Map<string, number[]>();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-ground">
+      <nav className="bg-surface border-b border-line">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
           <Link
             href="/dashboard"
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
+            className="text-sm font-medium text-ink-soft hover:text-brand transition"
           >
-            ← Back to Dashboard
+            ← Subjects
           </Link>
-          <h1 className="text-2xl font-bold text-indigo-600">TasteUrKnowledge</h1>
+          <span className="font-display text-lg font-bold text-brand">
+            TasteUrKnowledge
+          </span>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-3xl font-bold text-gray-800">
-          {MATHS_SUBJECT_NAME}
-        </h2>
-        <p className="text-gray-600 mt-1 mb-6">
-          Pick a difficulty, then open a topic and choose a subtopic — you will
-          get up to {QUESTIONS_PER_ROUND} random questions.
-        </p>
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <header className="mb-7">
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+            {MATHS_SUBJECT_NAME}
+          </h1>
+          <p className="text-ink-soft text-sm mt-1">
+            Pick a difficulty, open a topic, choose a subtopic — you get up to{" "}
+            {QUESTIONS_PER_ROUND} random questions.
+          </p>
+        </header>
 
         {levels.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-            <p className="text-gray-800 text-lg font-medium">
-              No Maths levels are open to you yet
+          <div className="card p-12 text-center">
+            <p className="font-display text-lg font-semibold text-ink">
+              No levels are open to you yet
             </p>
-            <p className="text-gray-600 mt-2">
+            <p className="text-ink-soft text-sm mt-1.5">
               Ask your teacher to unlock a difficulty level for you.
             </p>
           </div>
         ) : (
           <>
             {/* Difficulty selector */}
-            <div className="mb-6">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Difficulty level
-              </h3>
+            <div className="mb-7">
+              <h2 className="eyebrow mb-2.5">Difficulty level</h2>
               <div className="flex flex-wrap gap-2">
                 {levels.map((level) => {
                   const isActive = level === activeLevel;
@@ -100,10 +101,10 @@ export default async function MathsPage({
                         level
                       )}`}
                       aria-current={isActive ? "true" : undefined}
-                      className={`px-4 py-2 rounded-full text-sm font-bold border-2 transition ${
+                      className={`chip chip-lg border transition ${
                         isActive
-                          ? "bg-indigo-600 text-white border-indigo-600 shadow"
-                          : `${mathsLevelStyle(level)} hover:brightness-95`
+                          ? "bg-brand text-white border-brand shadow-sm"
+                          : `${mathsLevelStyle(level)} hover:brightness-[0.97]`
                       }`}
                     >
                       {level}
@@ -115,11 +116,11 @@ export default async function MathsPage({
 
             {/* One collapsible frame per topic, subtopics inside */}
             {topics.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-600">
+              <div className="card p-10 text-center text-ink-soft text-sm">
                 No topics at this level yet.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {topics.map((group, index) => {
                   const topicRecent =
                     attempts.get(topicKey(group.topic, activeLevel)) ?? [];
@@ -129,33 +130,30 @@ export default async function MathsPage({
                     // First topic starts open so the page is never a wall of
                     // closed frames.
                     open={index === 0}
-                    className="group bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200"
+                    className="group card overflow-hidden"
                   >
-                    <summary className="flex items-center gap-3 px-5 py-3 cursor-pointer select-none hover:bg-gray-50 transition list-none [&::-webkit-details-marker]:hidden">
-                      <span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+                    <summary className="flex items-center gap-3 px-5 py-3.5 cursor-pointer select-none hover:bg-ground/60 transition list-none [&::-webkit-details-marker]:hidden">
+                      <span className="text-ink-faint text-[10px] transition-transform group-open:rotate-90">
                         ▶
                       </span>
-                      <span className="font-bold text-gray-800">
+                      <span className="font-display font-semibold text-ink">
                         {group.topic}{" "}
-                        <span className="font-normal text-gray-500">
-                          ({group.count.toLocaleString()})
+                        <span className="font-sans font-normal text-sm text-ink-faint tabular">
+                          {group.count.toLocaleString()}
                         </span>
                       </span>
-                      <span className="ml-auto flex items-center gap-2 shrink-0">
-
+                      <span className="ml-auto flex items-center gap-2.5 shrink-0">
                         {/* Last 3 whole-topic test results */}
-                        <span className="flex items-center gap-1">
+                        <span className="hidden sm:flex items-center gap-1">
                           {topicRecent.length === 0 ? (
-                            <span className="text-[11px] text-gray-400 italic">
+                            <span className="text-[11px] text-ink-faint">
                               No test yet
                             </span>
                           ) : (
                             topicRecent.map((percentage, idx) => (
                               <span
                                 key={idx}
-                                className={`px-1.5 py-0.5 text-[11px] font-bold rounded border ${scoreStyle(
-                                  percentage
-                                )}`}
+                                className={`chip ${scoreStyle(percentage)}`}
                               >
                                 {percentage}%
                               </span>
@@ -168,14 +166,14 @@ export default async function MathsPage({
                           href={`/quiz/maths?topic=${encodeURIComponent(
                             group.topic
                           )}&level=${encodeURIComponent(activeLevel)}`}
-                          className="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition whitespace-nowrap"
+                          className="btn-primary px-3 py-1.5 text-xs whitespace-nowrap"
                         >
-                          Create test ({QUESTIONS_PER_TOPIC_TEST} Q)
+                          Create test · {QUESTIONS_PER_TOPIC_TEST} Q
                         </Link>
                       </span>
                     </summary>
 
-                    <div className="px-4 pb-4 pt-1 border-t border-gray-100">
+                    <div className="px-4 pb-4 pt-1 border-t border-line">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
                         {group.subTopics.map(({ subTopic }) => {
                           const recent =
@@ -186,23 +184,23 @@ export default async function MathsPage({
                               href={`/quiz/maths?subTopic=${encodeURIComponent(
                                 subTopic
                               )}&level=${encodeURIComponent(activeLevel)}`}
-                              className="group/item flex items-center gap-2 bg-gray-50 hover:bg-white rounded-lg px-3 py-2 border-l-4 border-indigo-500 hover:shadow-sm transition"
+                              className="group/item flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
                             >
-                              <span className="text-sm font-semibold text-gray-800 group-hover/item:text-indigo-700 transition truncate">
+                              <span className="text-sm font-medium text-ink group-hover/item:text-brand transition truncate">
                                 {subTopic}
                               </span>
 
                               {/* Last 3 scores, newest first */}
                               <span className="ml-auto shrink-0 flex items-center gap-1">
                                 {recent.length === 0 ? (
-                                  <span className="text-[11px] text-gray-400 italic">
-                                    Not attempted
+                                  <span className="text-[11px] text-ink-faint">
+                                    —
                                   </span>
                                 ) : (
                                   recent.map((percentage, idx) => (
                                     <span
                                       key={idx}
-                                      className={`px-1.5 py-0.5 text-[11px] font-bold rounded border ${scoreStyle(
+                                      className={`chip ${scoreStyle(
                                         percentage
                                       )}`}
                                     >

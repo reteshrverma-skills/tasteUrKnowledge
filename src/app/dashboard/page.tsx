@@ -2,31 +2,44 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { SUBJECT_ORDER, displayName } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
+import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import Link from "next/link";
 
-/** Each subject gets its own colour so the four tiles stay distinguishable. */
-const SUBJECT_STYLES: Record<string, { tile: string; accent: string }> = {
+/**
+ * One mark per subject, so a child recognises where they are going before
+ * reading the word. Flat colour rather than a gradient: four gradients side by
+ * side compete with each other and with the difficulty chips further in.
+ */
+const SUBJECT_STYLES: Record<
+  string,
+  { bar: string; glyph: string; mark: string }
+> = {
   English: {
-    tile: "from-pink-500 to-rose-600",
-    accent: "text-rose-700 bg-rose-50 border-rose-200",
+    bar: "bg-master",
+    glyph: "bg-master-tint text-master",
+    mark: "Aa",
   },
   Maths: {
-    tile: "from-blue-500 to-indigo-600",
-    accent: "text-indigo-700 bg-indigo-50 border-indigo-200",
+    bar: "bg-explorer",
+    glyph: "bg-explorer-tint text-explorer",
+    mark: "7+3",
   },
   Verbal: {
-    tile: "from-green-500 to-emerald-600",
-    accent: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    bar: "bg-starter",
+    glyph: "bg-starter-tint text-starter",
+    mark: "“”",
   },
   "Non-Verbal": {
-    tile: "from-amber-500 to-orange-600",
-    accent: "text-orange-700 bg-orange-50 border-orange-200",
+    bar: "bg-challenger",
+    glyph: "bg-challenger-tint text-challenger",
+    mark: "◧",
   },
 };
 
 const FALLBACK_STYLE = {
-  tile: "from-gray-500 to-gray-600",
-  accent: "text-gray-700 bg-gray-50 border-gray-200",
+  bar: "bg-ink-faint",
+  glyph: "bg-ground text-ink-soft",
+  mark: "?",
 };
 
 export default async function DashboardPage() {
@@ -68,12 +81,20 @@ export default async function DashboardPage() {
     _count: { _all: true },
   });
 
-  // Maths lives in its own table and is not year-scoped.
-  const mathsCount = await prisma.gsMathsQuestion.count();
+  // Maths and Non-Verbal each live in their own table, counted as questions
+  // rather than comprehensions. A subject missing from here reads as "Coming
+  // soon" however much content it actually has, which is what hid Non-Verbal.
+  const [mathsCount, nvrCount] = await Promise.all([
+    prisma.gsMathsQuestion.count(),
+    prisma.gsNvrQuestion.count(),
+  ]);
 
   const countFor = (name: string) => {
     if (name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase()) {
       return mathsCount;
+    }
+    if (name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase()) {
+      return nvrCount;
     }
     return (
       compCounts.find(
@@ -83,80 +104,105 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-indigo-600">TasteUrKnowledge</h1>
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-ground">
+      <nav className="bg-surface border-b border-line">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+          <span className="font-display text-lg font-bold text-brand">
+            TasteUrKnowledge
+          </span>
+          <div className="flex items-center gap-3">
             {isAdmin && (
               <Link
                 href="/admin"
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700"
+                className="btn-quiet px-3.5 py-1.5 text-sm"
               >
-                Admin Panel
+                Admin
               </Link>
             )}
             <form action="/api/auth/logout" method="POST">
               <button
                 type="submit"
-                className="text-gray-600 hover:text-red-600 font-medium"
+                className="text-sm font-medium text-ink-soft hover:text-poor transition"
               >
-                Logout
+                Log out
               </button>
             </form>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Student name */}
-        <div className="mb-10 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold shrink-0">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <div className="mb-9 flex items-center gap-4">
+          <span className="w-12 h-12 rounded-full bg-brand text-white grid place-items-center font-display text-lg font-semibold shrink-0">
             {studentName.charAt(0).toUpperCase()}
-          </div>
+          </span>
           <div>
-            <h2 className="text-3xl font-bold text-gray-800">{studentName}</h2>
-            <p className="text-gray-600 mt-1">
-              Choose a subject to start practising
+            <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+              Hello, {studentName}
+            </h1>
+            <p className="text-ink-soft text-sm mt-0.5">
+              Pick a subject to start practising
             </p>
           </div>
         </div>
 
-        {/* Subjects */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {subjectNames.map((name) => {
             const style = SUBJECT_STYLES[name] ?? FALLBACK_STYLE;
             const count = countFor(name);
-            const isMaths =
-              name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase();
+            // Maths and Non-Verbal are banks of individual questions;
+            // English is a shelf of comprehensions. The tile counts whichever
+            // the subject actually holds.
+            const countsQuestions =
+              name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase() ||
+              name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase();
+            const ready = count > 0;
 
             return (
               <Link
                 key={name}
                 href={`/dashboard/subject/${encodeURIComponent(name)}`}
-                className="bg-white rounded-lg shadow-lg hover:shadow-xl transition overflow-hidden group"
+                aria-disabled={!ready}
+                className={`card group relative overflow-hidden p-5 transition hover:-translate-y-0.5 hover:shadow-lg ${
+                  ready ? "" : "opacity-60"
+                }`}
               >
-                <div
-                  className={`bg-gradient-to-r ${style.tile} px-6 py-8 transition group-hover:brightness-110`}
+                {/* A single colour bar carries the subject's identity */}
+                <span
+                  className={`absolute inset-x-0 top-0 h-1 ${style.bar}`}
+                  aria-hidden="true"
+                />
+
+                <span
+                  className={`w-11 h-11 rounded-xl grid place-items-center font-display font-semibold text-sm mb-4 ${style.glyph}`}
+                  aria-hidden="true"
                 >
-                  <h3 className="text-2xl font-bold text-white">{name}</h3>
-                </div>
-                <div className="p-5">
-                  <span
-                    className={`inline-block px-2 py-1 text-xs font-bold rounded border ${style.accent}`}
-                  >
-                    {count === 0
-                      ? "Coming soon"
-                      : isMaths
-                      ? `${count} questions`
-                      : `${count} quiz${count === 1 ? "" : "zes"}`}
+                  {style.mark}
+                </span>
+
+                <h2 className="font-display text-lg font-semibold text-ink group-hover:text-brand transition">
+                  {name}
+                </h2>
+
+                <p className="text-sm text-ink-soft mt-1 tabular">
+                  {!ready
+                    ? "Coming soon"
+                    : countsQuestions
+                    ? `${count.toLocaleString()} questions`
+                    : `${count} comprehension${count === 1 ? "" : "s"}`}
+                </p>
+
+                {ready && (
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand">
+                    Start
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform group-hover:translate-x-0.5"
+                    >
+                      →
+                    </span>
                   </span>
-                  <p className="text-gray-600 mt-3 text-sm">
-                    {count === 0 ? "No quizzes yet" : "Click to begin →"}
-                  </p>
-                </div>
+                )}
               </Link>
             );
           })}

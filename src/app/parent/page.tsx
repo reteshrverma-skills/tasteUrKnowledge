@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { displayName } from "@/lib/english";
 import { listChildren, parentProfile } from "@/lib/parent";
+import { difficultyStyle } from "@/lib/student";
 import { skillBreakdown, timeSpentBySubject } from "@/lib/progress";
 import { ParentNav } from "./ParentNav";
 import { ChildProgress } from "./ChildProgress";
@@ -38,77 +39,71 @@ export default async function ParentDashboardPage() {
   const progressById = new Map(progress.map((p) => [p.studentId, p]));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-ground">
       <ParentNav parentName={parentName} />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <header className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink">
             Welcome, {parentName}
-          </h2>
-          <p className="text-gray-600 mt-1">
+          </h1>
+          <p className="text-ink-soft text-sm mt-1">
             {children.length === 0
               ? "Add your first child to get started"
               : `You are looking after ${children.length} ${
                   children.length === 1 ? "child" : "children"
                 }`}
           </p>
-        </div>
+        </header>
 
         {children.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-            <p className="text-gray-800 text-lg font-medium">
+          <div className="card p-12 text-center">
+            <p className="font-display text-lg font-semibold text-ink">
               No children on your account yet
             </p>
-            <p className="text-gray-600 mt-2">
+            <p className="text-ink-soft text-sm mt-1.5 max-w-sm mx-auto">
               Create a profile for your child and they will be able to log in
               and start practising.
             </p>
-            <Link
-              href="/parent/kids"
-              className="inline-block mt-6 bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-indigo-700 transition"
-            >
+            <Link href="/parent/kids" className="btn-primary inline-block mt-6 px-5 py-2.5">
               Add a child
             </Link>
           </div>
         ) : (
           <>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {children.map((child) => (
-                <div
-                  key={child.studentId}
-                  className="bg-white rounded-lg shadow-sm border-l-4 border-indigo-500 px-5 py-4"
-                >
+                <div key={child.studentId} className="card px-5 sm:px-6 py-5">
                   <div className="flex items-center gap-4 flex-wrap">
-                  <span className="w-11 h-11 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shrink-0">
+                  <span className="w-11 h-11 rounded-full bg-brand-tint text-brand grid place-items-center font-display font-semibold shrink-0">
                     {child.name.charAt(0).toUpperCase()}
                   </span>
 
                   <div className="min-w-0">
-                    <p className="font-bold text-gray-800 truncate">
+                    <p className="font-display font-semibold text-ink truncate flex items-center gap-2">
                       {child.name}
                       {!child.isActive && (
-                        <span className="ml-2 px-2 py-0.5 text-[11px] font-bold rounded bg-gray-100 text-gray-600 border border-gray-300">
+                        <span className="chip bg-ground text-ink-soft border-line-strong">
                           Inactive
                         </span>
                       )}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Login: {child.profileName}
+                    <p className="text-xs text-ink-faint mt-0.5">
+                      {child.profileName}
                       {child.yearName ? ` · ${child.yearName}` : ""}
                     </p>
                   </div>
 
-                  <span className="ml-auto flex items-center gap-2 flex-wrap justify-end">
+                  <span className="ml-auto flex items-center gap-1.5 flex-wrap justify-end">
                     {child.levels.length === 0 ? (
-                      <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded font-medium">
+                      <span className="chip bg-warm-tint text-warm border-warm/25">
                         No levels unlocked
                       </span>
                     ) : (
                       child.levels.map((level) => (
                         <span
                           key={level}
-                          className="px-2 py-0.5 text-[11px] font-bold rounded bg-indigo-50 text-indigo-700 border border-indigo-200"
+                          className={`chip ${difficultyStyle(level)}`}
                         >
                           {level}
                         </span>
@@ -116,7 +111,7 @@ export default async function ParentDashboardPage() {
                     )}
                     <Link
                       href={`/parent/kids/${child.studentId}`}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition whitespace-nowrap"
+                      className="btn-quiet ml-1 px-3 py-1.5 text-xs whitespace-nowrap"
                     >
                       Edit
                     </Link>
@@ -138,7 +133,7 @@ export default async function ParentDashboardPage() {
 
             <Link
               href="/parent/kids"
-              className="inline-block mt-6 bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-indigo-700 transition"
+              className="btn-quiet inline-block mt-5 px-4 py-2.5 text-sm"
             >
               + Add another child
             </Link>

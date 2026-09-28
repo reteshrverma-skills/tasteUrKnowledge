@@ -10,40 +10,47 @@ import Link from "next/link";
  */
 export function ParentNav({ parentName }: { parentName: string }) {
   return (
-    <nav className="bg-white shadow">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center gap-4">
-        <Link href="/parent" className="text-2xl font-bold text-indigo-600">
+    <nav className="bg-surface border-b border-line">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+        <Link
+          href="/parent"
+          className="font-display text-lg font-bold text-brand"
+        >
           TasteUrKnowledge
         </Link>
 
         <div className="flex items-center gap-4">
           <details className="relative group">
-            <summary className="flex items-center gap-2 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden text-gray-700 hover:text-indigo-700 font-medium">
-              <span className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold">
+            <summary className="flex items-center gap-2 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden text-sm font-medium text-ink-soft hover:text-ink transition">
+              <span className="w-8 h-8 rounded-full bg-brand-tint text-brand grid place-items-center font-display text-sm font-semibold">
                 {parentName.charAt(0).toUpperCase()}
               </span>
               Profile
-              <span className="text-xs text-gray-400 transition-transform group-open:rotate-180">
+              <span className="text-[10px] text-ink-faint transition-transform group-open:rotate-180">
                 ▼
               </span>
             </summary>
 
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+            <div className="card absolute right-0 mt-2 w-60 py-1.5 z-20">
               <Link
                 href="/parent/profile"
-                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700"
+                className="block px-4 py-2.5 hover:bg-brand-tint transition"
               >
-                <span className="font-semibold">My Profile</span>
-                <span className="block text-xs text-gray-500">
+                <span className="block text-sm font-semibold text-ink">
+                  My Profile
+                </span>
+                <span className="block text-xs text-ink-faint">
                   Your own details
                 </span>
               </Link>
               <Link
                 href="/parent/kids"
-                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 border-t border-gray-100"
+                className="block px-4 py-2.5 hover:bg-brand-tint transition border-t border-line"
               >
-                <span className="font-semibold">Kids Profile</span>
-                <span className="block text-xs text-gray-500">
+                <span className="block text-sm font-semibold text-ink">
+                  Kids Profile
+                </span>
+                <span className="block text-xs text-ink-faint">
                   Add and update your children
                 </span>
               </Link>
@@ -53,9 +60,9 @@ export function ParentNav({ parentName }: { parentName: string }) {
           <form action="/api/auth/logout" method="POST">
             <button
               type="submit"
-              className="text-gray-600 hover:text-red-600 font-medium"
+              className="text-sm font-medium text-ink-soft hover:text-poor transition"
             >
-              Logout
+              Log out
             </button>
           </form>
         </div>

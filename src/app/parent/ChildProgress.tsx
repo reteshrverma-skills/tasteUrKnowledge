@@ -1,16 +1,10 @@
 import type { SkillArea, SubjectTime } from "@/lib/progress";
 import { formatDuration } from "@/lib/progress";
-
-/** The same green / amber / red bands as the score chips elsewhere. */
-function scoreTone(percentage: number): string {
-  if (percentage >= 70) return "bg-green-100 text-green-800 border-green-300";
-  if (percentage >= 40) return "bg-amber-100 text-amber-800 border-amber-300";
-  return "bg-red-100 text-red-700 border-red-300";
-}
+import { scoreStyle } from "@/lib/student";
 
 const SUBJECT_TONE: Record<string, string> = {
-  English: "bg-rose-500",
-  Maths: "bg-indigo-500",
+  English: "bg-master",
+  Maths: "bg-explorer",
 };
 
 /**
@@ -23,32 +17,28 @@ const SUBJECT_TONE: Record<string, string> = {
 function AreaList({ title, areas }: { title: string; areas: SkillArea[] }) {
   return (
     <div>
-      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-        {title}
-      </h4>
-      <ul className="space-y-2">
+      <h4 className="eyebrow mb-2.5">{title}</h4>
+      <ul className="space-y-2.5">
         {areas.map((area) => (
           <li
             key={`${area.subject}-${area.label}`}
-            className="flex items-start gap-2"
+            className="flex items-start gap-2.5"
           >
             <span
-              className={`px-1.5 py-0.5 text-[11px] font-bold rounded border shrink-0 tabular-nums ${scoreTone(
-                area.percentage
-              )}`}
+              className={`chip shrink-0 mt-0.5 ${scoreStyle(area.percentage)}`}
             >
               {area.percentage}%
             </span>
             <span className="min-w-0">
-              <span className="text-sm font-medium text-gray-800">
+              <span className="text-sm font-medium text-ink">
                 {area.subject} · {area.label}
               </span>
               {area.detail && (
-                <span className="block text-xs text-gray-500">
+                <span className="block text-xs text-ink-soft mt-0.5">
                   {area.detail}
                 </span>
               )}
-              <span className="block text-[11px] text-gray-400">
+              <span className="block text-[11px] text-ink-faint mt-0.5 tabular">
                 {area.attempted} question
                 {area.attempted === 1 ? "" : "s"} answered
               </span>
@@ -91,14 +81,12 @@ export function ChildProgress({
   ].filter((panel) => panel.areas.length > 0);
 
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
+    <div className="mt-5 pt-5 border-t border-line">
       {/* Time spent */}
-      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-        Time spent
-      </h4>
+      <h4 className="eyebrow mb-2.5">Time spent</h4>
 
       {!anyTime ? (
-        <p className="text-sm text-gray-500 italic">
+        <p className="text-sm text-ink-faint">
           Nothing practised this month yet.
         </p>
       ) : (
@@ -110,33 +98,33 @@ export function ChildProgress({
             <col className="w-[20%]" />
           </colgroup>
           <thead>
-            <tr className="text-[11px] uppercase tracking-wide text-gray-400">
-              <th className="text-left font-semibold pb-1">Subject</th>
-              <th className="text-right font-semibold pb-1">Today</th>
-              <th className="text-right font-semibold pb-1">This week</th>
-              <th className="text-right font-semibold pb-1">This month</th>
+            <tr className="eyebrow">
+              <th className="text-left pb-1.5 font-semibold">Subject</th>
+              <th className="text-right pb-1.5 font-semibold">Today</th>
+              <th className="text-right pb-1.5 font-semibold">This week</th>
+              <th className="text-right pb-1.5 font-semibold">This month</th>
             </tr>
           </thead>
           <tbody>
             {times.map((row) => (
-              <tr key={row.subject} className="border-t border-gray-100">
-                <td className="py-1.5 font-medium text-gray-700">
+              <tr key={row.subject} className="border-t border-line">
+                <td className="py-2 font-medium text-ink">
                   <span className="inline-flex items-center gap-2">
                     <span
-                      className={`w-2 h-2 rounded-full ${
-                        SUBJECT_TONE[row.subject] ?? "bg-gray-400"
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        SUBJECT_TONE[row.subject] ?? "bg-ink-faint"
                       }`}
                     />
                     {row.subject}
                   </span>
                 </td>
-                <td className="py-1.5 text-right tabular-nums text-gray-800">
+                <td className="py-2 text-right tabular text-ink-soft">
                   {formatDuration(row.todaySeconds)}
                 </td>
-                <td className="py-1.5 text-right tabular-nums text-gray-800">
+                <td className="py-2 text-right tabular text-ink-soft">
                   {formatDuration(row.weekSeconds)}
                 </td>
-                <td className="py-1.5 text-right tabular-nums font-semibold text-gray-900">
+                <td className="py-2 text-right tabular font-semibold text-ink">
                   {formatDuration(row.monthSeconds)}
                 </td>
               </tr>

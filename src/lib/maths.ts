@@ -17,8 +17,8 @@ export const QUESTIONS_PER_TOPIC_TEST = 12;
 export const MATHS_DIFFICULTY_ORDER = [
   "Starter",
   "Explorer",
+  "Navigator",
   "Challenger",
-  "Think Harder",
   "Master",
 ] as const;
 
@@ -34,23 +34,14 @@ export function sortMathsLevels(levels: string[]): string[] {
   });
 }
 
-/** Colour per rung, easiest green through hardest red. */
-export function mathsLevelStyle(level: string): string {
-  switch (level.toLowerCase()) {
-    case "starter":
-      return "bg-green-100 text-green-800 border-green-300";
-    case "explorer":
-      return "bg-blue-100 text-blue-800 border-blue-300";
-    case "challenger":
-      return "bg-purple-100 text-purple-800 border-purple-300";
-    case "think harder":
-      return "bg-orange-100 text-orange-800 border-orange-300";
-    case "master":
-      return "bg-rose-100 text-rose-800 border-rose-300";
-    default:
-      return "bg-gray-100 text-gray-700 border-gray-300";
-  }
-}
+/**
+ * Colour per rung.
+ *
+ * Maths and English share one ladder, so they share one set of colours -
+ * this used to be a second copy of the same switch, and the two drifted the
+ * moment a rung was added to only one of them.
+ */
+export { difficultyStyle as mathsLevelStyle } from "@/lib/level-style";
 
 /** The fields a student may see - ansChoice and explanation are withheld. */
 export const mathsQuestionPublicSelect = {

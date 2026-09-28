@@ -1,0 +1,228 @@
+import Link from "next/link";
+import { getSession } from "@/lib/auth";
+import { scoreStyle } from "@/lib/level-style";
+import {
+  NVR_SUBJECT_FULL,
+  QUESTIONS_PER_NVR_ROUND,
+  QUESTIONS_PER_NVR_TOPIC_TEST,
+  allowedLevels,
+  availableNvrLevels,
+  canAccessLevel,
+  nvrCellKey,
+  nvrLevelStyle,
+  nvrTopicKey,
+  nvrTopicsForLevel,
+  recentNvrAttempts,
+} from "@/lib/nvr";
+
+/**
+ * Non-Verbal Reasoning picker: difficulty at the top, then a collapsible
+ * frame per topic holding its subtopics.
+ *
+ * Deliberately the same screen as Maths. A child who has learned one picker
+ * should not have to learn another, and the difficulty chips are the one
+ * control that has to read the same way in every subject.
+ */
+export default async function NonVerbalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ level?: string }>;
+}) {
+  const { level: requestedLevel } = await searchParams;
+
+  const session = await getSession();
+
+  // Only levels that have questions AND that this student may open.
+  const access = await allowedLevels(session);
+  const levels = (await availableNvrLevels()).filter((level) =>
+    canAccessLevel(access, level)
+  );
+
+  // Fall back to the easiest unlocked rung when the query string is missing,
+  // bogus, or names a level this student may not open.
+  const activeLevel =
+    levels.find((l) => l.toLowerCase() === requestedLevel?.toLowerCase()) ??
+    levels[0];
+
+  const topics = activeLevel ? await nvrTopicsForLevel(activeLevel) : [];
+
+  const attempts = session
+    ? await recentNvrAttempts(session.userId)
+    : new Map<string, number[]>();
+
+  return (
+    <div className="min-h-screen bg-ground">
+      <nav className="bg-surface border-b border-line">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-ink-soft hover:text-brand transition"
+          >
+            ← Subjects
+          </Link>
+          <span className="font-display text-lg font-bold text-brand">
+            TasteUrKnowledge
+          </span>
+        </div>
+      </nav>
+
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <header className="mb-7">
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+            {NVR_SUBJECT_FULL}
+          </h1>
+          <p className="text-ink-soft text-sm mt-1">
+            Pick a difficulty, open a topic, choose a subtopic — you get up to{" "}
+            {QUESTIONS_PER_NVR_ROUND} random questions.
+          </p>
+        </header>
+
+        {levels.length === 0 ? (
+          <div className="card p-12 text-center">
+            <p className="font-display text-lg font-semibold text-ink">
+              No levels are open to you yet
+            </p>
+            <p className="text-ink-soft text-sm mt-1.5">
+              Ask your teacher to unlock a difficulty level for you.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="mb-7">
+              <h2 className="eyebrow mb-2.5">Difficulty level</h2>
+              <div className="flex flex-wrap gap-2">
+                {levels.map((level) => {
+                  const isActive = level === activeLevel;
+                  return (
+                    <Link
+                      key={level}
+                      href={`/dashboard/subject/non-verbal?level=${encodeURIComponent(
+                        level
+                      )}`}
+                      aria-current={isActive ? "true" : undefined}
+                      className={`chip chip-lg border transition ${
+                        isActive
+                          ? "bg-brand text-white border-brand shadow-sm"
+                          : `${nvrLevelStyle(level)} hover:brightness-[0.97]`
+                      }`}
+                    >
+                      {level}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {topics.length === 0 ? (
+              <div className="card p-10 text-center text-ink-soft text-sm">
+                No topics at this level yet.
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {topics.map((group, index) => {
+                  const topicRecent =
+                    attempts.get(nvrTopicKey(group.topic, activeLevel)) ?? [];
+                  return (
+                    <details
+                      key={group.topic}
+                      // First topic starts open so the page is never a wall of
+                      // closed frames.
+                      open={index === 0}
+                      className="group card overflow-hidden"
+                    >
+                      <summary className="flex items-center gap-3 px-5 py-3.5 cursor-pointer select-none hover:bg-ground/60 transition list-none [&::-webkit-details-marker]:hidden">
+                        <span className="text-ink-faint text-[10px] transition-transform group-open:rotate-90">
+                          ▶
+                        </span>
+                        <span className="font-display font-semibold text-ink">
+                          {group.topic}{" "}
+                          <span className="font-sans font-normal text-sm text-ink-faint tabular">
+                            {group.count.toLocaleString()}
+                          </span>
+                        </span>
+                        <span className="ml-auto flex items-center gap-2.5 shrink-0">
+                          <span className="hidden sm:flex items-center gap-1">
+                            {topicRecent.length === 0 ? (
+                              <span className="text-[11px] text-ink-faint">
+                                No test yet
+                              </span>
+                            ) : (
+                              topicRecent.map((percentage, idx) => (
+                                <span
+                                  key={idx}
+                                  className={`chip ${scoreStyle(percentage)}`}
+                                >
+                                  {percentage}%
+                                </span>
+                              ))
+                            )}
+                          </span>
+
+                          <Link
+                            href={`/quiz/nvr?topic=${encodeURIComponent(
+                              group.topic
+                            )}&level=${encodeURIComponent(activeLevel)}`}
+                            className="btn-primary px-3 py-1.5 text-xs whitespace-nowrap"
+                          >
+                            Create test · {QUESTIONS_PER_NVR_TOPIC_TEST} Q
+                          </Link>
+                        </span>
+                      </summary>
+
+                      <div className="px-4 pb-4 pt-1 border-t border-line">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
+                          {group.subTopics.map(({ subTopic, count }) => {
+                            const recent =
+                              attempts.get(
+                                nvrCellKey(subTopic, activeLevel)
+                              ) ?? [];
+                            return (
+                              <Link
+                                key={subTopic}
+                                href={`/quiz/nvr?subTopic=${encodeURIComponent(
+                                  subTopic
+                                )}&level=${encodeURIComponent(activeLevel)}`}
+                                className="group/item flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
+                              >
+                                <span className="text-sm font-medium text-ink group-hover/item:text-brand transition truncate">
+                                  {subTopic}
+                                  <span className="text-ink-faint font-normal tabular">
+                                    {" · "}
+                                    {count}
+                                  </span>
+                                </span>
+
+                                <span className="ml-auto shrink-0 flex items-center gap-1">
+                                  {recent.length === 0 ? (
+                                    <span className="text-[11px] text-ink-faint">
+                                      —
+                                    </span>
+                                  ) : (
+                                    recent.map((percentage, idx) => (
+                                      <span
+                                        key={idx}
+                                        className={`chip ${scoreStyle(
+                                          percentage
+                                        )}`}
+                                      >
+                                        {percentage}%
+                                      </span>
+                                    ))
+                                  )}
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </details>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

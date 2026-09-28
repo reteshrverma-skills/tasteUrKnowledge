@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Session } from "@/lib/auth";
 import { displayName } from "@/lib/english";
+import { grantedLevels } from "@/lib/student";
 
 /**
  * A parent's view of one of their children.
@@ -21,13 +22,6 @@ export interface Child {
   levels: string[];
 }
 
-const LEVEL_FLAGS = [
-  { level: "Starter", column: "starter" },
-  { level: "Explorer", column: "explorer" },
-  { level: "Challenger", column: "challenger" },
-  { level: "Think Harder", column: "thinkHarder" },
-] as const;
-
 /** Children of this parent, oldest profile first so the order never shifts. */
 export async function listChildren(parentId: number): Promise<Child[]> {
   const rows = await prisma.userStudentDetails.findMany({
@@ -38,8 +32,9 @@ export async function listChildren(parentId: number): Promise<Child[]> {
       studentYear: true,
       starter: true,
       explorer: true,
+      navigator: true,
       challenger: true,
-      thinkHarder: true,
+      master: true,
       year: { select: { name: true } },
       student: {
         select: {
@@ -60,9 +55,9 @@ export async function listChildren(parentId: number): Promise<Child[]> {
     yearName: row.year?.name ?? null,
     yearId: row.studentYear,
     isActive: row.student.isActive,
-    levels: LEVEL_FLAGS.filter((f) => row[f.column] === true).map(
-      (f) => f.level
-    ),
+    // Shared with the student-side gate, so the chips a parent sees and the
+    // levels a child can actually open can never drift apart.
+    levels: grantedLevels(row),
   }));
 }
 

@@ -30,8 +30,8 @@ export default function LoginPage() {
         return;
       }
 
-      // The API redirects admins to /admin and students to /dashboard;
-      // follow wherever it landed.
+      // The API redirects admins to /admin, parents to /parent and students
+      // to /dashboard; follow wherever it landed.
       const destination = new URL(response.url).pathname;
       router.push(destination === "/api/auth/login" ? "/dashboard" : destination);
     } catch (err) {
@@ -43,74 +43,90 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen bg-ground flex items-center justify-center px-5 py-12">
+      <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">TasteUrKnowledge</h1>
-          <p className="text-gray-600 mt-2">Test Your Skills</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              User ID
-            </label>
-            <input
-              type="text"
-              value={profileName}
-              onChange={(e) => setProfileName(e.target.value)}
-              required
-              autoComplete="username"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="your user id"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="••••••"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Don't have an account?{" "}
-            <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
-              Sign up
-            </Link>
+          <span className="inline-grid place-items-center w-12 h-12 rounded-xl bg-brand text-white font-display text-xl font-bold mb-4">
+            T
+          </span>
+          <h1 className="font-display text-2xl font-bold text-ink">
+            TasteUrKnowledge
+          </h1>
+          <p className="text-ink-soft text-sm mt-1.5">
+            11+ practice for Year 4 and 5
           </p>
         </div>
 
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-gray-600 mb-2 font-semibold">Demo Credentials:</p>
-          <p className="text-sm text-gray-600">Student: student / student123</p>
-          <p className="text-sm text-gray-600">Parent: parent / parent123</p>
-          <p className="text-sm text-gray-600">Admin: admin / admin123</p>
+        <div className="card p-7">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="profileName" className="label">
+                User ID
+              </label>
+              <input
+                id="profileName"
+                type="text"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                required
+                autoComplete="username"
+                className="field"
+                placeholder="your user id"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-baseline justify-between">
+                <label htmlFor="password" className="label">
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-brand hover:text-brand-hover"
+                >
+                  Forgotten?
+                </Link>
+              </div>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="field"
+                placeholder="••••••"
+              />
+            </div>
+
+            {error && (
+              <p
+                role="alert"
+                className="bg-poor-tint border border-poor/25 text-poor text-sm px-3.5 py-2.5 rounded-lg"
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full py-2.5"
+            >
+              {loading ? "Signing in…" : "Sign in"}
+            </button>
+          </form>
         </div>
+
+        <p className="text-center text-sm text-ink-soft mt-6">
+          New here?{" "}
+          <Link
+            href="/register"
+            className="font-semibold text-brand hover:text-brand-hover"
+          >
+            Create a parent account
+          </Link>
+        </p>
       </div>
     </div>
   );

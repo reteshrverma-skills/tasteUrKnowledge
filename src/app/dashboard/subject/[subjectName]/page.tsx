@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { QUESTIONS_PER_COMP_ROUND, compWhere } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
+import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import {
   UNGRADED_LABEL,
   allowedLevels,
@@ -23,17 +24,24 @@ import {
  */
 export default async function SubjectPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ subjectName: string }>;
+  searchParams: Promise<{ level?: string }>;
 }) {
   // Middleware handles authentication
   const { subjectName } = await params;
+  const { level: requestedLevel } = await searchParams;
   const name = decodeURIComponent(subjectName);
 
-  // Maths is picked by difficulty + subtopic, not listed as comprehensions.
-  // Matching case-insensitively so /subject/Maths lands there too.
+  // Maths and Non-Verbal are picked by difficulty + subtopic rather than
+  // listed as comprehensions, so each has its own screen. Matched
+  // case-insensitively so /subject/Maths lands there too.
   if (name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase()) {
     redirect("/dashboard/subject/maths");
+  }
+  if (name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase()) {
+    redirect("/dashboard/subject/non-verbal");
   }
 
   const session = await getSession();
@@ -80,67 +88,97 @@ export default async function SubjectPage({
 
   const levels = sortDifficulties(Array.from(byDifficulty.keys()));
 
+  // One difficulty at a time, chosen by chips at the top - the same control
+  // Maths and Non-Verbal use. The level lives in the query string rather than
+  // client state, so this stays a server component and each level is a
+  // shareable link.
+  const activeLevel =
+    levels.find((l) => l.toLowerCase() === requestedLevel?.toLowerCase()) ??
+    levels[0];
+  const activeComps = activeLevel ? byDifficulty.get(activeLevel) ?? [] : [];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-ground">
+      <nav className="bg-surface border-b border-line">
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
           <Link
             href="/dashboard"
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
+            className="text-sm font-medium text-ink-soft hover:text-brand transition"
           >
-            ← Back to Dashboard
+            ← Subjects
           </Link>
-          <h1 className="text-2xl font-bold text-indigo-600">TasteUrKnowledge</h1>
+          <span className="font-display text-lg font-bold text-brand">
+            TasteUrKnowledge
+          </span>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">{name}</h2>
-        </div>
-        <p className="text-gray-600 -mt-4 mb-8">
-          Comprehensions by difficulty — each one gives you{" "}
-          {QUESTIONS_PER_COMP_ROUND} random questions
-        </p>
+      <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <header className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink">{name}</h1>
+          <p className="text-ink-soft text-sm mt-1">
+            Each comprehension gives you {QUESTIONS_PER_COMP_ROUND} random
+            questions, so it is worth coming back to.
+          </p>
+        </header>
 
         {comps.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-            <p className="text-gray-800 text-lg font-medium">
-              No {name} quizzes yet
+          <div className="card p-12 text-center">
+            <p className="font-display text-lg font-semibold text-ink">
+              Nothing here yet
             </p>
-            <p className="text-gray-600 mt-2">
+            <p className="text-ink-soft text-sm mt-1.5 max-w-sm mx-auto">
               {lockedCount > 0
                 ? "Ask your teacher to unlock a difficulty level for you."
                 : "Check back once your teacher has added some."}
             </p>
-            <Link
-              href="/dashboard"
-              className="inline-block mt-6 bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
-            >
-              Back to Dashboard
+            <Link href="/dashboard" className="btn-primary inline-block mt-6 px-5 py-2.5">
+              Back to subjects
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
-            {levels.map((level) => {
-              const levelComps = byDifficulty.get(level)!;
-              return (
-                <div key={level}>
-                  <div className="flex items-center gap-3 mb-3 pb-2 border-b border-gray-300">
-                    <span
-                      className={`px-2.5 py-0.5 text-xs font-bold rounded-full border ${difficultyStyle(
-                        level
-                      )}`}
+          <>
+            {/* Same difficulty selector as Maths and Non-Verbal */}
+            <div className="mb-7">
+              <h2 className="eyebrow mb-2.5">Difficulty level</h2>
+              <div className="flex flex-wrap gap-2">
+                {levels.map((level) => {
+                  const isActive = level === activeLevel;
+                  return (
+                    <Link
+                      key={level}
+                      href={`/dashboard/subject/${encodeURIComponent(
+                        name
+                      )}?level=${encodeURIComponent(level)}`}
+                      aria-current={isActive ? "true" : undefined}
+                      className={`chip chip-lg border transition ${
+                        isActive
+                          ? "bg-brand text-white border-brand shadow-sm"
+                          : `${difficultyStyle(level)} hover:brightness-[0.97]`
+                      }`}
                     >
                       {level}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {levelComps.length} comprehension
-                      {levelComps.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              {[activeLevel].filter(Boolean).map((level) => {
+                const levelComps = byDifficulty.get(level)!;
+                return (
+                  <section key={level}>
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <span className="text-xs text-ink-faint tabular">
+                        {levelComps.length} comprehension
+                        {levelComps.length === 1 ? "" : "s"} at {level}
+                      </span>
+                      <span
+                        className="flex-1 h-px bg-line"
+                        aria-hidden="true"
+                      />
+                    </div>
 
                   <div className="space-y-2">
                     {levelComps.map((comp) => {
@@ -150,27 +188,27 @@ export default async function SubjectPage({
                         <Link
                           key={comp.id}
                           href={`/quiz/${comp.id}`}
-                          className="group flex items-center gap-3 bg-white rounded-lg shadow-sm hover:shadow-md transition px-4 py-3 border-l-4 border-green-500"
+                          className="card-quiet group flex items-center gap-3 px-4 py-3.5 transition hover:border-brand/40 hover:shadow-sm"
                         >
                           {/* The bracket is how many questions this round
                               asks, not how many the comprehension holds - a
                               student cares what they are about to sit. */}
-                          <span className="font-semibold text-gray-800 group-hover:text-indigo-700 transition truncate">
-                            {comp.label}{" "}
-                            <span className="font-normal text-gray-500">
-                              (
+                          <span className="font-medium text-ink group-hover:text-brand transition truncate">
+                            {comp.label}
+                            <span className="text-ink-faint font-normal tabular">
+                              {" · "}
                               {Math.min(
                                 QUESTIONS_PER_COMP_ROUND,
                                 comp._count.questions
-                              )}
-                              )
+                              )}{" "}
+                              questions
                             </span>
                           </span>
 
                           {/* Last three attempts, newest first, right aligned */}
                           <span className="ml-auto flex items-center gap-1.5 shrink-0">
                             {recent.length === 0 ? (
-                              <span className="text-xs text-gray-400 italic">
+                              <span className="text-xs text-ink-faint">
                                 Not attempted
                               </span>
                             ) : (
@@ -187,7 +225,7 @@ export default async function SubjectPage({
                                     title={`${new Date(
                                       attempt.submittedAt
                                     ).toLocaleDateString()} - ${attempt.percentage}%`}
-                                    className={`px-2 py-0.5 text-xs font-bold rounded border ${scoreStyle(
+                                    className={`chip ${scoreStyle(
                                       attempt.percentage
                                     )}`}
                                   >
@@ -196,15 +234,22 @@ export default async function SubjectPage({
                                 )
                               )
                             )}
+                            <span
+                              aria-hidden="true"
+                              className="text-ink-faint transition-transform group-hover:translate-x-0.5"
+                            >
+                              →
+                            </span>
                           </span>
                         </Link>
                       );
                     })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </div>
