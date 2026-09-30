@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
  * Logging out is a plain form POST from the dashboard, with no JavaScript to
@@ -12,9 +12,15 @@ import { NextRequest, NextResponse } from "next/server";
  * visitor straight back to /dashboard, which would look like logout silently
  * doing nothing.
  */
-export function POST(request: NextRequest) {
-  const response = NextResponse.redirect(new URL("/login", request.url), {
+export function POST() {
+  // A relative Location, not NextResponse.redirect. Behind Azure's proxy the
+  // server only sees its own internal host, so an absolute redirect built from
+  // request.url pointed the browser at http://localhost:8080/login. A relative
+  // "/login" is resolved by the browser against the public URL it actually
+  // used, so it works in front of a proxy and locally alike.
+  const response = new NextResponse(null, {
     status: 303,
+    headers: { Location: "/login" },
   });
 
   response.cookies.set({

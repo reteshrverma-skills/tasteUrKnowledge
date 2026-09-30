@@ -21,19 +21,19 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profileName, password }),
-        redirect: "follow", // Follow redirects
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         setError(data.error || "Login failed");
         return;
       }
 
-      // The API redirects admins to /admin, parents to /parent and students
-      // to /dashboard; follow wherever it landed.
-      const destination = new URL(response.url).pathname;
-      router.push(destination === "/api/auth/login" ? "/dashboard" : destination);
+      // The API hands back where this account belongs - admins to /admin,
+      // parents to /parent, students to /dashboard - and the cookie is already
+      // set on that response, so a plain client navigation lands authenticated.
+      router.push(data.redirect || "/dashboard");
     } catch (err) {
       setError("An error occurred. Please try again.");
       console.error(err);

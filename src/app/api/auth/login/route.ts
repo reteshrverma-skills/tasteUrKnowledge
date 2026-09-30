@@ -57,9 +57,18 @@ export async function POST(request: NextRequest) {
         : user.userType === "PARENT"
         ? "/parent"
         : "/dashboard";
-    const response = NextResponse.redirect(new URL(destination, request.url), {
-      status: 303,
-    });
+
+    // Return the destination as data and let the client navigate, rather than
+    // issuing an HTTP redirect. A server-built redirect has to name an
+    // absolute URL, and behind a reverse proxy (Azure App Service) the only
+    // host the server sees is its own internal one - so the browser was being
+    // sent to http://localhost:8080/dashboard, which it cannot reach. Handing
+    // back a relative path sidesteps that entirely, and matches how register
+    // already works.
+    const response = NextResponse.json(
+      { success: true, redirect: destination },
+      { status: 200 }
+    );
 
     // Set cookie on response
     response.cookies.set({
