@@ -90,23 +90,23 @@ export default function DaysPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      <nav className="bg-white shadow">
+    <div className="min-h-screen bg-ground">
+      <nav className="bg-surface border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between">
-          <Link href="/admin" className="text-purple-600 hover:text-purple-700 font-medium">
+          <Link href="/admin" className="text-brand hover:text-brand-hover font-medium">
             ← Back
           </Link>
-          <h1 className="text-2xl font-bold text-purple-600">Manage Days</h1>
+          <h1 className="text-2xl font-bold text-brand">Manage Days</h1>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Day</h2>
+          <h2 className="text-2xl font-bold text-ink mb-4">Add New Day</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-ink-soft mb-1">
                   Day Label
                 </label>
                 <input
@@ -114,19 +114,19 @@ export default function DaysPage() {
                   value={formData.label}
                   onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="e.g., Day 1"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-ink-soft mb-1">
                   Subject
                 </label>
                 <select
                   value={formData.subjectId}
                   onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select a subject</option>
                   {subjects.map((subject) => (
@@ -139,9 +139,9 @@ export default function DaysPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-ink-soft mb-1">
                 Comprehension story{" "}
-                <span className="text-gray-500 font-normal">(optional)</span>
+                <span className="text-ink-faint font-normal">(optional)</span>
               </label>
               <textarea
                 value={formData.content}
@@ -149,14 +149,14 @@ export default function DaysPage() {
                   setFormData({ ...formData, content: e.target.value })
                 }
                 rows={8}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand"
                 placeholder="Passage shown above the questions. Leave blank for a plain quiz."
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-ink-faint mt-1">
                 For English passages, use the{" "}
                 <Link
                   href="/admin/english"
-                  className="text-purple-600 hover:text-purple-700 font-medium"
+                  className="text-brand hover:text-brand-hover font-medium"
                 >
                   English Comprehension
                 </Link>{" "}
@@ -172,7 +172,7 @@ export default function DaysPage() {
 
             <button
               type="submit"
-              className="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700"
+              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover"
             >
               Add Day
             </button>
@@ -180,23 +180,23 @@ export default function DaysPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 bg-purple-600 text-white font-bold">
+          <div className="px-6 py-4 bg-brand text-white font-bold">
             Days List
           </div>
           {loading ? (
             <div className="p-6 text-center">Loading...</div>
           ) : days.length === 0 ? (
-            <div className="p-6 text-center text-gray-600">No days found</div>
+            <div className="p-6 text-center text-ink-soft">No days found</div>
           ) : (
             <div className="divide-y">
               {days.map((day) => (
                 <div key={day.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
                   <div>
                     <p className="font-bold">{day.label}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-ink-soft">
                       {day.subject.year.name} - {day.subject.name}
                       {day.content && (
-                        <span className="ml-2 text-purple-600">
+                        <span className="ml-2 text-brand">
                           📖 has story
                         </span>
                       )}

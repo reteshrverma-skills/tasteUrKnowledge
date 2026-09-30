@@ -73,14 +73,14 @@ export default function YearsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+    <div className="min-h-screen bg-ground">
       {/* Navigation */}
-      <nav className="bg-white shadow">
+      <nav className="bg-surface border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/admin" className="text-purple-600 hover:text-purple-700 font-medium">
+          <Link href="/admin" className="text-brand hover:text-brand-hover font-medium">
             ← Back to Admin
           </Link>
-          <h1 className="text-2xl font-bold text-purple-600">Manage Years</h1>
+          <h1 className="text-2xl font-bold text-brand">Manage Years</h1>
         </div>
       </nav>
 
@@ -88,11 +88,11 @@ export default function YearsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Form */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Year</h2>
+          <h2 className="text-2xl font-bold text-ink mb-4">Add New Year</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-ink-soft mb-1">
                   Year Name
                 </label>
                 <input
@@ -102,12 +102,12 @@ export default function YearsPage() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="e.g., Year 6"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-ink-soft mb-1">
                   Order
                 </label>
                 <input
@@ -116,7 +116,7 @@ export default function YearsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, order: parseInt(e.target.value) })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function YearsPage() {
 
             <button
               type="submit"
-              className="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition"
+              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover transition"
             >
               Add Year
             </button>
@@ -138,13 +138,13 @@ export default function YearsPage() {
 
         {/* Years List */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 bg-purple-600 text-white font-bold">
+          <div className="px-6 py-4 bg-brand text-white font-bold">
             Years List
           </div>
           {loading ? (
-            <div className="p-6 text-center text-gray-600">Loading...</div>
+            <div className="p-6 text-center text-ink-soft">Loading...</div>
           ) : years.length === 0 ? (
-            <div className="p-6 text-center text-gray-600">No years found</div>
+            <div className="p-6 text-center text-ink-soft">No years found</div>
           ) : (
             <div className="divide-y">
               {years.map((year) => (
@@ -153,8 +153,8 @@ export default function YearsPage() {
                   className="p-4 flex justify-between items-center hover:bg-gray-50"
                 >
                   <div>
-                    <p className="font-bold text-gray-800">{year.name}</p>
-                    <p className="text-sm text-gray-600">Order: {year.order}</p>
+                    <p className="font-bold text-ink">{year.name}</p>
+                    <p className="text-sm text-ink-soft">Order: {year.order}</p>
                   </div>
                   <button
                     onClick={() => handleDelete(year.id)}

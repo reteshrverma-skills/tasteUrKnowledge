@@ -90,7 +90,7 @@ async function fetchPassages(yearId: string): Promise<Passage[]> {
 }
 
 const inputClass =
-  "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none";
+  "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:outline-none";
 
 /** One question's inputs, shared by the new-passage form and the add form. */
 function QuestionFields({
@@ -107,7 +107,7 @@ function QuestionFields({
   return (
     <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
       <div className="flex justify-between items-center mb-3">
-        <span className="font-semibold text-gray-700">Question {position}</span>
+        <span className="font-semibold text-ink-soft">Question {position}</span>
         {onRemove && (
           <button
             type="button"
@@ -133,7 +133,7 @@ function QuestionFields({
           const key = `option${letter}` as keyof QuestionDraft;
           return (
             <div key={letter}>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
+              <label className="block text-xs font-medium text-ink-soft mb-1">
                 Option {letter}
               </label>
               <input
@@ -152,7 +152,7 @@ function QuestionFields({
       </div>
 
       <div className="mt-3">
-        <label className="block text-xs font-medium text-gray-600 mb-1">
+        <label className="block text-xs font-medium text-ink-soft mb-1">
           Correct answer
         </label>
         <div className="flex gap-4">
@@ -162,7 +162,7 @@ function QuestionFields({
                 type="radio"
                 checked={value.ansChoice === letter}
                 onChange={() => onChange({ ...value, ansChoice: letter })}
-                className="accent-purple-600"
+                className="accent-brand"
               />
               {letter}
             </label>
@@ -293,10 +293,10 @@ function PassageCard({
           onClick={() => setExpanded((open) => !open)}
           className="flex-1 text-left"
         >
-          <p className="font-bold text-gray-800">
+          <p className="font-bold text-ink">
             {expanded ? "▾" : "▸"} {passage.label}
           </p>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-ink-soft mt-1">
             {passage.questions.length} question
             {passage.questions.length === 1 ? "" : "s"} ·{" "}
             {countWords(passage.compStory ?? "")} words
@@ -347,14 +347,14 @@ function PassageCard({
                   type="button"
                   onClick={saveEdits}
                   disabled={busy}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                  className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {busy ? "Saving..." : "Save changes"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300"
+                  className="bg-gray-200 text-ink-soft px-4 py-2 rounded-lg hover:bg-gray-300"
                 >
                   Cancel
                 </button>
@@ -362,8 +362,8 @@ function PassageCard({
             </div>
           ) : (
             <div className="pt-4 bg-white rounded-lg p-4 border border-gray-200">
-              <h4 className="font-bold text-gray-800 mb-2">📖 Story</h4>
-              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+              <h4 className="font-bold text-ink mb-2">📖 Story</h4>
+              <p className="text-ink-soft whitespace-pre-line leading-relaxed">
                 {passage.compStory || "No story added yet."}
               </p>
             </div>
@@ -371,15 +371,15 @@ function PassageCard({
 
           <div className="bg-white rounded-lg border border-gray-200 divide-y">
             {passage.questions.length === 0 ? (
-              <p className="p-4 text-gray-600">No questions yet.</p>
+              <p className="p-4 text-ink-soft">No questions yet.</p>
             ) : (
               passage.questions.map((question, index) => (
                 <div key={question.id} className="p-4 flex justify-between gap-4">
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-800">
+                    <p className="font-semibold text-ink">
                       Q{index + 1}. {question.quest}
                     </p>
-                    <div className="text-sm text-gray-600 mt-1 grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                    <div className="text-sm text-ink-soft mt-1 grid grid-cols-1 md:grid-cols-2 gap-x-6">
                       <p>A: {question.optionA}</p>
                       <p>B: {question.optionB}</p>
                       <p>C: {question.optionC}</p>
@@ -414,14 +414,14 @@ function PassageCard({
                 <button
                   type="submit"
                   disabled={busy}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                  className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {busy ? "Adding..." : "Add question"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDraft(null)}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300"
+                  className="bg-gray-200 text-ink-soft px-4 py-2 rounded-lg hover:bg-gray-300"
                 >
                   Cancel
                 </button>
@@ -431,7 +431,7 @@ function PassageCard({
             <button
               type="button"
               onClick={() => setDraft(emptyQuestion())}
-              className="text-purple-600 hover:text-purple-700 font-medium"
+              className="text-brand hover:text-brand-hover font-medium"
             >
               + Add a question to this passage
             </button>
@@ -592,16 +592,16 @@ export default function EnglishAdminPage() {
   const loadingPassages = Boolean(selectedYearId) && loadedYearId !== selectedYearId;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      <nav className="bg-white shadow">
+    <div className="min-h-screen bg-ground">
+      <nav className="bg-surface border-b border-line">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between">
           <Link
             href="/admin"
-            className="text-purple-600 hover:text-purple-700 font-medium"
+            className="text-brand hover:text-brand-hover font-medium"
           >
             ← Back
           </Link>
-          <h1 className="text-2xl font-bold text-purple-600">
+          <h1 className="text-2xl font-bold text-brand">
             English Comprehension
           </h1>
         </div>
@@ -610,11 +610,11 @@ export default function EnglishAdminPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
         {/* Year picker — passages are filed under each year's English subject */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Year</h2>
+          <h2 className="text-2xl font-bold text-ink mb-4">Year</h2>
           {loadingYears ? (
-            <p className="text-gray-600">Loading years...</p>
+            <p className="text-ink-soft">Loading years...</p>
           ) : years.length === 0 ? (
-            <p className="text-gray-600 mb-4">
+            <p className="text-ink-soft mb-4">
               No years yet — add one to start writing passages.
             </p>
           ) : (
@@ -626,8 +626,8 @@ export default function EnglishAdminPage() {
                   onClick={() => setSelectedYearId(year.id)}
                   className={`px-4 py-2 rounded-lg font-medium transition ${
                     year.id === selectedYearId
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-brand text-white"
+                      : "bg-gray-100 text-ink-soft hover:bg-gray-200"
                   }`}
                 >
                   {year.name}
@@ -667,10 +667,10 @@ export default function EnglishAdminPage() {
 
         {/* New passage: story and its questions saved together */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-ink">
             Add a comprehension passage
           </h2>
-          <p className="text-gray-600 mt-1 mb-6">
+          <p className="text-ink-soft mt-1 mb-6">
             {selectedYear
               ? `Saved under ${selectedYear.name} → English, and shown to students above the questions.`
               : "Select or add a year first."}
@@ -678,7 +678,7 @@ export default function EnglishAdminPage() {
 
           <form onSubmit={handleCreatePassage} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-ink-soft mb-1">
                 Passage title
               </label>
               <input
@@ -692,7 +692,7 @@ export default function EnglishAdminPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-ink-soft mb-1">
                 Comprehension story
               </label>
               <textarea
@@ -703,13 +703,13 @@ export default function EnglishAdminPage() {
                 className={inputClass}
                 placeholder="Paste or write the passage. Blank lines are kept as paragraph breaks."
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-ink-faint mt-1">
                 {countWords(story)} words
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-800">Questions</h3>
+              <h3 className="text-lg font-bold text-ink">Questions</h3>
               {drafts.map((draft, index) => (
                 <QuestionFields
                   key={index}
@@ -726,7 +726,7 @@ export default function EnglishAdminPage() {
                 onClick={() =>
                   setDrafts((current) => [...current, emptyQuestion()])
                 }
-                className="text-purple-600 hover:text-purple-700 font-medium"
+                className="text-brand hover:text-brand-hover font-medium"
               >
                 + Add another question
               </button>
@@ -735,7 +735,7 @@ export default function EnglishAdminPage() {
             <button
               type="submit"
               disabled={saving || !selectedYearId}
-              className="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50"
+              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save passage and questions"}
             </button>
@@ -744,13 +744,13 @@ export default function EnglishAdminPage() {
 
         {/* Existing passages for the selected year */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 bg-purple-600 text-white font-bold">
+          <div className="px-6 py-4 bg-brand text-white font-bold">
             {selectedYear ? `${selectedYear.name} passages` : "Passages"}
           </div>
           {loadingPassages ? (
             <div className="p-6 text-center">Loading...</div>
           ) : passages.length === 0 ? (
-            <div className="p-6 text-center text-gray-600">
+            <div className="p-6 text-center text-ink-soft">
               No passages for this year yet.
             </div>
           ) : (

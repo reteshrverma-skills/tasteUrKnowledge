@@ -81,23 +81,23 @@ export default function SubjectsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      <nav className="bg-white shadow">
+    <div className="min-h-screen bg-ground">
+      <nav className="bg-surface border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between">
-          <Link href="/admin" className="text-purple-600 hover:text-purple-700 font-medium">
+          <Link href="/admin" className="text-brand hover:text-brand-hover font-medium">
             ← Back
           </Link>
-          <h1 className="text-2xl font-bold text-purple-600">Manage Subjects</h1>
+          <h1 className="text-2xl font-bold text-brand">Manage Subjects</h1>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Subject</h2>
+          <h2 className="text-2xl font-bold text-ink mb-4">Add New Subject</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-ink-soft mb-1">
                   Subject Name
                 </label>
                 <input
@@ -105,19 +105,19 @@ export default function SubjectsPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="e.g., English"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-ink-soft mb-1">
                   Year
                 </label>
                 <select
                   value={formData.yearId}
                   onChange={(e) => setFormData({ ...formData, yearId: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select a year</option>
                   {years.map((year) => (
@@ -137,7 +137,7 @@ export default function SubjectsPage() {
 
             <button
               type="submit"
-              className="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700"
+              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover"
             >
               Add Subject
             </button>
@@ -145,20 +145,20 @@ export default function SubjectsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 bg-purple-600 text-white font-bold">
+          <div className="px-6 py-4 bg-brand text-white font-bold">
             Subjects List
           </div>
           {loading ? (
             <div className="p-6 text-center">Loading...</div>
           ) : subjects.length === 0 ? (
-            <div className="p-6 text-center text-gray-600">No subjects found</div>
+            <div className="p-6 text-center text-ink-soft">No subjects found</div>
           ) : (
             <div className="divide-y">
               {subjects.map((subject) => (
                 <div key={subject.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
                   <div>
                     <p className="font-bold">{subject.name}</p>
-                    <p className="text-sm text-gray-600">{subject.year.name}</p>
+                    <p className="text-sm text-ink-soft">{subject.year.name}</p>
                   </div>
                   <button
                     onClick={() => handleDelete(subject.id)}
