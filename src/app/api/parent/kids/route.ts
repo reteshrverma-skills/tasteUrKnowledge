@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow, hashPassword } from "@/lib/auth";
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
+import { defaultEntitlementsForYear } from "@/lib/student";
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     const year = await prisma.year.findUnique({
       where: { id: studentYear },
-      select: { id: true },
+      select: { id: true, name: true },
     });
     if (!year) {
       return NextResponse.json(
@@ -97,7 +98,9 @@ export async function POST(request: NextRequest) {
           create: {
             parentId: session.userId,
             studentYear: year.id,
-            starter: true,
+            // Levels scale with the school year; harder rungs open as the
+            // child moves up, so the parent need not grant them by hand.
+            ...defaultEntitlementsForYear(year.name),
           },
         },
       },

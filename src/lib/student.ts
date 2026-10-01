@@ -46,6 +46,52 @@ export const ENTITLEMENT_LEVELS = [
 
 export type EntitlementColumn = (typeof ENTITLEMENT_LEVELS)[number]["column"];
 
+/** Every entitlement flag set to false - the starting point for a grant. */
+export type EntitlementFlags = Record<EntitlementColumn, boolean>;
+
+const NO_LEVELS: EntitlementFlags = {
+  starter: false,
+  explorer: false,
+  navigator: false,
+  challenger: false,
+  master: false,
+};
+
+/**
+ * The difficulty levels a child is given when their account is created,
+ * scaled to their school year:
+ *
+ *   Year 3 and below : Starter, Explorer
+ *   Year 4           : + Navigator
+ *   Year 5 and above : everything
+ *
+ * The harder rungs open as the child moves up, so a parent does not have to
+ * grant them by hand. A parent can still adjust any of these from Kids Profile
+ * afterwards. An unreadable or missing year falls back to Starter only, which
+ * is the safe floor rather than opening everything.
+ */
+export function defaultEntitlementsForYear(
+  yearName: string | null | undefined
+): EntitlementFlags {
+  const year = yearName ? parseInt(yearName.replace(/[^0-9]/g, ""), 10) : NaN;
+
+  if (!Number.isFinite(year)) return { ...NO_LEVELS, starter: true };
+  if (year >= 5) {
+    return {
+      starter: true,
+      explorer: true,
+      navigator: true,
+      challenger: true,
+      master: true,
+    };
+  }
+  if (year === 4) {
+    return { ...NO_LEVELS, starter: true, explorer: true, navigator: true };
+  }
+  // Year 3 and below.
+  return { ...NO_LEVELS, starter: true, explorer: true };
+}
+
 /** The flag that unlocks a level, or null when the level has no flag. */
 export function entitlementColumnFor(level: string): EntitlementColumn | null {
   const key = level.toLowerCase().replace(/\s+/g, "");
