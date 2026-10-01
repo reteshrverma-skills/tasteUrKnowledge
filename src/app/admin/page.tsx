@@ -21,6 +21,12 @@ export default async function AdminPage() {
             >
               Change Parent Password
             </Link>
+            <Link
+              href="/admin/admin-password"
+              className="text-ink-soft hover:text-brand font-medium"
+            >
+              Change Admin Password
+            </Link>
             <form action="/api/auth/logout" method="POST">
               <button
                 type="submit"

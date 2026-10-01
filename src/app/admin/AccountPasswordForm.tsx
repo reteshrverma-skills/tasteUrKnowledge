@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export interface ParentOption {
+export interface AccountOption {
   id: number;
   profileName: string;
   name: string;
@@ -10,10 +10,25 @@ export interface ParentOption {
 }
 
 const inputClass =
-  "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent";
+  "w-full px-4 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent";
 
-export function ParentPasswordForm({ parents }: { parents: ParentOption[] }) {
-  const [parentId, setParentId] = useState("");
+/**
+ * Admin screen for resetting one account's password, shared by the parent and
+ * admin reset pages. The only differences between them are the endpoint it
+ * posts to and the word for the account, so both are props rather than two
+ * near-identical copies of this form.
+ */
+export function AccountPasswordForm({
+  accounts,
+  endpoint,
+  noun,
+}: {
+  accounts: AccountOption[];
+  endpoint: string;
+  /** Singular, lower case: "parent", "admin". */
+  noun: string;
+}) {
+  const [accountId, setAccountId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,10 +42,10 @@ export function ParentPasswordForm({ parents }: { parents: ParentOption[] }) {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/admin/parent-password", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId, password, confirmPassword }),
+        body: JSON.stringify({ accountId, password, confirmPassword }),
       });
       const data = await response.json();
 
@@ -42,7 +57,7 @@ export function ParentPasswordForm({ parents }: { parents: ParentOption[] }) {
       setDone(`Password changed for ${data.profileName}.`);
       setPassword("");
       setConfirmPassword("");
-      setParentId("");
+      setAccountId("");
     } catch (err) {
       setError("An error occurred. Please try again.");
       console.error(err);
@@ -51,11 +66,9 @@ export function ParentPasswordForm({ parents }: { parents: ParentOption[] }) {
     }
   };
 
-  if (parents.length === 0) {
+  if (accounts.length === 0) {
     return (
-      <p className="text-ink-soft">
-        There are no parent accounts yet.
-      </p>
+      <p className="text-ink-soft">There are no {noun} accounts yet.</p>
     );
   }
 
@@ -77,23 +90,23 @@ export function ParentPasswordForm({ parents }: { parents: ParentOption[] }) {
 
       <div>
         <label
-          htmlFor="parentId"
-          className="block text-sm font-medium text-ink-soft mb-1"
+          htmlFor="accountId"
+          className="block text-sm font-medium text-ink-soft mb-1 capitalize"
         >
-          Parent account
+          {noun} account
         </label>
         <select
-          id="parentId"
-          value={parentId}
-          onChange={(e) => setParentId(e.target.value)}
+          id="accountId"
+          value={accountId}
+          onChange={(e) => setAccountId(e.target.value)}
           required
           className={inputClass}
         >
-          <option value="">Choose a parent…</option>
-          {parents.map((parent) => (
-            <option key={parent.id} value={parent.id}>
-              {parent.name} ({parent.profileName})
-              {parent.isActive ? "" : " — inactive"}
+          <option value="">Choose a {noun}…</option>
+          {accounts.map((account) => (
+            <option key={account.id} value={account.id}>
+              {account.name} ({account.profileName})
+              {account.isActive ? "" : " — inactive"}
             </option>
           ))}
         </select>
@@ -145,8 +158,8 @@ export function ParentPasswordForm({ parents }: { parents: ParentOption[] }) {
       </button>
 
       <p className="text-xs text-ink-faint">
-        The parent is not told automatically — pass the new password on
-        yourself. Any reset link they already have stops working.
+        The {noun} is not told automatically — pass the new password on
+        yourself.
       </p>
     </form>
   );

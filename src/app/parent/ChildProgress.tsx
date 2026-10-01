@@ -74,7 +74,10 @@ export function ChildProgress({
   strengths: SkillArea[];
   weaknesses: SkillArea[];
 }) {
-  const anyTime = times.some((t) => t.monthSeconds > 0);
+  // Keyed off all-time, not this month: a child who practised last month but
+  // not yet this one has a table worth showing, which is the whole point of
+  // the all-time column.
+  const anyTime = times.some((t) => t.allTimeSeconds > 0);
   const panels = [
     { title: "Strengths", areas: strengths },
     { title: "Need to work on", areas: weaknesses },
@@ -87,15 +90,16 @@ export function ChildProgress({
 
       {!anyTime ? (
         <p className="text-sm text-ink-faint">
-          Nothing practised this month yet.
+          Nothing practised yet.
         </p>
       ) : (
         <table className="w-full text-sm table-fixed">
           <colgroup>
-            <col className="w-[40%]" />
-            <col className="w-[20%]" />
-            <col className="w-[20%]" />
-            <col className="w-[20%]" />
+            <col className="w-[28%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
           </colgroup>
           <thead>
             <tr className="eyebrow">
@@ -103,6 +107,7 @@ export function ChildProgress({
               <th className="text-right pb-1.5 font-semibold">Today</th>
               <th className="text-right pb-1.5 font-semibold">This week</th>
               <th className="text-right pb-1.5 font-semibold">This month</th>
+              <th className="text-right pb-1.5 font-semibold">All time</th>
             </tr>
           </thead>
           <tbody>
@@ -124,8 +129,13 @@ export function ChildProgress({
                 <td className="py-2 text-right tabular text-ink-soft">
                   {formatDuration(row.weekSeconds)}
                 </td>
-                <td className="py-2 text-right tabular font-semibold text-ink">
+                <td className="py-2 text-right tabular text-ink-soft">
                   {formatDuration(row.monthSeconds)}
+                </td>
+                {/* All-time is the emphasised figure: it always has the full
+                    picture, and it lines up with the all-time Strengths below. */}
+                <td className="py-2 text-right tabular font-semibold text-ink">
+                  {formatDuration(row.allTimeSeconds)}
                 </td>
               </tr>
             ))}

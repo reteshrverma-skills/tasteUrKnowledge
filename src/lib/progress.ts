@@ -33,13 +33,19 @@ export interface TimeSpent {
   todaySeconds: number;
   weekSeconds: number;
   monthSeconds: number;
+  allTimeSeconds: number;
 }
 
 export interface SubjectTime extends TimeSpent {
   subject: string;
 }
 
-const ZERO: TimeSpent = { todaySeconds: 0, weekSeconds: 0, monthSeconds: 0 };
+const ZERO: TimeSpent = {
+  todaySeconds: 0,
+  weekSeconds: 0,
+  monthSeconds: 0,
+  allTimeSeconds: 0,
+};
 
 /**
  * Start of today, of this week and of this month, in the server's own zone.
@@ -72,6 +78,7 @@ interface Bucketed {
   today: unknown;
   week: unknown;
   month: unknown;
+  alltime: unknown;
 }
 
 function toTimeSpent(row: Bucketed | undefined): TimeSpent {
@@ -80,11 +87,18 @@ function toTimeSpent(row: Bucketed | undefined): TimeSpent {
     todaySeconds: num(row.today),
     weekSeconds: num(row.week),
     monthSeconds: num(row.month),
+    allTimeSeconds: num(row.alltime),
   };
 }
 
 /**
- * Time this student spent on each subject today, this week and this month.
+ * Time this student spent on each subject today, this week, this month, and
+ * all time.
+ *
+ * The three calendar buckets reset on their boundary - on the 1st of a month
+ * "this month" is near-empty even for a child who practised all through the
+ * last one. All-time is included alongside so the figure still lines up with
+ * the all-time Strengths panel and the dashboard never looks blank.
  *
  * English counts the passage reading as well as the questions - for a
  * comprehension the reading *is* most of the work, and leaving it out would
@@ -96,12 +110,15 @@ export async function timeSpentBySubject(
 ): Promise<SubjectTime[]> {
   const { today, week, month } = periodBoundaries();
 
+  // No outer date bound now: every round is in scope and each column is a
+  // FILTER on top, with all-time the unfiltered total.
   const [english, maths] = await Promise.all([
     prisma.$queryRaw<Bucketed[]>`
       SELECT
         COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${today}), 0) AS today,
         COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${week}),  0) AS week,
-        COALESCE(SUM(t.secs), 0)                                     AS month
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${month}), 0) AS month,
+        COALESCE(SUM(t.secs), 0)                                     AS alltime
       FROM (
         SELECT
           m."testStartTime" AS started,
@@ -113,13 +130,13 @@ export async function timeSpentBySubject(
               ), 0) AS secs
           FROM "testTrackerEnglishMain" m
          WHERE m."studentId" = ${studentId}
-           AND m."testStartTime" >= ${month}
       ) t`,
     prisma.$queryRaw<Bucketed[]>`
       SELECT
         COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${today}), 0) AS today,
         COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${week}),  0) AS week,
-        COALESCE(SUM(t.secs), 0)                                     AS month
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${month}), 0) AS month,
+        COALESCE(SUM(t.secs), 0)                                     AS alltime
       FROM (
         SELECT
           m."testStartTime" AS started,
@@ -130,7 +147,6 @@ export async function timeSpentBySubject(
           ), 0) AS secs
           FROM "testTrackerMathMain" m
          WHERE m."studentId" = ${studentId}
-           AND m."testStartTime" >= ${month}
       ) t`,
   ]);
 
