@@ -39,10 +39,13 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
-          # Build-time placeholder only. `prisma generate` and `next build` do
-          # not connect to a database; the real DATABASE_URL lives in the App
-          # Service settings and is read at runtime.
+          # Build-time placeholders only. `next build` evaluates server modules
+          # to collect page data, so auth.ts runs and throws if JWT_SECRET is
+          # unset, and the Prisma datasource wants a DATABASE_URL. Neither is
+          # baked into the output - server env vars are read at runtime from the
+          # App Service settings, where the REAL values live.
           DATABASE_URL: 'postgresql://user:pass@localhost:5432/db'
+          JWT_SECRET: 'build-time-placeholder-not-used-at-runtime'
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
