@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, signToken } from "@/lib/auth";
+import { recordLogin } from "@/lib/login-session";
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,6 +49,9 @@ export async function POST(request: NextRequest) {
       profileName: user.profileName,
       userType: user.userType,
     });
+
+    // Opens the audit row. Non-fatal: a tracking failure must not block login.
+    await recordLogin(user.id);
 
     // Each account type has its own home: admins the admin panel, parents the
     // parent dashboard, students the subject tiles.

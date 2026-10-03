@@ -3,18 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // The production build runs on the Azure App Service (Kudu/Oryx), which has
   // the plan's RAM - ~1.75 GB on B1. `next build` compiles fine within that,
-  // but the type-check and lint phases that run afterwards load the whole type
-  // graph and get OOM-killed ("Running TypeScript ... Killed"), which fails the
-  // deploy. Both are already run locally (`tsc --noEmit`, `eslint`) and should
-  // be run in CI, so skipping them here trades nothing for a build that fits.
+  // but the type-check phase that runs afterwards loads the whole type graph
+  // and gets OOM-killed ("Running TypeScript ... Killed"), which fails the
+  // deploy. Types are already checked locally (`tsc --noEmit`) and should be in
+  // CI, so skipping the in-build check trades nothing for a build that fits.
   //
-  // If the build ever moves into GitHub Actions (7 GB runners) or the plan is
-  // scaled up, these can come back out.
+  // This Next version does not run ESLint during `next build`, so there is
+  // nothing to disable there. If the build moves to a GitHub Actions runner
+  // (7 GB) or the plan is scaled up, this can come back out.
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 };
 

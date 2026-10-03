@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
+import { recordLogout } from "@/lib/login-session";
 
 /**
  * Logging out is a plain form POST from the dashboard, with no JavaScript to
@@ -12,7 +14,14 @@ import { NextResponse } from "next/server";
  * visitor straight back to /dashboard, which would look like logout silently
  * doing nothing.
  */
-export function POST() {
+export async function POST() {
+  // The token is still on the request here (cleared only on the response), so
+  // the user is known and their open session can be closed before sign-out.
+  const session = await getSession();
+  if (session) {
+    await recordLogout(session.userId);
+  }
+
   // A relative Location, not NextResponse.redirect. Behind Azure's proxy the
   // server only sees its own internal host, so an absolute redirect built from
   // request.url pointed the browser at http://localhost:8080/login. A relative

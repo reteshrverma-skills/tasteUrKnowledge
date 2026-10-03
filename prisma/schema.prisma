@@ -50,9 +50,26 @@ model UserProfile {
   englishAnswers  TestTrackerEnglish[]
   nvrTests        TestTrackerNvrMain[]
   nvrAnswers      TestTrackerNvr[]
+  loginSessions   UserLoginSession[]
   resetTokens     PasswordResetToken[]
 
   @@map("userProfile")
+}
+
+/// One row per login, closed on logout: an audit trail of who was on and when.
+/// logoutAt stays null for a session still open or abandoned (tab closed), as
+/// the app only ever sees an explicit logout.
+model UserLoginSession {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loginAt   DateTime    @default(now()) @db.Timestamptz(3)
+  logoutAt  DateTime?   @db.Timestamptz(3)
+  /// "logout" for an explicit sign-out; null otherwise.
+  endReason String?
+
+  @@index([userId, loginAt])
+  @@map("userLoginSession")
 }
 
 /// A single-use, short-lived password reset link.
