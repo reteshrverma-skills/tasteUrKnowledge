@@ -6,6 +6,7 @@ import { QUESTIONS_PER_COMP_ROUND, compWhere } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import {
+  type RecentAttempt,
   UNGRADED_LABEL,
   allowedLevels,
   canAccessLevel,
@@ -72,7 +73,7 @@ export default async function SubjectPage({
         session.userId,
         comps.map((c) => c.id)
       )
-    : new Map();
+    : new Map<number, RecentAttempt[]>();
 
   // Band by difficulty, treating blank as one "Unrated" group.
   const byDifficulty = new Map<string, typeof comps>();
@@ -185,15 +186,20 @@ export default async function SubjectPage({
                       const recent = attemptsByComp.get(comp.id) ?? [];
 
                       return (
-                        <Link
+                        // A div, not a Link: the score chips are links of
+                        // their own and anchors cannot nest. The quiz link is
+                        // stretched over the card instead.
+                        <div
                           key={comp.id}
-                          href={`/quiz/${comp.id}`}
-                          className="card-quiet group flex items-center gap-3 px-4 py-3.5 transition hover:border-brand/40 hover:shadow-sm"
+                          className="card-quiet group relative flex items-center gap-3 px-4 py-3.5 transition hover:border-brand/40 hover:shadow-sm"
                         >
                           {/* The bracket is how many questions this round
                               asks, not how many the comprehension holds - a
                               student cares what they are about to sit. */}
-                          <span className="font-medium text-ink group-hover:text-brand transition truncate">
+                          <Link
+                            href={`/quiz/${comp.id}`}
+                            className="font-medium text-ink group-hover:text-brand transition truncate after:absolute after:inset-0"
+                          >
                             {comp.label}
                             <span className="text-ink-faint font-normal tabular">
                               {" · "}
@@ -203,7 +209,7 @@ export default async function SubjectPage({
                               )}{" "}
                               questions
                             </span>
-                          </span>
+                          </Link>
 
                           {/* Last three attempts, newest first, right aligned */}
                           <span className="ml-auto flex items-center gap-1.5 shrink-0">
@@ -212,27 +218,22 @@ export default async function SubjectPage({
                                 Not attempted
                               </span>
                             ) : (
-                              recent.map(
-                                (
-                                  attempt: {
-                                    percentage: number;
-                                    submittedAt: Date;
-                                  },
-                                  idx: number
-                                ) => (
-                                  <span
-                                    key={idx}
-                                    title={`${new Date(
-                                      attempt.submittedAt
-                                    ).toLocaleDateString()} - ${attempt.percentage}%`}
-                                    className={`chip ${scoreStyle(
-                                      attempt.percentage
-                                    )}`}
-                                  >
-                                    {attempt.percentage}%
-                                  </span>
-                                )
-                              )
+                              recent.map((attempt) => (
+                                <Link
+                                  key={attempt.testId}
+                                  href={`/dashboard/subject/${encodeURIComponent(
+                                    name
+                                  )}/review/${attempt.testId}`}
+                                  title={`Review the test from ${new Date(
+                                    attempt.submittedAt
+                                  ).toLocaleDateString()}`}
+                                  className={`relative z-10 chip ${scoreStyle(
+                                    attempt.percentage
+                                  )} hover:brightness-95 transition`}
+                                >
+                                  {attempt.percentage}%
+                                </Link>
+                              ))
                             )}
                             <span
                               aria-hidden="true"
@@ -241,7 +242,7 @@ export default async function SubjectPage({
                               →
                             </span>
                           </span>
-                        </Link>
+                        </div>
                       );
                     })}
                     </div>

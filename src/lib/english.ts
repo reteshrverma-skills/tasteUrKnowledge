@@ -163,3 +163,42 @@ export function toQuestionData(question: QuestionInput) {
     typeOfQuestion: question.typeOfQuestion?.trim() || null,
   };
 }
+
+/**
+ * One past comprehension round with its passage, every question, the answer
+ * given and the right answer, in the order presented. Scoped to the student,
+ * so a guessed id cannot open someone else's test.
+ */
+export async function englishTestReview(testId: number, studentId: number) {
+  return prisma.testTrackerEnglishMain.findFirst({
+    where: { id: testId, studentId },
+    select: {
+      id: true,
+      testStartTime: true,
+      topic: true,
+      difficultyLevel: true,
+      completionReason: true,
+      comp: { select: { label: true, compStory: true, subjectName: true } },
+      questions: {
+        orderBy: [{ questionOrder: "asc" }, { id: "asc" }],
+        select: {
+          id: true,
+          isAnsRight: true,
+          chosenOption: true,
+          correctOption: true,
+          question: {
+            select: {
+              quest: true,
+              optionA: true,
+              optionB: true,
+              optionC: true,
+              optionD: true,
+              optionE: true,
+              ansChoice: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}

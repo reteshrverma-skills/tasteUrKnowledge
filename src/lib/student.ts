@@ -186,8 +186,13 @@ export function sortDifficulties(levels: string[]): string[] {
  */
 export { difficultyStyle, scoreStyle } from "@/lib/level-style";
 
-export interface RecentAttempt {
+/** One past round's score, with the id its review page is opened by. */
+export interface TestScore {
+  testId: number;
   percentage: number;
+}
+
+export interface RecentAttempt extends TestScore {
   submittedAt: Date;
 }
 
@@ -212,6 +217,7 @@ export async function recentAttemptsByComp(
   const tests = await prisma.testTrackerEnglishMain.findMany({
     where: { studentId: userId, gsEngCompId: { in: compIds } },
     select: {
+      id: true,
       gsEngCompId: true,
       testStartTime: true,
       // Only the flag is needed; the rest of the round stays on the server.
@@ -227,6 +233,7 @@ export async function recentAttemptsByComp(
       const total = test.questions.length;
       const correct = test.questions.filter((q) => q.isAnsRight).length;
       bucket.push({
+        testId: test.id,
         percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
         // Rounds carried in by 012 hold the old submission time here; live
         // ones hold the start time. Both render as the same date on the chip.

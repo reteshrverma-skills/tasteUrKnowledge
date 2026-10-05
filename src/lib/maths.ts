@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { TestScore } from "@/lib/student";
 export { allowedLevels, canAccessLevel } from "@/lib/student";
 
 export const MATHS_SUBJECT_NAME = "Maths";
@@ -210,12 +211,13 @@ export function topicKey(topic: string, level: string): string {
 export async function recentMathsAttempts(
   studentId: number,
   maxTests = 300
-): Promise<Map<string, number[]>> {
+): Promise<Map<string, TestScore[]>> {
   const tests = await prisma.testTrackerMathMain.findMany({
     where: { studentId },
     orderBy: { testStartTime: "desc" },
     take: maxTests,
     select: {
+      id: true,
       topic: true,
       subTopic: true,
       difficultyLevel: true,
@@ -223,7 +225,7 @@ export async function recentMathsAttempts(
     },
   });
 
-  const byKey = new Map<string, number[]>();
+  const byKey = new Map<string, TestScore[]>();
 
   for (const test of tests) {
     if (test.questions.length === 0 || !test.difficultyLevel) continue;
@@ -240,9 +242,53 @@ export async function recentMathsAttempts(
     if (bucket.length >= 3) continue;
 
     const correct = test.questions.filter((q) => q.isAnsRight).length;
-    bucket.push(Math.round((correct / test.questions.length) * 100));
+    bucket.push({
+      testId: test.id,
+      percentage: Math.round((correct / test.questions.length) * 100),
+    });
     byKey.set(key, bucket);
   }
 
   return byKey;
+}
+
+/**
+ * One past round with every question, the answer given and the right answer,
+ * in the order it was presented. Scoped to the student, so a guessed id cannot
+ * open someone else's test.
+ */
+export async function mathsTestReview(testId: number, studentId: number) {
+  return prisma.testTrackerMathMain.findFirst({
+    where: { id: testId, studentId },
+    select: {
+      id: true,
+      testStartTime: true,
+      topic: true,
+      subTopic: true,
+      difficultyLevel: true,
+      completionReason: true,
+      questions: {
+        orderBy: [{ questionOrder: "asc" }, { id: "asc" }],
+        select: {
+          id: true,
+          isAnsRight: true,
+          isSkipped: true,
+          chosenOption: true,
+          correctOption: true,
+          question: {
+            select: {
+              quest: true,
+              optionA: true,
+              optionB: true,
+              optionC: true,
+              optionD: true,
+              optionE: true,
+              ansChoice: true,
+              explanation: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }

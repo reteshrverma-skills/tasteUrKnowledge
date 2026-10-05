@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import { scoreStyle } from "@/lib/student";
+import { scoreStyle, type TestScore } from "@/lib/student";
 import {
   MATHS_SUBJECT_NAME,
   QUESTIONS_PER_ROUND,
@@ -48,7 +48,7 @@ export default async function MathsPage({
 
   const attempts = session
     ? await recentMathsAttempts(session.userId)
-    : new Map<string, number[]>();
+    : new Map<string, TestScore[]>();
 
   return (
     <div className="min-h-screen bg-ground">
@@ -150,13 +150,17 @@ export default async function MathsPage({
                               No test yet
                             </span>
                           ) : (
-                            topicRecent.map((percentage, idx) => (
-                              <span
-                                key={idx}
-                                className={`chip ${scoreStyle(percentage)}`}
+                            topicRecent.map(({ testId, percentage }) => (
+                              <Link
+                                key={testId}
+                                href={`/dashboard/subject/maths/review/${testId}`}
+                                title="Review this test"
+                                className={`chip ${scoreStyle(
+                                  percentage
+                                )} hover:brightness-95 transition`}
                               >
                                 {percentage}%
-                              </span>
+                              </Link>
                             ))
                           )}
                         </span>
@@ -179,37 +183,44 @@ export default async function MathsPage({
                           const recent =
                             attempts.get(cellKey(subTopic, activeLevel)) ?? [];
                           return (
-                            <Link
+                            // A div, not a Link: the score chips are links of
+                            // their own and anchors cannot nest. The subtopic
+                            // link is stretched over the card instead.
+                            <div
                               key={subTopic}
-                              href={`/quiz/maths?subTopic=${encodeURIComponent(
-                                subTopic
-                              )}&level=${encodeURIComponent(activeLevel)}`}
-                              className="group/item flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
+                              className="group/item relative flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
                             >
-                              <span className="text-sm font-medium text-ink group-hover/item:text-brand transition truncate">
+                              <Link
+                                href={`/quiz/maths?subTopic=${encodeURIComponent(
+                                  subTopic
+                                )}&level=${encodeURIComponent(activeLevel)}`}
+                                className="text-sm font-medium text-ink group-hover/item:text-brand transition truncate after:absolute after:inset-0 after:rounded-lg"
+                              >
                                 {subTopic}
-                              </span>
+                              </Link>
 
                               {/* Last 3 scores, newest first */}
-                              <span className="ml-auto shrink-0 flex items-center gap-1">
+                              <span className="relative z-10 ml-auto shrink-0 flex items-center gap-1">
                                 {recent.length === 0 ? (
                                   <span className="text-[11px] text-ink-faint">
                                     —
                                   </span>
                                 ) : (
-                                  recent.map((percentage, idx) => (
-                                    <span
-                                      key={idx}
+                                  recent.map(({ testId, percentage }) => (
+                                    <Link
+                                      key={testId}
+                                      href={`/dashboard/subject/maths/review/${testId}`}
+                                      title="Review this test"
                                       className={`chip ${scoreStyle(
                                         percentage
-                                      )}`}
+                                      )} hover:brightness-95 transition`}
                                     >
                                       {percentage}%
-                                    </span>
+                                    </Link>
                                   ))
                                 )}
                               </span>
-                            </Link>
+                            </div>
                           );
                         })}
                       </div>
