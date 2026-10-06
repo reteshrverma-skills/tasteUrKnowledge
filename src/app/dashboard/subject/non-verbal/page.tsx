@@ -179,7 +179,7 @@ export default async function NonVerbalPage({
                           {group.subTopics.map(({ subTopic, count }) => {
                             const recent =
                               attempts.get(
-                                nvrCellKey(subTopic, activeLevel)
+                                nvrCellKey(group.topic, subTopic, activeLevel)
                               ) ?? [];
                             return (
                               // A div, not a Link: the score chips are links
@@ -190,7 +190,9 @@ export default async function NonVerbalPage({
                                 className="group/item relative flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
                               >
                                 <Link
-                                  href={`/quiz/nvr?subTopic=${encodeURIComponent(
+                                  href={`/quiz/nvr?topic=${encodeURIComponent(
+                                    group.topic
+                                  )}&subTopic=${encodeURIComponent(
                                     subTopic
                                   )}&level=${encodeURIComponent(activeLevel)}`}
                                   className="text-sm font-medium text-ink group-hover/item:text-brand transition truncate after:absolute after:inset-0 after:rounded-lg"

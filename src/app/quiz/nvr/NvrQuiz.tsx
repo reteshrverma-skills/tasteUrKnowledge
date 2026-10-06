@@ -144,7 +144,7 @@ export function NvrQuiz() {
       try {
         const query = new URLSearchParams({ level });
         if (subTopic) query.set("subTopic", subTopic);
-        else query.set("topic", topic);
+        if (topic) query.set("topic", topic);
 
         const response = await fetch(`/api/nvr/questions?${query}`);
         const data = await response.json();
@@ -354,8 +354,13 @@ export function NvrQuiz() {
 
         {question.stemFigure && (
           <div className="flex justify-center mb-5">
-            <span className="card-quiet w-28 h-28 sm:w-32 sm:h-32 p-3 text-ink">
-              <Figure markup={question.stemFigure} className="w-full h-full" />
+            {/* Sized by the figure: a wide sequence strip spans the row, a
+                square figure stays square, and neither sits in empty box. */}
+            <span className="card-quiet w-full max-w-xl p-3 text-ink">
+              <span
+                className="block mx-auto [&>svg]:block [&>svg]:mx-auto [&>svg]:w-full [&>svg]:h-auto [&>svg]:max-h-56"
+                dangerouslySetInnerHTML={{ __html: question.stemFigure }}
+              />
             </span>
           </div>
         )}

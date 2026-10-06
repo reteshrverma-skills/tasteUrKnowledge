@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { TestScore } from "@/lib/student";
+import { sortDifficulties, type TestScore } from "@/lib/student";
 export { allowedLevels, canAccessLevel } from "@/lib/student";
 
 export const MATHS_SUBJECT_NAME = "Maths";
@@ -9,31 +9,6 @@ export const QUESTIONS_PER_ROUND = 9;
 
 /** A whole-topic test is longer: it draws across every subtopic in the topic. */
 export const QUESTIONS_PER_TOPIC_TEST = 12;
-
-/**
- * One ladder across every subject, so a parent reading a Maths report and an
- * English report sees the same words. Anything an author adds beyond these is
- * appended rather than dropped.
- */
-export const MATHS_DIFFICULTY_ORDER = [
-  "Starter",
-  "Explorer",
-  "Navigator",
-  "Challenger",
-  "Master",
-] as const;
-
-export function sortMathsLevels(levels: string[]): string[] {
-  const known = MATHS_DIFFICULTY_ORDER.map((d) => d.toLowerCase());
-  const rank = (level: string) => {
-    const i = known.indexOf(level.toLowerCase());
-    return i === -1 ? known.length : i;
-  };
-  return [...levels].sort((a, b) => {
-    const diff = rank(a) - rank(b);
-    return diff !== 0 ? diff : a.localeCompare(b);
-  });
-}
 
 /**
  * Colour per rung.
@@ -127,11 +102,7 @@ export async function availableMathsLevels(): Promise<string[]> {
     _count: { _all: true },
   });
 
-  return sortMathsLevels(
-    rows
-      .map((row) => row.difficultyLevel)
-      .filter((level): level is string => Boolean(level))
-  );
+  return sortDifficulties(rows.map((row) => row.difficultyLevel));
 }
 
 /**
@@ -145,12 +116,16 @@ export async function availableMathsLevels(): Promise<string[]> {
 export async function randomQuestionIds(
   subTopic: string,
   level: string,
+  // Subtopic names repeat across topics, so the topic keeps the draw inside
+  // the frame the student opened.
+  topic: string | null = null,
   take: number = QUESTIONS_PER_ROUND
 ): Promise<number[]> {
   const rows = await prisma.gsMathsQuestion.findMany({
     where: {
       subTopic: { equals: subTopic, mode: "insensitive" },
       difficultyLevel: { equals: level, mode: "insensitive" },
+      ...(topic ? { topic: { equals: topic, mode: "insensitive" } } : {}),
     },
     select: { id: true },
   });
@@ -191,9 +166,13 @@ export async function randomQuestionIdsForTopic(
   return ids.slice(0, take);
 }
 
-/** Key for the per-cell attempt map: one subtopic at one difficulty. */
-export function cellKey(subTopic: string, level: string): string {
-  return `${subTopic.toLowerCase()}|${level.toLowerCase()}`;
+/**
+ * Key for the per-cell attempt map: one subtopic of one topic at one
+ * difficulty. The topic is part of it because subtopic names repeat across
+ * topics.
+ */
+export function cellKey(topic: string, subTopic: string, level: string): string {
+  return `${topic.toLowerCase()}|${subTopic.toLowerCase()}|${level.toLowerCase()}`;
 }
 
 /** Key for a whole-topic test: the topic at one difficulty. */
@@ -221,7 +200,9 @@ export async function recentMathsAttempts(
       topic: true,
       subTopic: true,
       difficultyLevel: true,
-      questions: { select: { isAnsRight: true } },
+      questions: {
+        select: { isAnsRight: true, question: { select: { topic: true } } },
+      },
     },
   });
 
@@ -230,8 +211,14 @@ export async function recentMathsAttempts(
   for (const test of tests) {
     if (test.questions.length === 0 || !test.difficultyLevel) continue;
 
+    // Subtopic rounds saved before the topic was recorded fall back to the
+    // topic of their questions.
+    const topic = test.topic ?? test.questions[0].question.topic;
+
     const key = test.subTopic
-      ? cellKey(test.subTopic, test.difficultyLevel)
+      ? topic
+        ? cellKey(topic, test.subTopic, test.difficultyLevel)
+        : null
       : test.topic
       ? topicKey(test.topic, test.difficultyLevel)
       : null;

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     const ids = subTopic
-      ? await randomNvrQuestionIds(subTopic, level)
+      ? await randomNvrQuestionIds(subTopic, level, topic || null)
       : await randomNvrQuestionIdsForTopic(topic, level);
 
     if (ids.length === 0) {

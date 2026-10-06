@@ -156,8 +156,12 @@ export function TestReview({
 
               {row.stemFigure && (
                 <div className="flex justify-center mb-4">
-                  <span className="card-quiet w-28 h-28 p-3 text-ink">
-                    <Figure markup={row.stemFigure} className="w-full h-full" />
+                  {/* Sized by the figure, as in the quiz. */}
+                  <span className="card-quiet w-full max-w-xl p-3 text-ink">
+                    <span
+                      className="block mx-auto [&>svg]:block [&>svg]:mx-auto [&>svg]:w-full [&>svg]:h-auto [&>svg]:max-h-56"
+                      dangerouslySetInnerHTML={{ __html: row.stemFigure }}
+                    />
                   </span>
                 </div>
               )}

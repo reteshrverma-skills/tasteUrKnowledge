@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow } from "@/lib/auth";
+import { DIFFICULTY_ORDER, canonicalLevel } from "@/lib/student";
 
 const compInclude = {
   questions: { orderBy: { id: "asc" } },
@@ -88,6 +89,17 @@ export async function PATCH(
       difficultyLevel?: string;
     };
 
+    const level =
+      difficultyLevel === undefined || !difficultyLevel.trim()
+        ? difficultyLevel
+        : canonicalLevel(difficultyLevel);
+    if (level === null) {
+      return NextResponse.json(
+        { error: `Difficulty must be one of ${DIFFICULTY_ORDER.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
     if (title !== undefined && !title.trim()) {
       return NextResponse.json(
         { error: "Comprehension title cannot be empty" },
@@ -127,9 +139,7 @@ export async function PATCH(
       data: {
         ...(title !== undefined ? { label: title.trim() } : {}),
         ...(story !== undefined ? { compStory: story.trim() } : {}),
-        ...(difficultyLevel !== undefined
-          ? { difficultyLevel: difficultyLevel.trim() || null }
-          : {}),
+        ...(level !== undefined ? { difficultyLevel: level || null } : {}),
       },
       include: compInclude,
     });

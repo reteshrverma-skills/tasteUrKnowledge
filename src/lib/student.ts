@@ -153,8 +153,9 @@ export function canAccessLevel(
 }
 
 /**
- * Difficulty bands in teaching order. Anything an admin invents beyond these
- * is appended alphabetically rather than dropped.
+ * The one difficulty ladder, in teaching order, shared by every subject. It is
+ * closed: content carrying any other level is not shown, and the admin APIs
+ * refuse to save one.
  */
 export const DIFFICULTY_ORDER = [
   "Starter",
@@ -164,20 +165,22 @@ export const DIFFICULTY_ORDER = [
   "Master",
 ] as const;
 
-export const UNGRADED_LABEL = "Unrated";
+export type DifficultyLevel = (typeof DIFFICULTY_ORDER)[number];
 
-export function sortDifficulties(levels: string[]): string[] {
-  const known = DIFFICULTY_ORDER.map((d) => d.toLowerCase());
-  const rank = (level: string) => {
-    if (level === UNGRADED_LABEL) return Number.MAX_SAFE_INTEGER;
-    const i = known.indexOf(level.toLowerCase());
-    return i === -1 ? known.length : i;
-  };
+/** The ladder's spelling of `level`, or null when it is not on the ladder. */
+export function canonicalLevel(
+  level: string | null | undefined
+): DifficultyLevel | null {
+  const wanted = level?.trim().toLowerCase();
+  return DIFFICULTY_ORDER.find((d) => d.toLowerCase() === wanted) ?? null;
+}
 
-  return [...levels].sort((a, b) => {
-    const diff = rank(a) - rank(b);
-    return diff !== 0 ? diff : a.localeCompare(b);
-  });
+/** The ladder rungs among `levels`, in ladder order; anything else is dropped. */
+export function sortDifficulties(
+  levels: (string | null | undefined)[]
+): DifficultyLevel[] {
+  const present = new Set(levels.map(canonicalLevel));
+  return DIFFICULTY_ORDER.filter((d) => present.has(d));
 }
 
 /**

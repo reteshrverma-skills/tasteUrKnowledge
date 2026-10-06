@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow } from "@/lib/auth";
+import { DIFFICULTY_ORDER, canonicalLevel } from "@/lib/student";
 import {
   ENGLISH_SUBJECT_NAME,
   compWhere,
@@ -85,6 +86,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const level = difficultyLevel?.trim()
+      ? canonicalLevel(difficultyLevel)
+      : undefined;
+    if (level === null) {
+      return NextResponse.json(
+        { error: `Difficulty must be one of ${DIFFICULTY_ORDER.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
     const questionError = validateQuestions(questions);
     if (questionError) {
       return NextResponse.json({ error: questionError }, { status: 400 });
@@ -119,7 +130,7 @@ export async function POST(request: NextRequest) {
         compStory: story.trim(),
         yearName: year.name,
         subjectName: ENGLISH_SUBJECT_NAME,
-        difficultyLevel: difficultyLevel?.trim() || null,
+        difficultyLevel: level ?? null,
         questions: {
           create: questions!.map((question) => toQuestionData(question)),
         },

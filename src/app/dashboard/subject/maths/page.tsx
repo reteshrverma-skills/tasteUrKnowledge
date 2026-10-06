@@ -181,7 +181,7 @@ export default async function MathsPage({
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
                         {group.subTopics.map(({ subTopic }) => {
                           const recent =
-                            attempts.get(cellKey(subTopic, activeLevel)) ?? [];
+                            attempts.get(cellKey(group.topic, subTopic, activeLevel)) ?? [];
                           return (
                             // A div, not a Link: the score chips are links of
                             // their own and anchors cannot nest. The subtopic
@@ -191,7 +191,9 @@ export default async function MathsPage({
                               className="group/item relative flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
                             >
                               <Link
-                                href={`/quiz/maths?subTopic=${encodeURIComponent(
+                                href={`/quiz/maths?topic=${encodeURIComponent(
+                                  group.topic
+                                )}&subTopic=${encodeURIComponent(
                                   subTopic
                                 )}&level=${encodeURIComponent(activeLevel)}`}
                                 className="text-sm font-medium text-ink group-hover/item:text-brand transition truncate after:absolute after:inset-0 after:rounded-lg"

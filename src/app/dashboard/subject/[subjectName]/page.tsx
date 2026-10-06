@@ -7,9 +7,9 @@ import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import {
   type RecentAttempt,
-  UNGRADED_LABEL,
   allowedLevels,
   canAccessLevel,
+  canonicalLevel,
   difficultyStyle,
   recentAttemptsByComp,
   scoreStyle,
@@ -61,9 +61,12 @@ export default async function SubjectPage({
     orderBy: { id: "asc" },
   });
 
-  // A level the student has not been granted is not listed at all.
-  const comps = allComps.filter((comp) =>
-    canAccessLevel(access, comp.difficultyLevel)
+  // Only comprehensions on the ladder, and only at levels the student has
+  // been granted.
+  const comps = allComps.filter(
+    (comp) =>
+      canonicalLevel(comp.difficultyLevel) &&
+      canAccessLevel(access, comp.difficultyLevel)
   );
 
   const lockedCount = allComps.length - comps.length;
@@ -75,10 +78,10 @@ export default async function SubjectPage({
       )
     : new Map<number, RecentAttempt[]>();
 
-  // Band by difficulty, treating blank as one "Unrated" group.
+  // Band by difficulty.
   const byDifficulty = new Map<string, typeof comps>();
   for (const comp of comps) {
-    const level = comp.difficultyLevel?.trim() || UNGRADED_LABEL;
+    const level = canonicalLevel(comp.difficultyLevel)!;
     const bucket = byDifficulty.get(level);
     if (bucket) {
       bucket.push(comp);

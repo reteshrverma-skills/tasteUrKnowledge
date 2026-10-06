@@ -107,12 +107,16 @@ function shuffled(ids: number[]): number[] {
 export async function randomNvrQuestionIds(
   subTopic: string,
   level: string,
+  // Subtopic names repeat across topics ("Compare" sits under several), so
+  // the topic keeps the draw inside the frame the student opened.
+  topic: string | null = null,
   take: number = QUESTIONS_PER_NVR_ROUND
 ): Promise<number[]> {
   const rows = await prisma.gsNvrQuestion.findMany({
     where: {
       subTopic: { equals: subTopic, mode: "insensitive" },
       difficultyLevel: { equals: level, mode: "insensitive" },
+      ...(topic ? { topic: { equals: topic, mode: "insensitive" } } : {}),
     },
     select: { id: true },
   });
@@ -166,9 +170,17 @@ export function sanitiseFigure(markup: string | null): string {
   );
 }
 
-/** Key for the per-cell attempt map: one subtopic at one difficulty. */
-export function nvrCellKey(subTopic: string, level: string): string {
-  return `${subTopic.toLowerCase()}|${level.toLowerCase()}`;
+/**
+ * Key for the per-cell attempt map: one subtopic of one topic at one
+ * difficulty. The topic is part of it because subtopic names repeat across
+ * topics.
+ */
+export function nvrCellKey(
+  topic: string,
+  subTopic: string,
+  level: string
+): string {
+  return `${topic.toLowerCase()}|${subTopic.toLowerCase()}|${level.toLowerCase()}`;
 }
 
 /** Key for a whole-topic test: the topic at one difficulty. */
@@ -194,7 +206,9 @@ export async function recentNvrAttempts(
       topic: true,
       subTopic: true,
       difficultyLevel: true,
-      questions: { select: { isAnsRight: true } },
+      questions: {
+        select: { isAnsRight: true, question: { select: { topic: true } } },
+      },
     },
   });
 
@@ -203,8 +217,12 @@ export async function recentNvrAttempts(
   for (const test of tests) {
     if (test.questions.length === 0 || !test.difficultyLevel) continue;
 
+    // Subtopic rounds saved before the topic was recorded fall back to the
+    // topic of their questions.
+    const topic = test.topic ?? test.questions[0].question.topic;
+
     const key = test.subTopic
-      ? nvrCellKey(test.subTopic, test.difficultyLevel)
+      ? nvrCellKey(topic, test.subTopic, test.difficultyLevel)
       : test.topic
       ? nvrTopicKey(test.topic, test.difficultyLevel)
       : null;

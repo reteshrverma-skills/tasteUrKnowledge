@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // A subtopic round is narrower, so it wins if both are supplied.
     const ids = subTopic
-      ? await randomQuestionIds(subTopic, level)
+      ? await randomQuestionIds(subTopic, level, topic)
       : await randomQuestionIdsForTopic(topic!, level);
 
     if (ids.length === 0) {

@@ -91,9 +91,12 @@ function MathsQuiz() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const scope = subTopic
-          ? `subTopic=${encodeURIComponent(subTopic)}`
-          : `topic=${encodeURIComponent(topic)}`;
+        const scope = [
+          subTopic && `subTopic=${encodeURIComponent(subTopic)}`,
+          topic && `topic=${encodeURIComponent(topic)}`,
+        ]
+          .filter(Boolean)
+          .join("&");
         const response = await fetch(
           `/api/maths/questions?${scope}&level=${encodeURIComponent(level)}`
         );
