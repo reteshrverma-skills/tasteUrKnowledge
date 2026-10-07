@@ -34,15 +34,6 @@ interface Results {
   answers: GradedAnswer[];
 }
 
-/** Each round is timed; the clock starts once the questions have loaded. */
-const ROUND_SECONDS = 5 * 60;
-
-function formatClock(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
-
 /** Only the options the question actually offers. */
 function optionsFor(question: Question) {
   return (
@@ -73,14 +64,12 @@ function MathsQuiz() {
   const [answers, setAnswers] = useState<Record<number, string | null>>({});
   const [results, setResults] = useState<Results | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(ROUND_SECONDS);
 
-  // Refs so the timer can submit without being re-created on every keystroke.
+  // Refs so submit always sends the latest state without being re-created.
   const answersRef = useRef(answers);
   const questionsRef = useRef(questions);
   const currentIndexRef = useRef(currentIndex);
   const submittingRef = useRef(false);
-  const deadlineRef = useRef<number | null>(null);
 
   // Per-question dwell time. performance.now() is monotonic, so an OS clock
   // adjustment mid-round cannot produce a negative or absurd delta.
@@ -182,12 +171,9 @@ function MathsQuiz() {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [currentIndex, questions, results, bankTime]);
 
-  /**
-   * Marks the round. Called by the Submit button and by the timer when it runs
-   * out, so it guards against being entered twice.
-   */
+  /** Marks the round, guarding against a double-click submitting it twice. */
   const submitRound = useCallback(
-    async (timedOut = false) => {
+    async () => {
       if (submittingRef.current) return;
       submittingRef.current = true;
       setSubmitting(true);
@@ -207,7 +193,7 @@ function MathsQuiz() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             startedAt: startedAtRef.current,
-            completionReason: timedOut ? "timed_out" : "submitted",
+            completionReason: "submitted",
             subTopic: subTopic || null,
             topic: topic || null,
             level: level || null,
@@ -228,10 +214,7 @@ function MathsQuiz() {
         setCurrentIndex(0);
       } catch (error) {
         console.error("Error submitting answers:", error);
-        // A timed-out round must not trap the student behind an alert.
-        if (!timedOut) {
-          alert("Failed to submit answers. Please try again.");
-        }
+        alert("Failed to submit answers. Please try again.");
       } finally {
         submittingRef.current = false;
         setSubmitting(false);
@@ -244,32 +227,6 @@ function MathsQuiz() {
     e.preventDefault();
     submitRound();
   };
-
-  /**
-   * Counts down from a fixed deadline rather than decrementing a counter, so
-   * the clock stays honest when a background tab throttles its timers.
-   */
-  useEffect(() => {
-    if (questions.length === 0 || results) return;
-
-    if (deadlineRef.current === null) {
-      deadlineRef.current = Date.now() + ROUND_SECONDS * 1000;
-    }
-
-    const id = setInterval(() => {
-      const remaining = Math.max(
-        0,
-        Math.ceil((deadlineRef.current! - Date.now()) / 1000)
-      );
-      setSecondsLeft(remaining);
-      if (remaining === 0) {
-        clearInterval(id);
-        submitRound(true);
-      }
-    }, 250);
-
-    return () => clearInterval(id);
-  }, [questions.length, results, submitRound]);
 
   const backHref = `/dashboard/subject/maths${
     level ? `?level=${encodeURIComponent(level)}` : ""
@@ -432,51 +389,6 @@ function MathsQuiz() {
       </nav>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-        {/* Countdown frame, sitting above the question */}
-        <div
-          className={`bg-white rounded-lg shadow-lg mb-4 px-5 py-3 border-2 ${
-            secondsLeft === 0
-              ? "border-red-500"
-              : secondsLeft <= 30
-              ? "border-red-400"
-              : secondsLeft <= 60
-              ? "border-amber-400"
-              : "border-green-400"
-          }`}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Time remaining
-            </span>
-            <span
-              role="timer"
-              aria-live="off"
-              className={`text-2xl font-bold tabular-nums ${
-                secondsLeft <= 30 ? "text-red-600" : "text-gray-800"
-              }`}
-            >
-              {formatClock(secondsLeft)}
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-            <div
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                secondsLeft <= 30
-                  ? "bg-red-500"
-                  : secondsLeft <= 60
-                  ? "bg-amber-500"
-                  : "bg-green-500"
-              }`}
-              style={{ width: `${(secondsLeft / ROUND_SECONDS) * 100}%` }}
-            />
-          </div>
-          {secondsLeft === 0 && (
-            <p className="text-sm font-bold text-red-600 mt-2">
-              Time is up — marking your answers…
-            </p>
-          )}
-        </div>
-
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Progress */}
           <div className="px-5 py-3 border-b border-gray-200">
