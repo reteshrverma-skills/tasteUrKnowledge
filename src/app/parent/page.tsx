@@ -5,6 +5,7 @@ import { displayName } from "@/lib/english";
 import { listChildren, parentProfile } from "@/lib/parent";
 import { difficultyStyle } from "@/lib/student";
 import { skillBreakdown, timeSpentBySubject } from "@/lib/progress";
+import { recordSubscription, stripe, subscriptionFor } from "@/lib/billing";
 import { ParentNav } from "./ParentNav";
 import { ChildProgress } from "./ChildProgress";
 
@@ -15,11 +16,70 @@ import { ChildProgress } from "./ChildProgress";
  * they are, what year they are in and what is unlocked, with the way to add
  * another right there. Their own details sit behind Profile in the bar above.
  */
-export default async function ParentDashboardPage() {
+const BILLING_NOTICE: Record<string, { tone: string; text: string }> = {
+  success: {
+    tone: "bg-green-50 text-green-800 border-green-200",
+    text: "Thank you - the subscription is active.",
+  },
+  cancelled: {
+    tone: "bg-ground text-ink-soft border-line",
+    text: "Checkout was cancelled; nothing was charged.",
+  },
+  already: {
+    tone: "bg-ground text-ink-soft border-line",
+    text: "That child already has an active subscription.",
+  },
+  unavailable: {
+    tone: "bg-warm-tint text-warm border-warm/25",
+    text: "Payments are not set up yet. Please try again later.",
+  },
+  error: {
+    tone: "bg-red-50 text-red-800 border-red-200",
+    text: "Something went wrong with the payment. Please try again.",
+  },
+};
+
+function formatDay(date: Date) {
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export default async function ParentDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ billing?: string; session_id?: string }>;
+}) {
   const session = await getSession();
   // The proxy already guards /parent, but a page that reads a parent's
   // children must not depend on that alone.
   if (!session || session.userType !== "PARENT") redirect("/login");
+
+  const { billing, session_id: checkoutId } = await searchParams;
+
+  // Back from Checkout: record the subscription now rather than wait for the
+  // webhook, so the child is unlocked the moment the parent lands here.
+  if (billing === "success" && checkoutId) {
+    try {
+      const checkout = await stripe().checkout.sessions.retrieve(checkoutId, {
+        expand: ["subscription"],
+      });
+      const sub = checkout.subscription;
+      if (
+        checkout.metadata?.parentId === String(session.userId) &&
+        sub &&
+        typeof sub !== "string"
+      ) {
+        await recordSubscription(sub);
+      }
+    } catch (error) {
+      // The webhook will still record it; the parent need not see this.
+      console.error("Could not confirm checkout:", error);
+    }
+  }
+  const notice = billing ? BILLING_NOTICE[billing] : undefined;
 
   const profile = await parentProfile(session.userId);
   const parentName = profile ? displayName(profile) : "Parent";
@@ -29,11 +89,12 @@ export default async function ParentDashboardPage() {
   // after another, so a parent with several children does not wait n times.
   const progress = await Promise.all(
     children.map(async (child) => {
-      const [times, skills] = await Promise.all([
+      const [times, skills, subscription] = await Promise.all([
         timeSpentBySubject(child.studentId),
         skillBreakdown(child.studentId),
+        subscriptionFor(child.studentId),
       ]);
-      return { studentId: child.studentId, times, skills };
+      return { studentId: child.studentId, times, skills, subscription };
     })
   );
   const progressById = new Map(progress.map((p) => [p.studentId, p]));
@@ -55,6 +116,12 @@ export default async function ParentDashboardPage() {
                 }`}
           </p>
         </header>
+
+        {notice && (
+          <p className={`mb-6 rounded-lg border px-4 py-3 text-sm ${notice.tone}`}>
+            {notice.text}
+          </p>
+        )}
 
         {children.length === 0 ? (
           <div className="card p-12 text-center">
@@ -93,6 +160,49 @@ export default async function ParentDashboardPage() {
                       {child.yearName ? ` · ${child.yearName}` : ""}
                     </p>
                   </div>
+
+                  {/* Subscription, next to the name it pays for. Plain form
+                      posts: the routes answer with a redirect to Stripe. */}
+                  {(() => {
+                    const sub = progressById.get(child.studentId)?.subscription;
+                    return sub?.isPaid ? (
+                      <form
+                        action="/api/parent/billing/portal"
+                        method="post"
+                        className="flex items-center gap-2"
+                      >
+                        <input type="hidden" name="studentId" value={child.studentId} />
+                        <span className="chip bg-green-50 text-green-800 border-green-200">
+                          Paid to {formatDay(sub.activeUntil!)}
+                        </span>
+                        <button
+                          type="submit"
+                          className="btn-quiet px-3 py-1.5 text-xs whitespace-nowrap"
+                        >
+                          Manage billing
+                        </button>
+                      </form>
+                    ) : (
+                      <form
+                        action="/api/parent/billing/checkout"
+                        method="post"
+                        className="flex items-center gap-2"
+                      >
+                        <input type="hidden" name="studentId" value={child.studentId} />
+                        <span className="chip bg-warm-tint text-warm border-warm/25">
+                          {sub?.activeUntil
+                            ? `Expired ${formatDay(sub.activeUntil)}`
+                            : "Not subscribed"}
+                        </span>
+                        <button
+                          type="submit"
+                          className="btn-primary px-3 py-1.5 text-xs whitespace-nowrap"
+                        >
+                          Subscribe
+                        </button>
+                      </form>
+                    );
+                  })()}
 
                   <span className="ml-auto flex items-center gap-1.5 flex-wrap justify-end">
                     {child.levels.length === 0 ? (

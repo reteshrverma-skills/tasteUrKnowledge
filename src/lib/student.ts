@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Session } from "@/lib/auth";
+import { paymentsEnforced, subscriptionFor } from "@/lib/billing";
 
 /**
  * The student whose data this session should see: themselves for a STUDENT,
@@ -111,6 +112,12 @@ export async function allowedLevels(
 
   const studentId = await resolveStudentId(session);
   if (studentId === null) return [];
+
+  // An unpaid child has no levels at all, which closes every subject through
+  // the one gate they already share.
+  if (paymentsEnforced() && !(await subscriptionFor(studentId)).isPaid) {
+    return [];
+  }
 
   const details = await prisma.userStudentDetails.findUnique({
     where: { studentId },
