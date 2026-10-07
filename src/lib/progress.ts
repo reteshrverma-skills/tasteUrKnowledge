@@ -1,30 +1,5 @@
 import { prisma } from "@/lib/prisma";
 
-/**
- * What each difficulty level is actually testing.
- *
- * English question rows carry a `topic` for the skill being tested, but almost
- * none are tagged yet, so "needs work" falls back to the level. Naming the
- * level alone tells a parent nothing - "Challenger 42%" is not actionable -
- * whereas the skills behind it are.
- */
-export const LEVEL_SKILLS: Record<string, string> = {
-  Starter: "Retrieval, basic vocabulary, sequencing",
-  Explorer: "Synonyms, antonyms, simple inference, cause/effect",
-  Challenger:
-    "Deeper inference, character motivation, evidence, author's purpose",
-  "Think Harder":
-    "Implicit meaning, writer's viewpoint, language effect, structure, multiple-step inference",
-};
-
-export function skillsFor(level: string | null | undefined): string | null {
-  if (!level) return null;
-  const match = Object.keys(LEVEL_SKILLS).find(
-    (key) => key.toLowerCase() === level.trim().toLowerCase()
-  );
-  return match ? LEVEL_SKILLS[match] : null;
-}
-
 /* ------------------------------------------------------------------ */
 /* Time spent                                                          */
 /* ------------------------------------------------------------------ */
@@ -173,16 +148,15 @@ export function formatDuration(seconds: number): string {
 /* ------------------------------------------------------------------ */
 
 export interface SkillArea {
-  subject: "English" | "Maths";
-  /** The subtopic, skill or level this covers. */
+  /** The Maths subtopic, or the English question type. */
   label: string;
-  /** What that actually means, when the label alone is not plain English. */
-  detail: string | null;
   percentage: number;
   attempted: number;
 }
 
+/** One subject's best and weakest topics. */
 export interface SkillBreakdown {
+  subject: "English" | "Maths";
   strengths: SkillArea[];
   weaknesses: SkillArea[];
 }
@@ -208,33 +182,50 @@ interface ScoreRow {
   correct: unknown;
 }
 
-function toAreas(
+/** "author's purpose" -> "Author's purpose": tags are stored in mixed case. */
+function sentenceCase(label: string): string {
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function toBreakdown(
+  subject: SkillBreakdown["subject"],
   rows: ScoreRow[],
-  subject: SkillArea["subject"],
-  detailFor: (bucket: string) => string | null
-): SkillArea[] {
-  return rows
+  limit: number
+): SkillBreakdown {
+  const areas = rows
     .filter((row) => row.bucket && num(row.total) >= MIN_ATTEMPTED)
     .map((row) => {
       const total = num(row.total);
       return {
-        subject,
-        label: row.bucket as string,
-        detail: detailFor(row.bucket as string),
+        label: sentenceCase(row.bucket as string),
         percentage: Math.round((num(row.correct) / total) * 100),
         attempted: total,
       };
     });
+
+  return {
+    subject,
+    strengths: areas
+      .filter((area) => area.percentage >= STRONG_THRESHOLD)
+      .sort((a, b) => b.percentage - a.percentage)
+      .slice(0, limit),
+    weaknesses: areas
+      .filter((area) => area.percentage < STRONG_THRESHOLD)
+      .sort((a, b) => a.percentage - b.percentage)
+      .slice(0, limit),
+  };
 }
 
 /**
- * What this student is good at and what they are not, from one pass over the
- * tracker rows.
+ * What this student is good at and what they are not, per subject, so English
+ * is never crowded out of a shared list by Maths.
  *
  * Maths is grouped by the question's own subtopic rather than the round's,
  * because a whole-topic test spans several and the round only records one.
- * English is grouped by question skill where that is tagged, and by difficulty
- * level otherwise - see LEVEL_SKILLS.
+ * English is grouped by question type (Retrieval, inference, vocabulary...),
+ * read from the question bank so answers saved before the type was copied
+ * onto the tracker row still count. Types are compared ignoring case, as the
+ * bank holds both "Sequencing" and "sequencing".
  *
  * Both lists come from the same aggregation and the same threshold, so a topic
  * can never appear in both, and every topic with enough answers behind it
@@ -243,8 +234,17 @@ function toAreas(
 export async function skillBreakdown(
   studentId: number,
   limit = 3
-): Promise<SkillBreakdown> {
-  const [mathsRows, englishTopicRows, englishLevelRows] = await Promise.all([
+): Promise<SkillBreakdown[]> {
+  const [englishRows, mathsRows] = await Promise.all([
+    prisma.$queryRaw<ScoreRow[]>`
+      SELECT lower(btrim(COALESCE(gq."typeOfQuestion", q."topic"))) AS bucket,
+             COUNT(*)                               AS total,
+             COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+        FROM "testTrackerEnglish" q
+        JOIN "gsEnglishQuestions" gq ON gq."id" = q."questionId"
+       WHERE q."studentId" = ${studentId}
+         AND btrim(COALESCE(gq."typeOfQuestion", q."topic", '')) <> ''
+       GROUP BY 1`,
     prisma.$queryRaw<ScoreRow[]>`
       SELECT gq."subTopic" AS bucket,
              COUNT(*)                               AS total,
@@ -254,48 +254,10 @@ export async function skillBreakdown(
        WHERE q."studentId" = ${studentId}
          AND gq."subTopic" IS NOT NULL
        GROUP BY gq."subTopic"`,
-    prisma.$queryRaw<ScoreRow[]>`
-      SELECT q."topic" AS bucket,
-             COUNT(*)                               AS total,
-             COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
-        FROM "testTrackerEnglish" q
-       WHERE q."studentId" = ${studentId}
-         AND q."topic" IS NOT NULL
-         AND lower(btrim(q."topic")) <> 'comp'
-       GROUP BY q."topic"`,
-    prisma.$queryRaw<ScoreRow[]>`
-      SELECT m."difficultyLevel" AS bucket,
-             COUNT(*)                               AS total,
-             COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
-        FROM "testTrackerEnglish" q
-        JOIN "testTrackerEnglishMain" m ON m."id" = q."testId"
-       WHERE q."studentId" = ${studentId}
-         AND m."difficultyLevel" IS NOT NULL
-       GROUP BY m."difficultyLevel"`,
   ]);
 
-  const maths = toAreas(mathsRows, "Maths", () => null);
-
-  // Skill tags are the better answer when they exist; levels are the fallback
-  // so the panels are not blank on untagged content. The choice is made once,
-  // on whether any tagged topic has enough answers behind it, so strengths and
-  // weaknesses are always described in the same terms as each other.
-  const byTopic = toAreas(englishTopicRows, "English", skillsFor);
-  const english =
-    byTopic.length > 0
-      ? byTopic
-      : toAreas(englishLevelRows, "English", skillsFor);
-
-  const all = [...maths, ...english];
-
-  return {
-    strengths: all
-      .filter((area) => area.percentage >= STRONG_THRESHOLD)
-      .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, limit),
-    weaknesses: all
-      .filter((area) => area.percentage < STRONG_THRESHOLD)
-      .sort((a, b) => a.percentage - b.percentage)
-      .slice(0, limit),
-  };
+  return [
+    toBreakdown("English", englishRows, limit),
+    toBreakdown("Maths", mathsRows, limit),
+  ];
 }

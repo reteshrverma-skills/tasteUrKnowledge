@@ -230,12 +230,7 @@ export default async function ParentDashboardPage({
 
                   <ChildProgress
                     times={progressById.get(child.studentId)?.times ?? []}
-                    strengths={
-                      progressById.get(child.studentId)?.skills.strengths ?? []
-                    }
-                    weaknesses={
-                      progressById.get(child.studentId)?.skills.weaknesses ?? []
-                    }
+                    skills={progressById.get(child.studentId)?.skills ?? []}
                   />
                 </div>
               ))}

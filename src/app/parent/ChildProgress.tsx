@@ -1,10 +1,16 @@
-import type { SkillArea, SubjectTime } from "@/lib/progress";
+import type { SkillArea, SkillBreakdown, SubjectTime } from "@/lib/progress";
 import { formatDuration } from "@/lib/progress";
 import { scoreStyle } from "@/lib/student";
 
 const SUBJECT_TONE: Record<string, string> = {
   English: "bg-master",
   Maths: "bg-explorer",
+};
+
+/** What each subject's topics are, in a parent's words. */
+const SUBJECT_HEADING: Record<SkillBreakdown["subject"], string> = {
+  English: "English comprehension · by question type",
+  Maths: "Maths · by topic",
 };
 
 /**
@@ -21,7 +27,7 @@ function AreaList({ title, areas }: { title: string; areas: SkillArea[] }) {
       <ul className="space-y-2.5">
         {areas.map((area) => (
           <li
-            key={`${area.subject}-${area.label}`}
+            key={area.label}
             className="flex items-start gap-2.5"
           >
             <span
@@ -31,13 +37,8 @@ function AreaList({ title, areas }: { title: string; areas: SkillArea[] }) {
             </span>
             <span className="min-w-0">
               <span className="text-sm font-medium text-ink">
-                {area.subject} · {area.label}
+                {area.label}
               </span>
-              {area.detail && (
-                <span className="block text-xs text-ink-soft mt-0.5">
-                  {area.detail}
-                </span>
-              )}
               <span className="block text-[11px] text-ink-faint mt-0.5 tabular">
                 {area.attempted} question
                 {area.attempted === 1 ? "" : "s"} answered
@@ -67,21 +68,25 @@ function AreaList({ title, areas }: { title: string; areas: SkillArea[] }) {
  */
 export function ChildProgress({
   times,
-  strengths,
-  weaknesses,
+  skills,
 }: {
   times: SubjectTime[];
-  strengths: SkillArea[];
-  weaknesses: SkillArea[];
+  /** One entry per subject; a subject with nothing to say is skipped. */
+  skills: SkillBreakdown[];
 }) {
   // Keyed off all-time, not this month: a child who practised last month but
   // not yet this one has a table worth showing, which is the whole point of
   // the all-time column.
   const anyTime = times.some((t) => t.allTimeSeconds > 0);
-  const panels = [
-    { title: "Strengths", areas: strengths },
-    { title: "Need to work on", areas: weaknesses },
-  ].filter((panel) => panel.areas.length > 0);
+  const subjects = skills
+    .map((s) => ({
+      subject: s.subject,
+      panels: [
+        { title: "Strengths", areas: s.strengths },
+        { title: "Need to work on", areas: s.weaknesses },
+      ].filter((panel) => panel.areas.length > 0),
+    }))
+    .filter((s) => s.panels.length > 0);
 
   return (
     <div className="mt-5 pt-5 border-t border-line">
@@ -143,22 +148,33 @@ export function ChildProgress({
         </table>
       )}
 
-      {/* Strengths and weaknesses, side by side when there are both */}
-      {panels.length > 0 && (
-        <div
-          className={`mt-5 grid grid-cols-1 gap-5 ${
-            panels.length === 2 ? "lg:grid-cols-2" : ""
-          }`}
-        >
-          {panels.map((panel) => (
-            <AreaList
-              key={panel.title}
-              title={panel.title}
-              areas={panel.areas}
+      {/* Strengths and weaknesses per subject, side by side when there are
+          both, so English is never crowded out by Maths. */}
+      {subjects.map(({ subject, panels }) => (
+        <section key={subject} className="mt-5 pt-5 border-t border-line">
+          <h4 className="font-display text-sm font-semibold text-ink mb-3 inline-flex items-center gap-2">
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                SUBJECT_TONE[subject] ?? "bg-ink-faint"
+              }`}
             />
-          ))}
-        </div>
-      )}
+            {SUBJECT_HEADING[subject]}
+          </h4>
+          <div
+            className={`grid grid-cols-1 gap-5 ${
+              panels.length === 2 ? "lg:grid-cols-2" : ""
+            }`}
+          >
+            {panels.map((panel) => (
+              <AreaList
+                key={panel.title}
+                title={panel.title}
+                areas={panel.areas}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
