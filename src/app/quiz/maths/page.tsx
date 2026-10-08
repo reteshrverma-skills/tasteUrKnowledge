@@ -474,7 +474,7 @@ function MathsQuiz() {
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap justify-center gap-1.5">
                 {questions.map((question, idx) => {
                   const isCurrent = idx === safeIndex;
                   const isAnswered = Boolean(answers[question.id]);

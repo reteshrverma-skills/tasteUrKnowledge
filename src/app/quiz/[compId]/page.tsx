@@ -555,7 +555,7 @@ export default function QuizPage() {
 
               {/* Jump to any question. Answered ones are filled, so the gaps
                   are what stands out. */}
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap justify-center gap-1.5">
                 {comp.questions.map((question, idx) => {
                   const isCurrent = idx === safeIndex;
                   const isAnswered = Boolean(answers[question.id]);
