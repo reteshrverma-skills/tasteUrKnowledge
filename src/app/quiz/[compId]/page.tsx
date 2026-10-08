@@ -265,6 +265,17 @@ export default function QuizPage() {
     );
   }
 
+  // Back to this comprehension's own list (English or Verbal), on the level it
+  // was picked from, rather than all the way out to the subject tiles.
+  const backLabel = comp.subjectName || "Dashboard";
+  const backHref = comp.subjectName
+    ? `/dashboard/subject/${encodeURIComponent(comp.subjectName)}${
+        comp.difficultyLevel
+          ? `?level=${encodeURIComponent(comp.difficultyLevel)}`
+          : ""
+      }`
+    : "/dashboard";
+
   const totalQuestions = comp.questions.length;
   const safeIndex = Math.min(currentIndex, Math.max(totalQuestions - 1, 0));
   const currentQuestion = comp.questions[safeIndex];
@@ -292,10 +303,10 @@ export default function QuizPage() {
         <nav className="bg-white shadow">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <Link
-              href="/dashboard"
+              href={backHref}
               className="text-indigo-600 hover:text-indigo-700 font-medium"
             >
-              ← Dashboard
+              ← {backLabel}
             </Link>
             <h1 className="text-2xl font-bold text-indigo-600">
               TasteUrKnowledge
@@ -353,10 +364,10 @@ export default function QuizPage() {
 
           <div className="flex gap-4">
             <Link
-              href="/dashboard"
+              href={backHref}
               className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition text-center"
             >
-              Back to Dashboard
+              Back to {backLabel}
             </Link>
             <button
               onClick={() => window.location.reload()}
@@ -380,10 +391,10 @@ export default function QuizPage() {
       <nav className="bg-surface border-b border-line shrink-0">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-3">
           <Link
-            href="/dashboard"
+            href={backHref}
             className="text-sm font-medium text-ink-soft hover:text-brand transition shrink-0"
           >
-            ← Dashboard
+            ← {backLabel}
           </Link>
           <p className="text-sm text-ink-soft truncate hidden sm:block">
             <span className="font-medium text-ink">{comp.label}</span>
