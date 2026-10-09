@@ -196,17 +196,16 @@ export default async function SubjectPage({
                           key={comp.id}
                           className="card-quiet group relative flex items-center gap-3 px-4 py-3.5 transition hover:border-brand/40 hover:shadow-sm"
                         >
-                          {/* How many questions the comprehension holds; each
-                              round draws a random set from these. */}
+                          {/* Styled like a Maths topic heading: the title in
+                              the display face, then how many questions the
+                              comprehension holds (each round draws from these). */}
                           <Link
                             href={`/quiz/${comp.id}`}
-                            className="font-medium text-ink group-hover:text-brand transition truncate after:absolute after:inset-0"
+                            className="font-display font-semibold text-ink group-hover:text-brand transition truncate after:absolute after:inset-0"
                           >
-                            {comp.label}
-                            <span className="text-ink-faint font-normal tabular">
-                              {" · "}
-                              {comp._count.questions} question
-                              {comp._count.questions === 1 ? "" : "s"}
+                            {comp.label}{" "}
+                            <span className="font-sans font-normal text-sm text-ink-faint tabular">
+                              {comp._count.questions.toLocaleString()}
                             </span>
                           </Link>
 
