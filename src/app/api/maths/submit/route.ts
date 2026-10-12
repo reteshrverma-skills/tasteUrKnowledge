@@ -96,8 +96,10 @@ export async function POST(request: NextRequest) {
 
     // Record the round. A tracking failure must not cost the student their
     // result, so it is logged rather than surfaced.
+    // The saved round's id, so the browser can open its review page.
+    let testId: number | null = null;
     try {
-      await prisma.testTrackerMathMain.create({
+      const test = await prisma.testTrackerMathMain.create({
         data: {
           studentId: session.userId,
           testStartTime: parseStartedAt(startedAt),
@@ -120,12 +122,14 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+      testId = Number(test.id);
     } catch (trackingError) {
       console.error("Failed to record maths test:", trackingError);
     }
 
     return NextResponse.json(
       {
+        testId,
         score: correctCount,
         totalCount: graded.length,
         percentage: graded.length

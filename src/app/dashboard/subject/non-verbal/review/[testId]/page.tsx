@@ -31,6 +31,11 @@ export default async function NvrTestReviewPage({
       title={test.subTopic || test.topic || "Non-Verbal test"}
       test={test}
       isTopicTest={!test.subTopic && Boolean(test.topic)}
+      retryHref={`/quiz/nvr?${new URLSearchParams({
+        ...(test.topic ? { topic: test.topic } : {}),
+        ...(test.subTopic ? { subTopic: test.subTopic } : {}),
+        level: test.difficultyLevel ?? "",
+      })}`}
       figures
       questions={test.questions.map(({ question: q, ...row }) => ({
         id: row.id,

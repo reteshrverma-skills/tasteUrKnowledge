@@ -31,6 +31,11 @@ export default async function VrTestReviewPage({
       title={test.subTopic || test.topic || "Verbal Reasoning test"}
       test={test}
       isTopicTest={!test.subTopic && Boolean(test.topic)}
+      retryHref={`/quiz/vr?${new URLSearchParams({
+        ...(test.topic ? { topic: test.topic } : {}),
+        ...(test.subTopic ? { subTopic: test.subTopic } : {}),
+        level: test.difficultyLevel ?? "",
+      })}`}
       questions={test.questions
         .filter((row) => row.question)
         .map((row) => {

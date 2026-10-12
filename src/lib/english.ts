@@ -178,6 +178,7 @@ export async function englishTestReview(testId: number, studentId: number) {
       topic: true,
       difficultyLevel: true,
       completionReason: true,
+      gsEngCompId: true,
       comp: { select: { label: true, compStory: true, subjectName: true } },
       questions: {
         orderBy: [{ questionOrder: "asc" }, { id: "asc" }],

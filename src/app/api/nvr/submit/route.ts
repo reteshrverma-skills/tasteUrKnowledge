@@ -92,8 +92,10 @@ export async function POST(request: NextRequest) {
       .filter((g): g is NonNullable<typeof g> => g !== null);
 
     // A tracking failure must not cost the student their result.
+    // The saved round's id, so the browser can open its review page.
+    let testId: number | null = null;
     try {
-      await prisma.testTrackerNvrMain.create({
+      const test = await prisma.testTrackerNvrMain.create({
         data: {
           studentId: session.userId,
           testStartTime: parseStartedAt(startedAt),
@@ -117,12 +119,14 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+      testId = Number(test.id);
     } catch (trackingError) {
       console.error("Failed to record NVR test:", trackingError);
     }
 
     return NextResponse.json(
       {
+        testId,
         score: correctCount,
         totalCount: graded.length,
         percentage: graded.length

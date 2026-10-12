@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { difficultyStyle } from "@/lib/level-style";
 
@@ -58,6 +58,7 @@ function optionsFor(question: Question) {
 }
 
 export default function QuizPage() {
+  const router = useRouter();
   const params = useParams();
   const compId = Array.isArray(params.compId)
     ? params.compId[0]
@@ -226,7 +227,18 @@ export default function QuizPage() {
 
       if (!response.ok) throw new Error("Failed to submit answers");
 
-      const data: Results = await response.json();
+      const data: Results & { testId?: number | null } = await response.json();
+      // Open the same page the score chips do, so a result always looks
+      // the same. The inline results below stay as the fallback for a
+      // round that could not be saved.
+      if (data.testId) {
+        router.replace(
+          `/dashboard/subject/${encodeURIComponent(
+            comp?.subjectName || "English"
+          )}/review/${data.testId}`
+        );
+        return;
+      }
       setResults(data);
       setShowResults(true);
       setCurrentIndex(0);

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface Question {
@@ -50,6 +50,7 @@ function optionsFor(question: Question) {
 }
 
 function VrQuiz() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const subTopic = searchParams.get("subTopic") ?? "";
   const topic = searchParams.get("topic") ?? "";
@@ -212,7 +213,15 @@ function VrQuiz() {
 
         if (!response.ok) throw new Error("Failed to submit answers");
 
-        setResults(await response.json());
+        const data = await response.json();
+        // Open the same page the score chips do, so a result always looks
+        // the same. The inline results below stay as the fallback for a
+        // round that could not be saved.
+        if (data.testId) {
+          router.replace(`/dashboard/subject/verbal/review/${data.testId}`);
+          return;
+        }
+        setResults(data);
         setCurrentIndex(0);
       } catch (error) {
         console.error("Error submitting answers:", error);
@@ -222,7 +231,7 @@ function VrQuiz() {
         setSubmitting(false);
       }
     },
-    [bankTime, subTopic, topic, level]
+    [bankTime, router, subTopic, topic, level]
   );
 
   const handleSubmit = (e: React.FormEvent) => {

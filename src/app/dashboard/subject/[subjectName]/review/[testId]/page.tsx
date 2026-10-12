@@ -35,6 +35,7 @@ export default async function CompTestReviewPage({
       title={test.comp.label || test.topic || "Comprehension"}
       test={test}
       passage={test.comp.compStory}
+      retryHref={`/quiz/${test.gsEngCompId}`}
       questions={test.questions.map((row) => ({
         id: row.id,
         quest: row.question.quest,

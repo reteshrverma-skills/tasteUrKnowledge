@@ -31,6 +31,11 @@ export default async function MathsTestReviewPage({
       title={test.subTopic || test.topic || "Maths test"}
       test={test}
       isTopicTest={!test.subTopic && Boolean(test.topic)}
+      retryHref={`/quiz/maths?${new URLSearchParams({
+        ...(test.topic ? { topic: test.topic } : {}),
+        ...(test.subTopic ? { subTopic: test.subTopic } : {}),
+        level: test.difficultyLevel ?? "",
+      })}`}
       questions={test.questions.map((row) => ({
         id: row.id,
         quest: row.question.quest,

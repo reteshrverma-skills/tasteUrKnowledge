@@ -60,9 +60,12 @@ export function TestReview({
   passage,
   figures = false,
   questions,
+  retryHref,
 }: {
   backHref: string;
   backLabel: string;
+  /** Starts a fresh round of the same thing. */
+  retryHref?: string;
   title: string;
   test: ReviewTest;
   isTopicTest?: boolean;
@@ -227,6 +230,25 @@ export function TestReview({
             </li>
           ))}
         </ol>
+
+        {/* This page is also where a quiz lands on submit, so it carries
+            the way on that the old results screen did. */}
+        <div className="flex gap-3 mt-8">
+          <Link
+            href={backHref}
+            className="btn-quiet flex-1 py-2.5 text-center text-sm"
+          >
+            Back to {backLabel}
+          </Link>
+          {retryHref && (
+            <Link
+              href={retryHref}
+              className="btn-primary flex-1 py-2.5 text-center text-sm"
+            >
+              New round
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

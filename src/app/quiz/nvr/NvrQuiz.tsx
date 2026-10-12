@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { difficultyStyle, scoreStyle } from "@/lib/level-style";
 
@@ -81,6 +81,7 @@ function optionsFor(question: Question): FigureOption[] {
 }
 
 export function NvrQuiz() {
+  const router = useRouter();
   const params = useSearchParams();
   const subTopic = params.get("subTopic") ?? "";
   const topic = params.get("topic") ?? "";
@@ -224,7 +225,15 @@ export function NvrQuiz() {
       });
 
       if (!response.ok) throw new Error("Failed to submit answers");
-      setResults(await response.json());
+      const data = await response.json();
+      // Open the same page the score chips do, so a result always looks
+      // the same. The inline results below stay as the fallback for a
+      // round that could not be saved.
+      if (data.testId) {
+        router.replace(`/dashboard/subject/non-verbal/review/${data.testId}`);
+        return;
+      }
+      setResults(data);
       setCurrentIndex(0);
     } catch (error) {
       console.error(error);
