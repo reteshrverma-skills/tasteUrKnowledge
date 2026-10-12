@@ -511,3 +511,72 @@ model Answer {
 
   @@index([gsEngQuestionId])
 }
+
+/// Verbal Reasoning MCQs, picked by topic/subTopic + difficultyLevel like Maths.
+/// Created by prisma/sql/021_verbal_reasoning.sql. Ids are BIGINT there, so
+/// they are BigInt here; convert with Number() before they reach JSON.
+model GsVrQuestion {
+  id              BigInt  @id
+  topic           String? @db.VarChar(255)
+  subTopic        String? @db.VarChar(255)
+  quest           String?
+  optionA         String?
+  optionB         String?
+  optionC         String?
+  optionD         String?
+  optionE         String?
+  ansChoice       String? @db.VarChar(10)
+  explanation     String?
+  difficultyLevel String? @db.VarChar(50)
+  yearName        String? @db.VarChar(50)
+  /// Why each wrong option is wrong, shown when that option was chosen.
+  whyWrongA       String?
+  whyWrongB       String?
+  whyWrongC       String?
+  whyWrongD       String?
+  whyWrongE       String?
+
+  trackerRows TestTrackerVr[]
+
+  @@map("gsVRQuestions")
+}
+
+/// One row per Verbal Reasoning round; its id identifies the test.
+model TestTrackerVrMain {
+  id               BigInt    @id @default(autoincrement())
+  /// userProfile.id. No foreign key in the database.
+  studentId        BigInt?
+  /// TIMESTAMP without time zone in the database; written as UTC.
+  testStartTime    DateTime? @db.Timestamp(6)
+  topic            String?   @db.VarChar(255)
+  /// Null marks a whole-topic test spanning several subtopics.
+  subTopic         String?   @db.VarChar(255)
+  difficultyLevel  String?   @db.VarChar(50)
+  completionReason String?   @db.VarChar(100)
+
+  questions TestTrackerVr[]
+
+  @@index([studentId], map: "idx_testTrackerVRMain_studentId")
+  @@map("testTrackerVRMain")
+}
+
+/// One row per question answered within a Verbal Reasoning round.
+model TestTrackerVr {
+  id                  BigInt             @id @default(autoincrement())
+  questionId          BigInt?
+  question            GsVrQuestion?      @relation(fields: [questionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_testTrackerVR_question")
+  studentId           BigInt?
+  isAnsRight          Boolean?
+  isSkipped           Boolean?
+  testId              BigInt?
+  test                TestTrackerVrMain? @relation(fields: [testId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_testTrackerVR_test")
+  timeSpentOnQuestion Decimal?           @db.Decimal(10, 2)
+  chosenOption        String?            @db.VarChar(10)
+  correctOption       String?            @db.VarChar(10)
+  questionOrder       Int?               @db.SmallInt
+
+  @@index([questionId], map: "idx_testTrackerVR_questionId")
+  @@index([testId], map: "idx_testTrackerVR_testId")
+  @@index([studentId], map: "idx_testTrackerVR_studentId")
+  @@map("testTrackerVR")
+}

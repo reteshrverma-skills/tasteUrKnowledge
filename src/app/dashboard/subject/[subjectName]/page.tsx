@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { QUESTIONS_PER_COMP_ROUND, compWhere } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
+import { isVrSubject } from "@/lib/vr";
 import {
   type RecentAttempt,
   allowedLevels,
@@ -44,6 +45,10 @@ export default async function SubjectPage({
   }
   if (name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase()) {
     redirect("/dashboard/subject/non-verbal");
+  }
+  // Verbal Reasoning is a question bank like Maths, not comprehensions.
+  if (isVrSubject(name)) {
+    redirect("/dashboard/subject/verbal");
   }
 
   const session = await getSession();

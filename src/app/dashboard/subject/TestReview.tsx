@@ -14,10 +14,12 @@ export interface ReviewQuestion {
   right: string | null;
   isRight: boolean;
   explanation?: string | null;
+  /** Why the chosen option was wrong, when the bank says (Verbal Reasoning). */
+  whyWrong?: string | null;
 }
 
 export interface ReviewTest {
-  testStartTime: Date;
+  testStartTime: Date | null;
   difficultyLevel: string | null;
   completionReason: string | null;
 }
@@ -98,7 +100,7 @@ export function TestReview({
               {[
                 test.difficultyLevel,
                 isTopicTest && "whole-topic test",
-                test.testStartTime.toLocaleString("en-GB", {
+                test.testStartTime?.toLocaleString("en-GB", {
                   dateStyle: "medium",
                   timeStyle: "short",
                 }),
@@ -210,6 +212,12 @@ export function TestReview({
                   );
                 })}
               </ul>
+
+              {row.whyWrong && (
+                <p className="text-sm text-red-800 mt-3">
+                  <strong>Why your answer is wrong:</strong> {row.whyWrong}
+                </p>
+              )}
 
               {row.explanation && (
                 <p className="text-sm text-ink-soft mt-3 pt-3 border-t border-line">

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { SUBJECT_ORDER, displayName } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
+import { isVrSubject } from "@/lib/vr";
 import Link from "next/link";
 
 /**
@@ -84,9 +85,10 @@ export default async function DashboardPage() {
   // Maths and Non-Verbal each live in their own table, counted as questions
   // rather than comprehensions. A subject missing from here reads as "Coming
   // soon" however much content it actually has, which is what hid Non-Verbal.
-  const [mathsCount, nvrCount] = await Promise.all([
+  const [mathsCount, nvrCount, vrCount] = await Promise.all([
     prisma.gsMathsQuestion.count(),
     prisma.gsNvrQuestion.count(),
+    prisma.gsVrQuestion.count(),
   ]);
 
   const countFor = (name: string) => {
@@ -96,6 +98,7 @@ export default async function DashboardPage() {
     if (name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase()) {
       return nvrCount;
     }
+    if (isVrSubject(name)) return vrCount;
     return (
       compCounts.find(
         (row) => row.subjectName?.toLowerCase() === name.toLowerCase()
@@ -155,7 +158,8 @@ export default async function DashboardPage() {
             // the subject actually holds.
             const countsQuestions =
               name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase() ||
-              name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase();
+              name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase() ||
+              isVrSubject(name);
             const ready = count > 0;
 
             return (
