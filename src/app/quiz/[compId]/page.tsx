@@ -252,10 +252,10 @@ export default function QuizPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-ground grid place-items-center px-4">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-600">Loading quiz...</p>
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-line border-t-brand"></div>
+          <p className="mt-4 text-sm text-ink-soft">Loading quiz…</p>
         </div>
       </div>
     );
@@ -263,12 +263,12 @@ export default function QuizPage() {
 
   if (!comp) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-ground grid place-items-center px-4">
         <div className="text-center">
-          <p className="text-gray-600 text-lg">Comprehension not found</p>
+          <p className="font-display text-lg font-semibold text-ink">Comprehension not found</p>
           <Link
             href="/dashboard"
-            className="text-indigo-600 hover:text-indigo-700 font-medium mt-4 inline-block"
+            className="btn-primary inline-block mt-6 px-5 py-2.5"
           >
             Back to Dashboard
           </Link>
@@ -311,26 +311,26 @@ export default function QuizPage() {
   /* ------------------------------------------------------------------ */
   if (showResults && results) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <nav className="bg-white shadow">
+      <div className="min-h-screen bg-ground">
+        <nav className="bg-surface border-b border-line">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <Link
               href={backHref}
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
+              className="text-sm font-medium text-ink-soft hover:text-brand transition"
             >
               ← {backLabel}
             </Link>
-            <h1 className="text-2xl font-bold text-indigo-600">
+            <h1 className="font-display text-base font-bold text-brand">
               TasteUrKnowledge
             </h1>
           </div>
         </nav>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="card p-6 mb-8">
             <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-800">Quiz Results</h2>
-              <div className="mt-6 p-6 bg-gradient-to-r from-green-500 to-green-600 rounded-lg">
+              <h2 className="font-display text-2xl font-bold text-ink">Quiz Results</h2>
+              <div className="mt-6 p-6 bg-brand rounded-xl">
                 <p className="text-white text-lg">Your Score</p>
                 <p className="text-5xl font-bold text-white">
                   {results.score}/{results.totalCount}
@@ -340,7 +340,7 @@ export default function QuizPage() {
             </div>
 
             <div className="space-y-4 mt-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
+              <h3 className="font-display text-lg font-semibold text-ink mb-4">
                 Answer Review:
               </h3>
               {results.answers.map((answer, idx) => (
@@ -352,7 +352,7 @@ export default function QuizPage() {
                       : "border-red-500 bg-red-50"
                   }`}
                 >
-                  <p className="font-bold text-gray-800 mb-2">
+                  <p className="font-semibold text-ink mb-2">
                     Q{idx + 1}: {answer.quest}
                   </p>
                   <p
@@ -362,11 +362,11 @@ export default function QuizPage() {
                   >
                     {answer.isCorrect ? "✓ Correct" : "✗ Incorrect"}
                   </p>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-ink-soft">
                     <strong>Your Answer:</strong>{" "}
                     {answer.chosenOption || "Not answered"}
                   </p>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-ink-soft">
                     <strong>Correct Answer:</strong> {answer.ansChoice}
                   </p>
                 </div>
@@ -377,13 +377,13 @@ export default function QuizPage() {
           <div className="flex gap-4">
             <Link
               href={backHref}
-              className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition text-center"
+              className="btn-quiet flex-1 py-2.5 text-center text-sm"
             >
               Back to {backLabel}
             </Link>
             <button
               onClick={() => window.location.reload()}
-              className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-bold hover:bg-gray-700 transition"
+              className="btn-primary flex-1 py-2.5 text-sm"
             >
               Retake Quiz
             </button>

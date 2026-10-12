@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { scoreStyle } from "@/lib/level-style";
 
 interface Question {
   id: number;
@@ -245,10 +246,10 @@ function VrQuiz() {
 
   if (loading && !missingParams) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-ground grid place-items-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-600">Loading questions...</p>
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-line border-t-brand"></div>
+          <p className="mt-4 text-sm text-ink-soft">Loading questions…</p>
         </div>
       </div>
     );
@@ -256,17 +257,14 @@ function VrQuiz() {
 
   if (missingParams || loadError || questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-        <div className="text-center bg-white rounded-lg shadow-lg p-10">
-          <p className="text-gray-800 text-lg font-medium">
+      <div className="min-h-screen bg-ground grid place-items-center px-4">
+        <div className="card p-10 text-center">
+          <p className="font-display text-lg font-semibold text-ink">
             {missingParams
               ? "Pick a topic and difficulty first"
               : loadError || "No questions found"}
           </p>
-          <Link
-            href={backHref}
-            className="inline-block mt-6 bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
-          >
+          <Link href={backHref} className="btn-primary inline-block mt-6 px-5 py-2.5">
             Back to Verbal Reasoning
           </Link>
         </div>
@@ -274,101 +272,82 @@ function VrQuiz() {
     );
   }
 
+  const nav = (
+    <nav className="bg-surface border-b border-line shrink-0">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-3">
+        <Link
+          href={backHref}
+          className="text-sm font-medium text-ink-soft hover:text-brand transition shrink-0"
+        >
+          ← Verbal Reasoning
+        </Link>
+        <p className="text-sm text-ink-soft truncate hidden sm:block">
+          <span className="font-medium text-ink">{roundLabel}</span>
+          {level && ` · ${level}`}
+          {isTopicTest && " · whole topic"}
+        </p>
+        <span className="font-display text-base font-bold text-brand shrink-0">
+          TasteUrKnowledge
+        </span>
+      </div>
+    </nav>
+  );
+
   /* ---------------------------------------------------------------- */
-  /* Results                                                           */
+  /* Results - only shown when the round could not be saved; a saved   */
+  /* round opens its review page instead.                              */
   /* ---------------------------------------------------------------- */
   if (results) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <nav className="bg-white shadow">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <Link
-              href={backHref}
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              ← Verbal Reasoning
-            </Link>
-            <h1 className="text-2xl font-bold text-indigo-600">
-              TasteUrKnowledge
-            </h1>
+      <div className="min-h-screen bg-ground">
+        {nav}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-3">
+          <div className="card p-6 text-center">
+            <p className="eyebrow">Your score</p>
+            <p className="font-display text-4xl font-bold text-ink mt-1 tabular">
+              {results.score}/{results.totalCount}
+            </p>
+            <span className={`chip chip-lg mt-2 ${scoreStyle(results.percentage)}`}>
+              {results.percentage}%
+            </span>
           </div>
-        </nav>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-800">Results</h2>
-              <p className="text-gray-600 mt-1">
-                {roundLabel} · {level}
-                {isTopicTest && " · whole-topic test"}
+          {results.answers.map((answer, idx) => (
+            <div
+              key={answer.questionId}
+              className={`card p-5 border-l-4 ${
+                answer.isCorrect ? "border-l-green-500" : "border-l-red-500"
+              }`}
+            >
+              <p className="font-semibold text-ink mb-2">
+                <span className="text-brand">Q{idx + 1}:</span> {answer.quest}
               </p>
-              <div className="mt-6 p-6 bg-gradient-to-r from-green-500 to-green-600 rounded-lg">
-                <p className="text-white text-lg">Your Score</p>
-                <p className="text-5xl font-bold text-white">
-                  {results.score}/{results.totalCount}
+              <p className="text-sm text-ink-soft">
+                Your answer: <strong>{answer.chosenOption || "Not answered"}</strong>
+                {" · "}Correct answer: <strong>{answer.ansChoice}</strong>
+              </p>
+                {answer.whyWrong && (
+                  <p className="text-sm text-poor mt-2">
+                    <strong>Why your answer is wrong:</strong> {answer.whyWrong}
+                  </p>
+                )}
+              {answer.explanation && (
+                <p className="text-sm text-ink-soft mt-3 pt-3 border-t border-line">
+                  <strong className="text-ink">Why:</strong> {answer.explanation}
                 </p>
-                <p className="text-white text-xl mt-2">{results.percentage}%</p>
-              </div>
+              )}
             </div>
+          ))}
 
-            <div className="space-y-4 mt-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Answer Review:
-              </h3>
-              {results.answers.map((answer, idx) => (
-                <div
-                  key={answer.questionId}
-                  className={`p-4 rounded-lg border-2 ${
-                    answer.isCorrect
-                      ? "border-green-500 bg-green-50"
-                      : "border-red-500 bg-red-50"
-                  }`}
-                >
-                  <p className="font-bold text-gray-800 mb-2">
-                    Q{idx + 1}: {answer.quest}
-                  </p>
-                  <p
-                    className={`text-sm mb-2 ${
-                      answer.isCorrect ? "text-green-700" : "text-red-700"
-                    }`}
-                  >
-                    {answer.isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    <strong>Your Answer:</strong>{" "}
-                    {answer.chosenOption || "Not answered"}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    <strong>Correct Answer:</strong> {answer.ansChoice}
-                  </p>
-                  {answer.whyWrong && (
-                    <p className="text-sm text-red-700 mt-2">
-                      <strong>Why your answer is wrong:</strong>{" "}
-                      {answer.whyWrong}
-                    </p>
-                  )}
-                  {answer.explanation && (
-                    <p className="text-sm text-gray-600 mt-2 pt-2 border-t border-gray-300">
-                      <strong>Why:</strong> {answer.explanation}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <Link
-              href={backHref}
-              className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition text-center"
-            >
+          <div className="flex gap-3 pt-5">
+            <Link href={backHref} className="btn-quiet flex-1 py-2.5 text-center text-sm">
               Back to Verbal Reasoning
             </Link>
             <button
               onClick={() => window.location.reload()}
-              className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-bold hover:bg-gray-700 transition"
+              className="btn-primary flex-1 py-2.5 text-sm"
             >
-              New Random Set
+              New round
             </button>
           </div>
         </div>
@@ -377,7 +356,7 @@ function VrQuiz() {
   }
 
   /* ---------------------------------------------------------------- */
-  /* Quiz - one question at a time, no story pane for Verbal          */
+  /* Quiz - one question at a time, styled like the comprehension quiz */
   /* ---------------------------------------------------------------- */
   const total = questions.length;
   const safeIndex = Math.min(currentIndex, total - 1);
@@ -385,112 +364,110 @@ function VrQuiz() {
   const answeredCount = questions.filter((q) => answers[q.id]).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <nav className="bg-white shadow">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center gap-3">
-          <Link
-            href={backHref}
-            className="text-indigo-600 hover:text-indigo-700 font-medium text-sm shrink-0"
-          >
-            ← Verbal Reasoning
-          </Link>
-          <p className="text-sm text-gray-600 truncate hidden sm:block">
-            <span className="font-semibold text-gray-800">{roundLabel}</span>
-            {level && ` · ${level}`}
-            {isTopicTest && " · whole topic"}
-          </p>
-          <h1 className="text-lg font-bold text-indigo-600 shrink-0">
-            TasteUrKnowledge
-          </h1>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-ground flex flex-col">
+      {nav}
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-6">
+        <section className="card overflow-hidden">
           {/* Progress */}
-          <div className="px-5 py-3 border-b border-gray-200">
+          <header className="px-5 py-3 border-b border-line">
             <div className="flex justify-between items-center mb-2">
-              <p className="font-bold text-gray-800 text-sm">
+              <p className="text-sm font-medium text-ink tabular">
                 Question {safeIndex + 1} of {total}
               </p>
-              <p className="text-xs text-gray-600">
-                Answered:{" "}
-                <span className="font-bold text-indigo-600">
-                  {answeredCount}
-                </span>
-                /{total}
+              <p className="text-xs text-ink-faint tabular">
+                <span className="font-semibold text-brand">{answeredCount}</span>
+                {" / "}
+                {total} answered
               </p>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div className="w-full bg-line rounded-full h-1">
               <div
-                className="bg-indigo-600 h-1.5 rounded-full transition-all"
+                className="bg-brand h-1 rounded-full transition-all duration-300"
                 style={{ width: `${(answeredCount / total) * 100}%` }}
               />
             </div>
-          </div>
+          </header>
 
           <form onSubmit={handleSubmit}>
             {/* Taller frame so the question sits visibly centred; my-auto
                 centres it when there is room and collapses when there is not,
                 so a long question is never clipped. */}
-            <div className="px-5 py-6 min-h-[60vh] flex flex-col">
-              <div className="my-auto w-full max-w-2xl mx-auto">
-                <h3 className="font-bold text-gray-800 mb-4">
-                  <span className="text-indigo-600">Q{safeIndex + 1}:</span>{" "}
+            <div className="px-5 py-6 min-h-[55vh] flex flex-col">
+              <div className="my-auto w-full">
+                <h3 className="font-display text-[17px] font-semibold text-ink mb-4 leading-snug">
                   {currentQuestion.quest}
                 </h3>
 
                 <div className="space-y-2">
-                  {optionsFor(currentQuestion).map((option) => (
-                    <label
-                      key={option.label}
-                      className={`flex items-start p-2.5 rounded-lg border-2 cursor-pointer transition ${
-                        answers[currentQuestion.id] === option.label
-                          ? "border-indigo-600 bg-indigo-50"
-                          : "border-gray-300 hover:border-indigo-300"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={String(currentQuestion.id)}
-                        value={option.label}
-                        checked={answers[currentQuestion.id] === option.label}
-                        onChange={() =>
-                          handleAnswerChange(currentQuestion.id, option.label)
-                        }
-                        className="w-4 h-4 mt-0.5 shrink-0"
-                      />
-                      <span className="ml-3 text-sm font-medium text-gray-700">
-                        <strong>{option.label}:</strong> {option.text}
-                      </span>
-                    </label>
-                  ))}
+                  {optionsFor(currentQuestion).map((option) => {
+                    const chosen = answers[currentQuestion.id] === option.label;
+                    return (
+                      <label
+                        key={option.label}
+                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                          chosen
+                            ? "border-brand bg-brand-tint"
+                            : "border-line hover:border-line-strong hover:bg-ground/60"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={String(currentQuestion.id)}
+                          value={option.label}
+                          checked={chosen}
+                          onChange={() =>
+                            handleAnswerChange(currentQuestion.id, option.label)
+                          }
+                          className="sr-only"
+                        />
+                        {/* The letter doubles as the radio, so the whole row
+                            is the target rather than a 16px circle. */}
+                        <span
+                          aria-hidden="true"
+                          className={`w-6 h-6 shrink-0 rounded-md grid place-items-center text-xs font-semibold transition ${
+                            chosen ? "bg-brand text-white" : "bg-ground text-ink-soft"
+                          }`}
+                        >
+                          {option.label}
+                        </span>
+                        <span
+                          className={`text-sm leading-relaxed ${
+                            chosen ? "text-ink font-medium" : "text-ink-soft"
+                          }`}
+                        >
+                          {option.text}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            <div className="px-5 py-3 border-t border-gray-200 space-y-3">
-              <div className="flex gap-3">
+            {/* Controls */}
+            <footer className="px-5 py-3.5 border-t border-line space-y-3">
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
                   disabled={safeIndex === 0}
-                  className="flex-1 bg-gray-200 text-gray-700 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  className="btn-quiet flex-1 py-2 text-sm disabled:cursor-not-allowed"
                 >
                   ← Previous
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    setCurrentIndex((i) => Math.min(i + 1, total - 1))
-                  }
+                  onClick={() => setCurrentIndex((i) => Math.min(i + 1, total - 1))}
                   disabled={safeIndex === total - 1}
-                  className="flex-1 bg-indigo-600 text-white py-1.5 rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  className="btn-quiet flex-1 py-2 text-sm disabled:cursor-not-allowed"
                 >
                   Next →
                 </button>
               </div>
 
+              {/* Jump to any question. Answered ones are filled, so the gaps
+                  are what stands out. */}
               <div className="flex flex-wrap justify-center gap-1.5">
                 {questions.map((question, idx) => {
                   const isCurrent = idx === safeIndex;
@@ -501,12 +478,13 @@ function VrQuiz() {
                       type="button"
                       onClick={() => setCurrentIndex(idx)}
                       aria-current={isCurrent ? "true" : undefined}
-                      className={`w-8 h-8 rounded font-bold text-xs border-2 transition ${
+                      title={`Question ${idx + 1}${isAnswered ? " (answered)" : ""}`}
+                      className={`w-8 h-8 rounded-lg font-semibold text-xs border transition tabular ${
                         isCurrent
-                          ? "bg-indigo-600 text-white border-indigo-600"
+                          ? "bg-brand text-white border-brand"
                           : isAnswered
-                          ? "bg-green-100 text-green-700 border-green-500 hover:border-green-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-indigo-300"
+                          ? "bg-good-tint text-good border-good/30"
+                          : "bg-surface text-ink-faint border-line hover:border-line-strong"
                       }`}
                     >
                       {idx + 1}
@@ -518,13 +496,13 @@ function VrQuiz() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700 disabled:opacity-50 transition"
+                className="btn-primary w-full py-2.5"
               >
-                {submitting ? "Submitting..." : "Submit Answers"}
+                {submitting ? "Submitting…" : "Submit answers"}
               </button>
-            </div>
+            </footer>
           </form>
-        </div>
+        </section>
       </div>
     </div>
   );
@@ -535,8 +513,8 @@ export default function VrQuizPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="min-h-screen bg-ground grid place-items-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-line border-t-brand"></div>
         </div>
       }
     >
