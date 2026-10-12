@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import Link from "next/link";
+import { LevelIcon } from "../LevelIcon";
 import { redirect } from "next/navigation";
 import { QUESTIONS_PER_COMP_ROUND, compWhere } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
@@ -155,12 +156,13 @@ export default async function SubjectPage({
                         name
                       )}?level=${encodeURIComponent(level)}`}
                       aria-current={isActive ? "true" : undefined}
-                      className={`chip chip-lg border transition ${
+                      className={`chip chip-lg border transition inline-flex items-center gap-1.5 ${
                         isActive
                           ? "bg-brand text-white border-brand shadow-sm"
                           : `${difficultyStyle(level)} hover:brightness-[0.97]`
                       }`}
                     >
+                      <LevelIcon level={level} />
                       {level}
                     </Link>
                   );

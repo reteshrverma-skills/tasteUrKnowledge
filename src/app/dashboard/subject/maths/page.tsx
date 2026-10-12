@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LevelIcon } from "../LevelIcon";
 import { getSession } from "@/lib/auth";
 import { scoreStyle, type TestScore } from "@/lib/student";
 import {
@@ -101,12 +102,13 @@ export default async function MathsPage({
                         level
                       )}`}
                       aria-current={isActive ? "true" : undefined}
-                      className={`chip chip-lg border transition ${
+                      className={`chip chip-lg border transition inline-flex items-center gap-1.5 ${
                         isActive
                           ? "bg-brand text-white border-brand shadow-sm"
                           : `${mathsLevelStyle(level)} hover:brightness-[0.97]`
                       }`}
                     >
+                      <LevelIcon level={level} />
                       {level}
                     </Link>
                   );
