@@ -201,14 +201,15 @@ function VrQuiz() {
             subTopic: subTopic || null,
             topic: topic || null,
             level: level || null,
-            answers: Object.entries(answersRef.current).map(
-              ([questionId, chosenOption]) => ({
-                questionId: Number(questionId),
-                chosenOption,
-                timeSpentSeconds:
-                  (elapsedRef.current[Number(questionId)] ?? 0) / 1000,
-              })
-            ),
+            // In the order the questions were shown: the server records
+            // each one's position from this order. Walking the answers
+            // object instead would sort them by id, since JS lists numeric
+            // keys in ascending order.
+            answers: questionsRef.current.map((question) => ({
+              questionId: question.id,
+              chosenOption: answersRef.current[question.id] ?? null,
+              timeSpentSeconds: (elapsedRef.current[question.id] ?? 0) / 1000,
+            })),
           }),
         });
 

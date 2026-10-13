@@ -205,14 +205,14 @@ export default function QuizPage() {
       if (openQuestionId !== undefined) bankTime(openQuestionId);
       bankReading();
 
-      const answersArray = Object.entries(answers).map(
-        ([questionId, chosenOption]) => ({
-          questionId: Number(questionId),
-          chosenOption,
-          timeSpentSeconds:
-            (elapsedRef.current[Number(questionId)] ?? 0) / 1000,
-        })
-      );
+      // In the order the questions were shown: the server records each
+      // one's position from this order. Walking the answers object instead
+      // would sort them by id, since JS lists numeric keys in ascending order.
+      const answersArray = questionsRef.current.map((question) => ({
+        questionId: question.id,
+        chosenOption: answers[question.id] ?? null,
+        timeSpentSeconds: (elapsedRef.current[question.id] ?? 0) / 1000,
+      }));
 
       const response = await fetch(`/api/comps/${compId}/submit`, {
         method: "POST",
