@@ -58,6 +58,73 @@ const MAX_GENERATED = 50;
 const OPTIONS = ["A", "B", "C", "D", "E"] as const;
 const REQUIRED_OPTIONS = ["A", "B", "C", "D"] as const;
 
+/** A generated comprehension awaiting the admin's save. */
+interface GeneratedDraft {
+  yearId: string;
+  title: string;
+  story: string;
+  level: string;
+  questions: QuestionDraft[];
+}
+
+/**
+ * One question as a student would meet it, with the right answer marked
+ * underneath - the same reading as the test review page.
+ */
+function PreviewQuestion({
+  question,
+  position,
+}: {
+  question: QuestionDraft;
+  position: number;
+}) {
+  const options = OPTIONS.map((letter) => ({
+    letter,
+    text: question[`option${letter}` as keyof QuestionDraft],
+  })).filter((o) => o.text.trim());
+
+  return (
+    <li className="border border-gray-200 rounded-lg p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <p className="font-semibold text-ink">
+          <span className="text-brand">Q{position}:</span> {question.quest}
+        </p>
+        {question.typeOfQuestion && (
+          <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-brand-tint text-brand">
+            {question.typeOfQuestion}
+          </span>
+        )}
+      </div>
+
+      <ul className="space-y-1.5">
+        {options.map((o) => {
+          const isRight = o.letter === question.ansChoice;
+          return (
+            <li
+              key={o.letter}
+              className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
+                isRight
+                  ? "border-green-500 bg-green-50 text-green-900"
+                  : "border-gray-200 text-ink-soft"
+              }`}
+            >
+              <strong>{o.letter}:</strong>
+              <span className="flex-1">{o.text}</span>
+              {isRight && (
+                <span className="text-xs font-semibold">Correct answer</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className="text-sm text-ink-soft mt-2">
+        <strong className="text-ink">Answer:</strong> {question.ansChoice}
+      </p>
+    </li>
+  );
+}
+
 function emptyQuestion(): QuestionDraft {
   return {
     quest: "",
@@ -511,11 +578,10 @@ export default function EnglishAdminPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  const [newYearName, setNewYearName] = useState("");
-  const [title, setTitle] = useState("");
-  const [story, setStory] = useState("");
-  const [drafts, setDrafts] = useState<QuestionDraft[]>([emptyQuestion()]);
   const [level, setLevel] = useState(LEVELS[0]);
+  // The generated comprehension awaiting save. Read-only: it is saved as
+  // generated, at the level it was generated for.
+  const [generated, setGenerated] = useState<GeneratedDraft | null>(null);
 
   // AI draft settings
   const [genCount, setGenCount] = useState(MIN_GENERATED);
@@ -574,49 +640,9 @@ export default function EnglishAdminPage() {
     }
   };
 
-  const handleAddYear = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setNotice("");
-
-    try {
-      const response = await fetch("/api/admin/years", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newYearName.trim(), order: years.length }),
-      });
-      if (!response.ok) {
-        throw new Error(await readError(response, "Failed to add year"));
-      }
-      const year: Year = await response.json();
-      setNewYearName("");
-      setNotice(`Year "${year.name}" added`);
-      setYears(await fetchYears());
-      setSelectedYearId(year.id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add year");
-    }
-  };
-
-  const updateDraft = (index: number, next: QuestionDraft) => {
-    setDrafts((current) =>
-      current.map((draft, i) => (i === index ? next : draft))
-    );
-  };
-
-  const removeDraft = (index: number) => {
-    setDrafts((current) => current.filter((_, i) => i !== index));
-  };
-
-  const resetForm = () => {
-    setTitle("");
-    setStory("");
-    setDrafts([emptyQuestion()]);
-  };
-
   /**
-   * Asks Claude for a passage and questions, then fills the form below with
-   * them. Nothing is saved until the admin reviews it and presses Save.
+   * Asks Claude for a passage and questions, then shows them below for
+   * review. Nothing is saved until the admin presses Save.
    */
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -628,8 +654,8 @@ export default function EnglishAdminPage() {
       return;
     }
     if (
-      (title.trim() || story.trim() || drafts.some((d) => d.quest.trim())) &&
-      !window.confirm("Replace what is in the form below with a new AI draft?")
+      generated &&
+      !window.confirm("Replace the unsaved comprehension below with a new one?")
     ) {
       return;
     }
@@ -653,19 +679,21 @@ export default function EnglishAdminPage() {
         throw new Error(data.error || "Generation failed");
       }
 
-      setTitle(data.title);
-      setStory(data.story);
-      setDrafts(
-        data.questions.map(
+      setGenerated({
+        yearId: selectedYearId,
+        title: data.title,
+        story: data.story,
+        level,
+        questions: data.questions.map(
           (q: Omit<QuestionDraft, "topic">): QuestionDraft => ({
             ...q,
             // Every existing English question carries "Comp" here.
             topic: "Comp",
           })
-        )
-      );
+        ),
+      });
       setNotice(
-        `Draft ready: "${data.title}" with ${data.questions.length} questions. Review and edit it below, then save.`
+        `"${data.title}" is ready with ${data.questions.length} questions. Review it below, then save it.`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");
@@ -674,15 +702,11 @@ export default function EnglishAdminPage() {
     }
   };
 
-  const handleCreatePassage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreatePassage = async () => {
     setError("");
     setNotice("");
 
-    if (!selectedYearId) {
-      setError("Select a year first");
-      return;
-    }
+    if (!generated) return;
 
     setSaving(true);
     try {
@@ -690,11 +714,12 @@ export default function EnglishAdminPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          yearId: selectedYearId,
-          title,
-          story,
-          difficultyLevel: level,
-          questions: drafts,
+          // The year it was generated for, even if the picker moved since.
+          yearId: generated.yearId,
+          title: generated.title,
+          story: generated.story,
+          difficultyLevel: generated.level,
+          questions: generated.questions,
         }),
       });
       if (!response.ok) {
@@ -704,7 +729,7 @@ export default function EnglishAdminPage() {
       setNotice(
         `"${created.label}" saved with ${created.questions.length} question(s). Students will not see it until you approve it in the list below.`
       );
-      resetForm();
+      setGenerated(null);
       await refreshPassages();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create passage");
@@ -733,52 +758,6 @@ export default function EnglishAdminPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        {/* Year picker — passages are filed under each year's English subject */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-ink mb-4">Year</h2>
-          {loadingYears ? (
-            <p className="text-ink-soft">Loading years...</p>
-          ) : years.length === 0 ? (
-            <p className="text-ink-soft mb-4">
-              No years yet — add one to start writing passages.
-            </p>
-          ) : (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {years.map((year) => (
-                <button
-                  key={year.id}
-                  type="button"
-                  onClick={() => setSelectedYearId(year.id)}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    year.id === selectedYearId
-                      ? "bg-brand text-white"
-                      : "bg-gray-100 text-ink-soft hover:bg-gray-200"
-                  }`}
-                >
-                  {year.name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <form onSubmit={handleAddYear} className="flex gap-2">
-            <input
-              type="text"
-              value={newYearName}
-              onChange={(e) => setNewYearName(e.target.value)}
-              required
-              className={inputClass}
-              placeholder="Add a year, e.g., Year 4"
-            />
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex-shrink-0"
-            >
-              Add year
-            </button>
-          </form>
-        </div>
-
         {notice && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
             {notice}
@@ -792,16 +771,41 @@ export default function EnglishAdminPage() {
 
         {/* AI draft: fills the form below for review, saves nothing */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-ink">Generate with AI</h2>
+          <h2 className="text-2xl font-bold text-ink">
+            Generate Comprehension
+          </h2>
           <p className="text-ink-soft mt-1 mb-6">
-            Claude writes a passage and its questions for{" "}
-            {selectedYear ? selectedYear.name : "the selected year"} at the
-            chosen level. The draft appears in the form below for you to check
-            and edit - nothing is saved until you press Save.
+            Writes a passage and its questions for the chosen year and level.
+            It appears below for you to review - nothing is saved until you
+            press Save. The passage list at the bottom follows the year
+            chosen here.
           </p>
 
           <form onSubmit={handleGenerate} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ink-soft mb-1">
+                  Year
+                </label>
+                <select
+                  value={selectedYearId}
+                  onChange={(e) => setSelectedYearId(e.target.value)}
+                  disabled={loadingYears || years.length === 0}
+                  className={inputClass}
+                >
+                  {loadingYears ? (
+                    <option value="">Loading years…</option>
+                  ) : years.length === 0 ? (
+                    <option value="">No years set up</option>
+                  ) : (
+                    years.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-1">
                   Difficulty level
@@ -860,98 +864,67 @@ export default function EnglishAdminPage() {
           </form>
         </div>
 
-        {/* New passage: story and its questions saved together */}
+        {/* The generated comprehension, read-only, awaiting save */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-ink">
-            Add a comprehension passage
-          </h2>
-          <p className="text-ink-soft mt-1 mb-6">
-            {selectedYear
-              ? `Saved under ${selectedYear.name} → English, and shown to students above the questions.`
-              : "Select or add a year first."}
-          </p>
+          <h2 className="text-2xl font-bold text-ink">Comprehension preview</h2>
 
-          <form onSubmit={handleCreatePassage} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Difficulty level
-              </label>
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                className={inputClass}
-              >
-                {LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
+          {!generated ? (
+            <p className="text-ink-soft mt-1">
+              Generate a comprehension above and it appears here to review.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-6">
+              <div>
+                <p className="text-sm text-ink-soft">
+                  {years.find((y) => y.id === generated.yearId)?.name}{" "}
+                  · {generated.level}{" "}
+                  · {generated.questions.length} questions ·{" "}
+                  {countWords(generated.story)} words
+                </p>
+                <h3 className="text-xl font-bold text-ink mt-1">
+                  {generated.title}
+                </h3>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-[15px] text-ink leading-[1.75] whitespace-pre-line">
+                {generated.story}
+              </div>
+
+              <ol className="space-y-4">
+                {generated.questions.map((q, index) => (
+                  <PreviewQuestion key={index} question={q} position={index + 1} />
                 ))}
-              </select>
-            </div>
+              </ol>
 
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Passage title
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className={inputClass}
-                placeholder="e.g., The Lighthouse Keeper"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Comprehension story
-              </label>
-              <textarea
-                value={story}
-                onChange={(e) => setStory(e.target.value)}
-                required
-                rows={12}
-                className={inputClass}
-                placeholder="Paste or write the passage. Blank lines are kept as paragraph breaks."
-              />
-              <p className="text-sm text-ink-faint mt-1">
-                {countWords(story)} words
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm("Discard this comprehension without saving?")) {
+                      setGenerated(null);
+                      setNotice("");
+                    }
+                  }}
+                  disabled={saving}
+                  className="flex-1 bg-gray-100 text-ink-soft py-2 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreatePassage}
+                  disabled={saving}
+                  className="flex-1 bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover disabled:opacity-50"
+                >
+                  {saving ? "Saving..." : "Save passage and questions"}
+                </button>
+              </div>
+              <p className="text-xs text-ink-faint">
+                Saved comprehensions stay hidden from students until you
+                approve them in the list below.
               </p>
             </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-ink">Questions</h3>
-              {drafts.map((draft, index) => (
-                <QuestionFields
-                  key={index}
-                  value={draft}
-                  position={index + 1}
-                  onChange={(next) => updateDraft(index, next)}
-                  onRemove={
-                    drafts.length > 1 ? () => removeDraft(index) : undefined
-                  }
-                />
-              ))}
-              <button
-                type="button"
-                onClick={() =>
-                  setDrafts((current) => [...current, emptyQuestion()])
-                }
-                className="text-brand hover:text-brand-hover font-medium"
-              >
-                + Add another question
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              disabled={saving || !selectedYearId}
-              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save passage and questions"}
-            </button>
-          </form>
+          )}
         </div>
 
         {/* Existing passages for the selected year */}
