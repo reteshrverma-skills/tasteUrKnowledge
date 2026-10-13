@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { displayName } from "@/lib/english";
 import { listChildren, parentProfile } from "@/lib/parent";
 import { difficultyStyle } from "@/lib/student";
-import { skillBreakdown, timeSpentBySubject } from "@/lib/progress";
+import { timeSpentBySubject } from "@/lib/progress";
 import { recordSubscription, stripe, subscriptionFor } from "@/lib/billing";
 import { ParentNav } from "./ParentNav";
 import { ChildProgress } from "./ChildProgress";
@@ -89,12 +89,11 @@ export default async function ParentDashboardPage({
   // after another, so a parent with several children does not wait n times.
   const progress = await Promise.all(
     children.map(async (child) => {
-      const [times, skills, subscription] = await Promise.all([
+      const [times, subscription] = await Promise.all([
         timeSpentBySubject(child.studentId),
-        skillBreakdown(child.studentId),
         subscriptionFor(child.studentId),
       ]);
-      return { studentId: child.studentId, times, skills, subscription };
+      return { studentId: child.studentId, times, subscription };
     })
   );
   const progressById = new Map(progress.map((p) => [p.studentId, p]));
@@ -229,8 +228,8 @@ export default async function ParentDashboardPage({
                   </div>
 
                   <ChildProgress
+                    studentId={child.studentId}
                     times={progressById.get(child.studentId)?.times ?? []}
-                    skills={progressById.get(child.studentId)?.skills ?? []}
                   />
                 </div>
               ))}

@@ -1,6 +1,28 @@
 import { prisma } from "@/lib/prisma";
 
 /* ------------------------------------------------------------------ */
+/* Subjects                                                            */
+/* ------------------------------------------------------------------ */
+
+/** Every subject a parent sees progress for, in display order. */
+export const PROGRESS_SUBJECTS = [
+  { subject: "English", slug: "english" },
+  { subject: "Maths", slug: "maths" },
+  { subject: "Verbal Reasoning", slug: "verbal" },
+  { subject: "Non-Verbal", slug: "non-verbal" },
+] as const;
+
+export type ProgressSubject = (typeof PROGRESS_SUBJECTS)[number]["subject"];
+
+export function subjectForSlug(slug: string): ProgressSubject | null {
+  return PROGRESS_SUBJECTS.find((s) => s.slug === slug)?.subject ?? null;
+}
+
+export function slugForSubject(subject: ProgressSubject): string {
+  return PROGRESS_SUBJECTS.find((s) => s.subject === subject)!.slug;
+}
+
+/* ------------------------------------------------------------------ */
 /* Time spent                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -12,7 +34,7 @@ export interface TimeSpent {
 }
 
 export interface SubjectTime extends TimeSpent {
-  subject: string;
+  subject: ProgressSubject;
 }
 
 const ZERO: TimeSpent = {
@@ -43,7 +65,7 @@ export function periodBoundaries(now: Date = new Date()) {
   return { today, week, month };
 }
 
-/** Raw numerics come back as string or Decimal depending on the driver. */
+/** Raw numerics come back as string, bigint or Decimal depending on the driver. */
 function num(value: unknown): number {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
@@ -85,9 +107,9 @@ export async function timeSpentBySubject(
 ): Promise<SubjectTime[]> {
   const { today, week, month } = periodBoundaries();
 
-  // No outer date bound now: every round is in scope and each column is a
-  // FILTER on top, with all-time the unfiltered total.
-  const [english, maths] = await Promise.all([
+  // No outer date bound: every round is in scope and each column is a FILTER
+  // on top, with all-time the unfiltered total.
+  const [english, maths, verbal, nonVerbal] = await Promise.all([
     prisma.$queryRaw<Bucketed[]>`
       SELECT
         COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${today}), 0) AS today,
@@ -123,11 +145,49 @@ export async function timeSpentBySubject(
           FROM "testTrackerMathMain" m
          WHERE m."studentId" = ${studentId}
       ) t`,
+    // VR's testStartTime has no time zone. Prisma writes it as UTC, so it is
+    // read back as UTC before comparing with the zoned boundaries.
+    prisma.$queryRaw<Bucketed[]>`
+      SELECT
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${today}), 0) AS today,
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${week}),  0) AS week,
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${month}), 0) AS month,
+        COALESCE(SUM(t.secs), 0)                                     AS alltime
+      FROM (
+        SELECT
+          m."testStartTime" AT TIME ZONE 'UTC' AS started,
+          COALESCE((
+            SELECT SUM(q."timeSpentOnQuestion")
+              FROM "testTrackerVR" q
+             WHERE q."testId" = m."id"
+          ), 0) AS secs
+          FROM "testTrackerVRMain" m
+         WHERE m."studentId" = ${studentId}
+      ) t`,
+    prisma.$queryRaw<Bucketed[]>`
+      SELECT
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${today}), 0) AS today,
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${week}),  0) AS week,
+        COALESCE(SUM(t.secs) FILTER (WHERE t.started >= ${month}), 0) AS month,
+        COALESCE(SUM(t.secs), 0)                                     AS alltime
+      FROM (
+        SELECT
+          m."testStartTime" AS started,
+          COALESCE((
+            SELECT SUM(q."timeSpentOnQuestion")
+              FROM "testTrackerNvr" q
+             WHERE q."testId" = m."id"
+          ), 0) AS secs
+          FROM "testTrackerNvrMain" m
+         WHERE m."studentId" = ${studentId}
+      ) t`,
   ]);
 
   return [
     { subject: "English", ...toTimeSpent(english[0]) },
     { subject: "Maths", ...toTimeSpent(maths[0]) },
+    { subject: "Verbal Reasoning", ...toTimeSpent(verbal[0]) },
+    { subject: "Non-Verbal", ...toTimeSpent(nonVerbal[0]) },
   ];
 }
 
@@ -148,17 +208,10 @@ export function formatDuration(seconds: number): string {
 /* ------------------------------------------------------------------ */
 
 export interface SkillArea {
-  /** The Maths subtopic, or the English question type. */
+  /** The subtopic, or for English the question type. */
   label: string;
   percentage: number;
   attempted: number;
-}
-
-/** One subject's best and weakest topics. */
-export interface SkillBreakdown {
-  subject: "English" | "Maths";
-  strengths: SkillArea[];
-  weaknesses: SkillArea[];
 }
 
 /**
@@ -167,14 +220,14 @@ export interface SkillBreakdown {
  * different cut-off here would mean a parent sees a topic chipped green on one
  * screen and listed as a weakness on another.
  */
-const STRONG_THRESHOLD = 70;
+export const STRONG_THRESHOLD = 70;
 
 /**
  * Fewer answers than this is noise, not a verdict. Two out of two says far
  * less than nine out of fifteen, in either direction - a single lucky question
  * is not a strength any more than a single unlucky one is a weakness.
  */
-const MIN_ATTEMPTED = 4;
+export const MIN_ATTEMPTED = 4;
 
 interface ScoreRow {
   bucket: string | null;
@@ -187,13 +240,69 @@ function sentenceCase(label: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-function toBreakdown(
-  subject: SkillBreakdown["subject"],
-  rows: ScoreRow[],
-  limit: number
-): SkillBreakdown {
-  const areas = rows
-    .filter((row) => row.bucket && num(row.total) >= MIN_ATTEMPTED)
+/**
+ * Correct/answered per topic in one subject, from every answer the student
+ * gave.
+ *
+ * Grouped by the question's own tags rather than the round's, because a
+ * whole-topic test spans several subtopics and the round records only one.
+ * - English: question type (Retrieval, inference, vocabulary...), compared
+ *   ignoring case, as the bank holds both "Sequencing" and "sequencing".
+ * - Maths: subtopic.
+ * - Verbal and Non-Verbal: "topic · subtopic", since their subtopic names
+ *   repeat across topics ("Compare" sits under two Non-Verbal topics).
+ */
+async function scoreRows(
+  studentId: number,
+  subject: ProgressSubject
+): Promise<ScoreRow[]> {
+  switch (subject) {
+    case "English":
+      return prisma.$queryRaw<ScoreRow[]>`
+        SELECT lower(btrim(COALESCE(gq."typeOfQuestion", q."topic"))) AS bucket,
+               COUNT(*)                               AS total,
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerEnglish" q
+          JOIN "gsEnglishQuestions" gq ON gq."id" = q."questionId"
+         WHERE q."studentId" = ${studentId}
+           AND btrim(COALESCE(gq."typeOfQuestion", q."topic", '')) <> ''
+         GROUP BY 1`;
+    case "Maths":
+      return prisma.$queryRaw<ScoreRow[]>`
+        SELECT gq."subTopic" AS bucket,
+               COUNT(*)                               AS total,
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerMath" q
+          JOIN "gsMathsQuestions" gq ON gq."id" = q."questionId"
+         WHERE q."studentId" = ${studentId}
+           AND gq."subTopic" IS NOT NULL
+         GROUP BY gq."subTopic"`;
+    case "Verbal Reasoning":
+      return prisma.$queryRaw<ScoreRow[]>`
+        SELECT concat_ws(' · ', gq."topic", gq."subTopic") AS bucket,
+               COUNT(*)                               AS total,
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerVR" q
+          JOIN "gsVRQuestions" gq ON gq."id" = q."questionId"
+         WHERE q."studentId" = ${studentId}
+           AND gq."subTopic" IS NOT NULL
+         GROUP BY 1`;
+    case "Non-Verbal":
+      return prisma.$queryRaw<ScoreRow[]>`
+        SELECT concat_ws(' · ', gq."topic", gq."subTopic") AS bucket,
+               COUNT(*)                               AS total,
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerNvr" q
+          JOIN "gsNvrQuestions" gq ON gq."id" = q."questionId"
+         WHERE q."studentId" = ${studentId}
+         GROUP BY 1`;
+  }
+}
+
+/** Every topic with any answers, strongest first. */
+function toAreas(rows: ScoreRow[]): SkillArea[] {
+  return rows
+    .filter((row) => row.bucket && num(row.total) > 0)
     .map((row) => {
       const total = num(row.total);
       return {
@@ -201,63 +310,124 @@ function toBreakdown(
         percentage: Math.round((num(row.correct) / total) * 100),
         attempted: total,
       };
-    });
-
-  return {
-    subject,
-    strengths: areas
-      .filter((area) => area.percentage >= STRONG_THRESHOLD)
-      .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, limit),
-    weaknesses: areas
-      .filter((area) => area.percentage < STRONG_THRESHOLD)
-      .sort((a, b) => a.percentage - b.percentage)
-      .slice(0, limit),
-  };
+    })
+    .sort((a, b) => b.percentage - a.percentage || b.attempted - a.attempted);
 }
 
-/**
- * What this student is good at and what they are not, per subject, so English
- * is never crowded out of a shared list by Maths.
- *
- * Maths is grouped by the question's own subtopic rather than the round's,
- * because a whole-topic test spans several and the round only records one.
- * English is grouped by question type (Retrieval, inference, vocabulary...),
- * read from the question bank so answers saved before the type was copied
- * onto the tracker row still count. Types are compared ignoring case, as the
- * bank holds both "Sequencing" and "sequencing".
- *
- * Both lists come from the same aggregation and the same threshold, so a topic
- * can never appear in both, and every topic with enough answers behind it
- * lands in exactly one.
- */
-export async function skillBreakdown(
+/* ------------------------------------------------------------------ */
+/* One subject in full, for the parent's details page                  */
+/* ------------------------------------------------------------------ */
+
+export interface RecentTest {
+  id: number;
+  startedAt: Date | null;
+  /** What the round was: subtopic, topic or comprehension title. */
+  label: string;
+  level: string | null;
+  correct: number;
+  total: number;
+  percentage: number;
+}
+
+interface TestRow {
+  id: unknown;
+  started: Date | null;
+  label: string | null;
+  level: string | null;
+  total: unknown;
+  correct: unknown;
+}
+
+async function recentTestRows(
   studentId: number,
-  limit = 3
-): Promise<SkillBreakdown[]> {
-  const [englishRows, mathsRows] = await Promise.all([
-    prisma.$queryRaw<ScoreRow[]>`
-      SELECT lower(btrim(COALESCE(gq."typeOfQuestion", q."topic"))) AS bucket,
-             COUNT(*)                               AS total,
-             COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
-        FROM "testTrackerEnglish" q
-        JOIN "gsEnglishQuestions" gq ON gq."id" = q."questionId"
-       WHERE q."studentId" = ${studentId}
-         AND btrim(COALESCE(gq."typeOfQuestion", q."topic", '')) <> ''
-       GROUP BY 1`,
-    prisma.$queryRaw<ScoreRow[]>`
-      SELECT gq."subTopic" AS bucket,
-             COUNT(*)                               AS total,
-             COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
-        FROM "testTrackerMath" q
-        JOIN "gsMathsQuestions" gq ON gq."id" = q."questionId"
-       WHERE q."studentId" = ${studentId}
-         AND gq."subTopic" IS NOT NULL
-       GROUP BY gq."subTopic"`,
+  subject: ProgressSubject,
+  take: number
+): Promise<TestRow[]> {
+  switch (subject) {
+    case "English":
+      return prisma.$queryRaw<TestRow[]>`
+        SELECT m."id", m."testStartTime" AS started,
+               COALESCE(c."label", m."topic") AS label,
+               m."difficultyLevel" AS level,
+               COUNT(q."id") AS total,
+               COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerEnglishMain" m
+          LEFT JOIN "gsEnglishComp" c ON c."id" = m."gsEngCompId"
+          LEFT JOIN "testTrackerEnglish" q ON q."testId" = m."id"
+         WHERE m."studentId" = ${studentId}
+         GROUP BY m."id", c."label"
+         ORDER BY m."testStartTime" DESC
+         LIMIT ${take}`;
+    case "Maths":
+      return prisma.$queryRaw<TestRow[]>`
+        SELECT m."id", m."testStartTime" AS started,
+               COALESCE(m."subTopic", m."topic") AS label,
+               m."difficultyLevel" AS level,
+               COUNT(q."id") AS total,
+               COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerMathMain" m
+          LEFT JOIN "testTrackerMath" q ON q."testId" = m."id"
+         WHERE m."studentId" = ${studentId}
+         GROUP BY m."id"
+         ORDER BY m."testStartTime" DESC
+         LIMIT ${take}`;
+    case "Verbal Reasoning":
+      return prisma.$queryRaw<TestRow[]>`
+        SELECT m."id", m."testStartTime" AT TIME ZONE 'UTC' AS started,
+               COALESCE(m."subTopic", m."topic") AS label,
+               m."difficultyLevel" AS level,
+               COUNT(q."id") AS total,
+               COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerVRMain" m
+          LEFT JOIN "testTrackerVR" q ON q."testId" = m."id"
+         WHERE m."studentId" = ${studentId}
+         GROUP BY m."id"
+         ORDER BY m."testStartTime" DESC
+         LIMIT ${take}`;
+    case "Non-Verbal":
+      return prisma.$queryRaw<TestRow[]>`
+        SELECT m."id", m."testStartTime" AS started,
+               COALESCE(m."subTopic", m."topic") AS label,
+               m."difficultyLevel" AS level,
+               COUNT(q."id") AS total,
+               COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
+          FROM "testTrackerNvrMain" m
+          LEFT JOIN "testTrackerNvr" q ON q."testId" = m."id"
+         WHERE m."studentId" = ${studentId}
+         GROUP BY m."id"
+         ORDER BY m."testStartTime" DESC
+         LIMIT ${take}`;
+  }
+}
+
+/** Every topic score and the latest tests in one subject. */
+export async function subjectDetail(
+  studentId: number,
+  subject: ProgressSubject,
+  take = 20
+): Promise<{ areas: SkillArea[]; tests: RecentTest[] }> {
+  const [rows, testRows] = await Promise.all([
+    scoreRows(studentId, subject),
+    recentTestRows(studentId, subject, take),
   ]);
 
-  return [
-    toBreakdown("English", englishRows, limit),
-    toBreakdown("Maths", mathsRows, limit),
-  ];
+  return {
+    areas: toAreas(rows),
+    tests: testRows
+      // A round with no answers recorded says nothing about the child.
+      .filter((t) => num(t.total) > 0)
+      .map((t) => {
+        const total = num(t.total);
+        const correct = num(t.correct);
+        return {
+          id: num(t.id),
+          startedAt: t.started,
+          label: t.label?.trim() || subject,
+          level: t.level,
+          correct,
+          total,
+          percentage: Math.round((correct / total) * 100),
+        };
+      }),
+  };
 }
