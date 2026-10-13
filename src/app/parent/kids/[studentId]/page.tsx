@@ -6,6 +6,7 @@ import { displayName } from "@/lib/english";
 import { listYears, ownsChild, parentProfile } from "@/lib/parent";
 import { ParentNav } from "../../ParentNav";
 import { EditKidForm } from "./EditKidForm";
+import { DeleteKid } from "./DeleteKid";
 
 /** One child's profile, editable by the parent who owns it. */
 export default async function EditKidPage({
@@ -80,6 +81,8 @@ export default async function EditKidPage({
             }}
           />
         </div>
+
+        <DeleteKid studentId={studentId} profileName={child.profileName} />
       </div>
     </div>
   );

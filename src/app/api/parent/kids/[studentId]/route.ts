@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow, hashPassword } from "@/lib/auth";
 import { ownsChild, passwordProblem } from "@/lib/parent";
+import { deleteChild, parseDeleteMode } from "@/lib/child-delete";
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -93,6 +94,65 @@ export async function PUT(
     }
     return NextResponse.json(
       { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * A parent deleting one of their children - see lib/child-delete.ts for what
+ * each mode removes. The body must repeat the child's login id, so a stray
+ * request cannot delete a child the parent did not name.
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ studentId: string }> }
+) {
+  try {
+    const session = await getSessionOrThrow();
+    if (session.userType !== "PARENT") {
+      return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+    }
+
+    const { studentId: raw } = await params;
+    const studentId = Number(raw);
+
+    if (!(await ownsChild(session.userId, studentId))) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const mode = parseDeleteMode(body.mode);
+    if (!mode) {
+      return NextResponse.json(
+        { error: "Choose how to delete the profile" },
+        { status: 400 }
+      );
+    }
+
+    const child = await prisma.userProfile.findUnique({
+      where: { id: studentId },
+      select: { profileName: true },
+    });
+    if (
+      !child ||
+      text(body.confirm)?.toLowerCase() !== child.profileName.toLowerCase()
+    ) {
+      return NextResponse.json(
+        { error: "Type the child's login id exactly to confirm" },
+        { status: 400 }
+      );
+    }
+
+    await deleteChild(studentId, mode);
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("Delete child profile error:", error);
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json(
+      { error: "Could not delete the profile. Nothing was removed." },
       { status: 500 }
     );
   }
