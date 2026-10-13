@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { confirmSubmit } from "@/lib/quiz-confirm";
 import { scoreStyle } from "@/lib/level-style";
 
 interface Question {
@@ -238,6 +239,8 @@ function VrQuiz() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const answered = questions.filter((q) => answers[q.id]).length;
+    if (!confirmSubmit(answered, questions.length)) return;
     submitRound();
   };
 

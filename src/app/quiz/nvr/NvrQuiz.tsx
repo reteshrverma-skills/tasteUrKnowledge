@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { confirmSubmit } from "@/lib/quiz-confirm";
 import { difficultyStyle, scoreStyle } from "@/lib/level-style";
 
 interface Question {
@@ -201,6 +202,8 @@ export function NvrQuiz() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const answered = questions.filter((q) => answers[q.id]).length;
+    if (!confirmSubmit(answered, questions.length)) return;
     setSubmitting(true);
 
     const openId = questions[currentIndex]?.id;

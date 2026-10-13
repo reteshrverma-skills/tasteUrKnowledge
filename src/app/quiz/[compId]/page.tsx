@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { confirmSubmit } from "@/lib/quiz-confirm";
 import { difficultyStyle } from "@/lib/level-style";
 
 interface Question {
@@ -194,6 +195,9 @@ export default function QuizPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const questions = comp?.questions ?? [];
+    const answered = questions.filter((q) => answers[q.id]).length;
+    if (!confirmSubmit(answered, questions.length)) return;
     setSubmitting(true);
 
     try {
