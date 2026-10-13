@@ -37,10 +37,17 @@ export async function POST(
     // against a level that is not open to them.
     const comp = await prisma.gsEnglishComp.findUnique({
       where: { id: compId },
-      select: { label: true, yearName: true, difficultyLevel: true },
+      select: {
+        label: true,
+        yearName: true,
+        difficultyLevel: true,
+        approvedByAdmin: true,
+      },
     });
 
-    if (!comp) {
+    // An unapproved passage cannot be sat by a student, so it cannot be
+    // submitted either.
+    if (!comp || (!comp.approvedByAdmin && session.userType !== "ADMIN")) {
       return NextResponse.json(
         { error: "Comprehension not found" },
         { status: 404 }

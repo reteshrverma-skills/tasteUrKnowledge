@@ -162,6 +162,11 @@ model GsEnglishComp {
   yearName        String?
   subjectName     String?
   label           String?
+  /// Students see a comprehension only once an admin has approved it. Null
+  /// counts as not approved, so a new or AI-drafted passage starts hidden.
+  approvedByAdmin     Boolean?  @map("approvedbyadmin")
+  approvedByAdminDate DateTime? @map("approvedbyadmindate") @db.Date
+  createdDate         DateTime? @map("createddate") @db.Date
 
   questions GsEnglishQuestion[]
   attempts  Attempt[]

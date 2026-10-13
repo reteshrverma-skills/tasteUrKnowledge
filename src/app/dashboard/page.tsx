@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { SUBJECT_ORDER, displayName } from "@/lib/english";
+import { APPROVED_COMP, SUBJECT_ORDER, displayName } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import { isVrSubject } from "@/lib/vr";
@@ -79,6 +79,8 @@ export default async function DashboardPage() {
   // decides what a student may open - so every comprehension counts here.
   const compCounts = await prisma.gsEnglishComp.groupBy({
     by: ["subjectName"],
+    // Counts only what a student can open.
+    where: APPROVED_COMP,
     _count: { _all: true },
   });
 

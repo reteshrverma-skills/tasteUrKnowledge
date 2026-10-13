@@ -83,10 +83,12 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { title, story, difficultyLevel } = body as {
+    const { title, story, difficultyLevel, approved } = body as {
       title?: string;
       story?: string;
       difficultyLevel?: string;
+      /** true shows the passage to students, false hides it again. */
+      approved?: boolean;
     };
 
     const level =
@@ -140,6 +142,12 @@ export async function PATCH(
         ...(title !== undefined ? { label: title.trim() } : {}),
         ...(story !== undefined ? { compStory: story.trim() } : {}),
         ...(level !== undefined ? { difficultyLevel: level || null } : {}),
+        ...(typeof approved === "boolean"
+          ? {
+              approvedByAdmin: approved,
+              approvedByAdminDate: approved ? new Date() : null,
+            }
+          : {}),
       },
       include: compInclude,
     });

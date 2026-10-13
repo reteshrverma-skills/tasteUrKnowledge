@@ -37,6 +37,12 @@ export function compWhere(yearName?: string | null, subjectName?: string | null)
 }
 
 /**
+ * Only comprehensions an admin has approved reach students. Past results on
+ * a comprehension later unapproved stay visible in reports and reviews.
+ */
+export const APPROVED_COMP = { approvedByAdmin: true } as const;
+
+/**
  * How many questions one comprehension round asks.
  *
  * A comprehension now carries a bank of around fifty questions, far more than

@@ -38,10 +38,13 @@ export async function GET(
         yearName: true,
         subjectName: true,
         difficultyLevel: true,
+        approvedByAdmin: true,
       },
     });
 
-    if (!comp) {
+    // Unapproved passages are hidden from students; admins can still open
+    // them to check one before approving it.
+    if (!comp || (!comp.approvedByAdmin && session.userType !== "ADMIN")) {
       return NextResponse.json(
         { error: "Comprehension not found" },
         { status: 404 }
@@ -68,7 +71,11 @@ export async function GET(
       orderBy: { id: "asc" },
     });
 
-    return NextResponse.json({ ...comp, questions }, { status: 200 });
+    // The approval flag is admin business; undefined drops it from the JSON.
+    return NextResponse.json(
+      { ...comp, approvedByAdmin: undefined, questions },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Get comprehension error:", error);
     // Only a genuine auth failure is reported as one. Returning 401 for every

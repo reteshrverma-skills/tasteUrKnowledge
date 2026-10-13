@@ -3,7 +3,11 @@ import { getSession } from "@/lib/auth";
 import Link from "next/link";
 import { LevelIcon } from "../LevelIcon";
 import { redirect } from "next/navigation";
-import { QUESTIONS_PER_COMP_ROUND, compWhere } from "@/lib/english";
+import {
+  APPROVED_COMP,
+  QUESTIONS_PER_COMP_ROUND,
+  compWhere,
+} from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import { isVrSubject } from "@/lib/vr";
@@ -57,7 +61,8 @@ export default async function SubjectPage({
   const access = await allowedLevels(session);
 
   const allComps = await prisma.gsEnglishComp.findMany({
-    where: compWhere(null, name),
+    // Only passages an admin has approved are listed.
+    where: { ...compWhere(null, name), ...APPROVED_COMP },
     select: {
       id: true,
       label: true,

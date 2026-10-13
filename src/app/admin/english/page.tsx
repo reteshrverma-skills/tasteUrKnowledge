@@ -29,6 +29,8 @@ interface Passage {
   yearName: string | null;
   subjectName: string | null;
   difficultyLevel: string | null;
+  approvedByAdmin: boolean | null;
+  approvedByAdminDate: string | null;
   questions: Question[];
 }
 
@@ -43,6 +45,14 @@ interface QuestionDraft {
   topic: string;
   typeOfQuestion: string;
 }
+
+// The difficulty ladder, in teaching order. Kept here rather than imported
+// from lib/student, which pulls the database client into the browser bundle.
+const LEVELS = ["Starter", "Explorer", "Navigator", "Challenger", "Master"];
+
+// How many questions an AI draft may hold - mirrors lib/comp-generator.
+const MIN_GENERATED = 25;
+const MAX_GENERATED = 50;
 
 // E is offered but optional; A-D stay required.
 const OPTIONS = ["A", "B", "C", "D", "E"] as const;
@@ -217,6 +227,32 @@ function PassageCard({
     }
   };
 
+  /** Approve shows the passage to students; unapprove hides it again. */
+  const setApproved = async (approved: boolean) => {
+    if (
+      !approved &&
+      !confirm(`Hide "${passage.label}" from students until it is approved again?`)
+    ) {
+      return;
+    }
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/admin/comps/${passage.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approved }),
+      });
+      if (!response.ok) {
+        throw new Error(await readError(response, "Failed to update approval"));
+      }
+      await onRefresh();
+    } catch (err) {
+      onError(err instanceof Error ? err.message : "Failed to update approval");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const deletePassage = async () => {
     if (
       !confirm(
@@ -294,9 +330,19 @@ function PassageCard({
           className="flex-1 text-left"
         >
           <p className="font-bold text-ink">
-            {expanded ? "▾" : "▸"} {passage.label}
+            {expanded ? "▾" : "▸"} {passage.label}{" "}
+            <span
+              className={`ml-1 align-middle text-xs font-semibold px-2 py-0.5 rounded-full ${
+                passage.approvedByAdmin
+                  ? "bg-green-100 text-green-800"
+                  : "bg-amber-100 text-amber-800"
+              }`}
+            >
+              {passage.approvedByAdmin ? "Approved" : "Awaiting approval"}
+            </span>
           </p>
           <p className="text-sm text-ink-soft mt-1">
+            {passage.difficultyLevel ?? "No level"} ·{" "}
             {passage.questions.length} question
             {passage.questions.length === 1 ? "" : "s"} ·{" "}
             {countWords(passage.compStory ?? "")} words
@@ -307,6 +353,18 @@ function PassageCard({
         </button>
 
         <div className="flex gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setApproved(!passage.approvedByAdmin)}
+            disabled={busy}
+            className={`px-3 py-2 rounded disabled:opacity-50 text-sm text-white ${
+              passage.approvedByAdmin
+                ? "bg-gray-500 hover:bg-gray-600"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            {passage.approvedByAdmin ? "Unapprove" : "Approve"}
+          </button>
           <button
             type="button"
             onClick={startEditing}
@@ -457,6 +515,12 @@ export default function EnglishAdminPage() {
   const [title, setTitle] = useState("");
   const [story, setStory] = useState("");
   const [drafts, setDrafts] = useState<QuestionDraft[]>([emptyQuestion()]);
+  const [level, setLevel] = useState(LEVELS[0]);
+
+  // AI draft settings
+  const [genCount, setGenCount] = useState(MIN_GENERATED);
+  const [genTheme, setGenTheme] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -550,6 +614,66 @@ export default function EnglishAdminPage() {
     setDrafts([emptyQuestion()]);
   };
 
+  /**
+   * Asks Claude for a passage and questions, then fills the form below with
+   * them. Nothing is saved until the admin reviews it and presses Save.
+   */
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setNotice("");
+
+    if (!selectedYearId) {
+      setError("Select a year first");
+      return;
+    }
+    if (
+      (title.trim() || story.trim() || drafts.some((d) => d.quest.trim())) &&
+      !window.confirm("Replace what is in the form below with a new AI draft?")
+    ) {
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const response = await fetch("/api/admin/english/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          yearId: selectedYearId,
+          difficultyLevel: level,
+          count: genCount,
+          theme: genTheme,
+        }),
+      });
+      // The route streams keep-alive spaces before the JSON, and reports a
+      // failure as { error } in the body even on a 200.
+      const data = JSON.parse(await response.text());
+      if (!response.ok || data.error) {
+        throw new Error(data.error || "Generation failed");
+      }
+
+      setTitle(data.title);
+      setStory(data.story);
+      setDrafts(
+        data.questions.map(
+          (q: Omit<QuestionDraft, "topic">): QuestionDraft => ({
+            ...q,
+            // Every existing English question carries "Comp" here.
+            topic: "Comp",
+          })
+        )
+      );
+      setNotice(
+        `Draft ready: "${data.title}" with ${data.questions.length} questions. Review and edit it below, then save.`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleCreatePassage = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -569,6 +693,7 @@ export default function EnglishAdminPage() {
           yearId: selectedYearId,
           title,
           story,
+          difficultyLevel: level,
           questions: drafts,
         }),
       });
@@ -577,7 +702,7 @@ export default function EnglishAdminPage() {
       }
       const created: Passage = await response.json();
       setNotice(
-        `"${created.label}" saved with ${created.questions.length} question(s)`
+        `"${created.label}" saved with ${created.questions.length} question(s). Students will not see it until you approve it in the list below.`
       );
       resetForm();
       await refreshPassages();
@@ -665,6 +790,76 @@ export default function EnglishAdminPage() {
           </div>
         )}
 
+        {/* AI draft: fills the form below for review, saves nothing */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-ink">Generate with AI</h2>
+          <p className="text-ink-soft mt-1 mb-6">
+            Claude writes a passage and its questions for{" "}
+            {selectedYear ? selectedYear.name : "the selected year"} at the
+            chosen level. The draft appears in the form below for you to check
+            and edit - nothing is saved until you press Save.
+          </p>
+
+          <form onSubmit={handleGenerate} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ink-soft mb-1">
+                  Difficulty level
+                </label>
+                <select
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                  className={inputClass}
+                >
+                  {LEVELS.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ink-soft mb-1">
+                  Number of questions ({MIN_GENERATED}-{MAX_GENERATED})
+                </label>
+                <input
+                  type="number"
+                  min={MIN_GENERATED}
+                  max={MAX_GENERATED}
+                  value={genCount}
+                  onChange={(e) => setGenCount(Number(e.target.value))}
+                  required
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink-soft mb-1">
+                Theme (optional)
+              </label>
+              <input
+                type="text"
+                value={genTheme}
+                onChange={(e) => setGenTheme(e.target.value)}
+                maxLength={200}
+                className={inputClass}
+                placeholder="e.g., a lost dog at the seaside, the history of the bicycle"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={generating || !selectedYearId}
+              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover disabled:opacity-50"
+            >
+              {generating
+                ? "Writing the comprehension… this can take a few minutes"
+                : `Generate ${genCount} questions`}
+            </button>
+          </form>
+        </div>
+
         {/* New passage: story and its questions saved together */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-2xl font-bold text-ink">
@@ -677,6 +872,23 @@ export default function EnglishAdminPage() {
           </p>
 
           <form onSubmit={handleCreatePassage} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-ink-soft mb-1">
+                Difficulty level
+              </label>
+              <select
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+                className={inputClass}
+              >
+                {LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1">
                 Passage title

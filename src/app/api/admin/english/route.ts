@@ -131,6 +131,9 @@ export async function POST(request: NextRequest) {
         yearName: year.name,
         subjectName: ENGLISH_SUBJECT_NAME,
         difficultyLevel: level ?? null,
+        // Hidden from students until an admin approves it.
+        approvedByAdmin: false,
+        createdDate: new Date(),
         questions: {
           create: questions!.map((question) => toQuestionData(question)),
         },
