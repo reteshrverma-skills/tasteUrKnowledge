@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow } from "@/lib/auth";
 import { DIFFICULTY_ORDER, canonicalLevel } from "@/lib/student";
 import {
+  COMP_NEWEST_FIRST,
   ENGLISH_SUBJECT_NAME,
   compWhere,
   toQuestionData,
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     const comps = await prisma.gsEnglishComp.findMany({
       where: compWhere(yearName, ENGLISH_SUBJECT_NAME),
       include: compInclude,
-      orderBy: { id: "asc" },
+      orderBy: [...COMP_NEWEST_FIRST],
     });
 
     return NextResponse.json(comps);

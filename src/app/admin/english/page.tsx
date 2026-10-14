@@ -2,12 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-interface Year {
-  id: string;
-  name: string;
-  order: number;
-}
+import { difficultyStyle } from "@/lib/level-style";
+import { LevelIcon } from "@/app/dashboard/subject/LevelIcon";
 
 interface Question {
   id: number;
@@ -50,80 +46,9 @@ interface QuestionDraft {
 // from lib/student, which pulls the database client into the browser bundle.
 const LEVELS = ["Starter", "Explorer", "Navigator", "Challenger", "Master"];
 
-// How many questions an AI draft may hold - mirrors lib/comp-generator.
-const MIN_GENERATED = 25;
-const MAX_GENERATED = 50;
-
 // E is offered but optional; A-D stay required.
 const OPTIONS = ["A", "B", "C", "D", "E"] as const;
 const REQUIRED_OPTIONS = ["A", "B", "C", "D"] as const;
-
-/** A generated comprehension awaiting the admin's save. */
-interface GeneratedDraft {
-  yearId: string;
-  title: string;
-  story: string;
-  level: string;
-  questions: QuestionDraft[];
-}
-
-/**
- * One question as a student would meet it, with the right answer marked
- * underneath - the same reading as the test review page.
- */
-function PreviewQuestion({
-  question,
-  position,
-}: {
-  question: QuestionDraft;
-  position: number;
-}) {
-  const options = OPTIONS.map((letter) => ({
-    letter,
-    text: question[`option${letter}` as keyof QuestionDraft],
-  })).filter((o) => o.text.trim());
-
-  return (
-    <li className="border border-gray-200 rounded-lg p-4">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <p className="font-semibold text-ink">
-          <span className="text-brand">Q{position}:</span> {question.quest}
-        </p>
-        {question.typeOfQuestion && (
-          <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-brand-tint text-brand">
-            {question.typeOfQuestion}
-          </span>
-        )}
-      </div>
-
-      <ul className="space-y-1.5">
-        {options.map((o) => {
-          const isRight = o.letter === question.ansChoice;
-          return (
-            <li
-              key={o.letter}
-              className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
-                isRight
-                  ? "border-green-500 bg-green-50 text-green-900"
-                  : "border-gray-200 text-ink-soft"
-              }`}
-            >
-              <strong>{o.letter}:</strong>
-              <span className="flex-1">{o.text}</span>
-              {isRight && (
-                <span className="text-xs font-semibold">Correct answer</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-
-      <p className="text-sm text-ink-soft mt-2">
-        <strong className="text-ink">Answer:</strong> {question.ansChoice}
-      </p>
-    </li>
-  );
-}
 
 function emptyQuestion(): QuestionDraft {
   return {
@@ -152,16 +77,9 @@ async function readError(response: Response, fallback: string) {
   }
 }
 
-async function fetchYears(): Promise<Year[]> {
-  const response = await fetch("/api/admin/years");
-  if (!response.ok) throw new Error("Failed to load years");
-  return response.json();
-}
-
-async function fetchPassages(yearId: string): Promise<Passage[]> {
-  const response = await fetch(
-    `/api/admin/english?yearId=${encodeURIComponent(yearId)}`
-  );
+/** Every year's comprehensions; the page narrows them by level. */
+async function fetchPassages(): Promise<Passage[]> {
+  const response = await fetch("/api/admin/english");
   if (!response.ok) throw new Error("Failed to load passages");
   return response.json();
 }
@@ -409,6 +327,7 @@ function PassageCard({
             </span>
           </p>
           <p className="text-sm text-ink-soft mt-1">
+            {passage.yearName ?? "No year"} ·{" "}
             {passage.difficultyLevel ?? "No level"} ·{" "}
             {passage.questions.length} question
             {passage.questions.length === 1 ? "" : "s"} ·{" "}
@@ -568,54 +487,17 @@ function PassageCard({
 }
 
 export default function EnglishAdminPage() {
-  const [years, setYears] = useState<Year[]>([]);
-  const [selectedYearId, setSelectedYearId] = useState("");
   const [passages, setPassages] = useState<Passage[]>([]);
-  const [loadingYears, setLoadingYears] = useState(true);
-  // The year whose passages are currently in state; a mismatch means loading.
-  const [loadedYearId, setLoadedYearId] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [loadingPassages, setLoadingPassages] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
+  // The level whose passages are listed, picked from the chips at the top.
   const [level, setLevel] = useState(LEVELS[0]);
-  // The generated comprehension awaiting save. Read-only: it is saved as
-  // generated, at the level it was generated for.
-  const [generated, setGenerated] = useState<GeneratedDraft | null>(null);
-
-  // AI draft settings
-  const [genCount, setGenCount] = useState(MIN_GENERATED);
-  const [genTheme, setGenTheme] = useState("");
-  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    fetchYears()
-      .then((data) => {
-        if (!active) return;
-        setYears(data);
-        setSelectedYearId((current) => current || data[0]?.id || "");
-      })
-      .catch(() => {
-        if (active) setError("Failed to load years");
-      })
-      .finally(() => {
-        if (active) setLoadingYears(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // Reload the list whenever the admin switches years.
-  useEffect(() => {
-    if (!selectedYearId) return;
-
-    let active = true;
-
-    fetchPassages(selectedYearId)
+    fetchPassages()
       .then((data) => {
         if (active) setPassages(data);
       })
@@ -623,123 +505,25 @@ export default function EnglishAdminPage() {
         if (active) setError("Failed to load passages");
       })
       .finally(() => {
-        if (active) setLoadedYearId(selectedYearId);
+        if (active) setLoadingPassages(false);
       });
 
     return () => {
       active = false;
     };
-  }, [selectedYearId]);
+  }, []);
 
   const refreshPassages = async () => {
-    if (!selectedYearId) return;
     try {
-      setPassages(await fetchPassages(selectedYearId));
+      setPassages(await fetchPassages());
     } catch {
       setError("Failed to load passages");
     }
   };
 
-  /**
-   * Asks Claude for a passage and questions, then shows them below for
-   * review. Nothing is saved until the admin presses Save.
-   */
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setNotice("");
-
-    if (!selectedYearId) {
-      setError("Select a year first");
-      return;
-    }
-    if (
-      generated &&
-      !window.confirm("Replace the unsaved comprehension below with a new one?")
-    ) {
-      return;
-    }
-
-    setGenerating(true);
-    try {
-      const response = await fetch("/api/admin/english/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          yearId: selectedYearId,
-          difficultyLevel: level,
-          count: genCount,
-          theme: genTheme,
-        }),
-      });
-      // The route streams keep-alive spaces before the JSON, and reports a
-      // failure as { error } in the body even on a 200.
-      const data = JSON.parse(await response.text());
-      if (!response.ok || data.error) {
-        throw new Error(data.error || "Generation failed");
-      }
-
-      setGenerated({
-        yearId: selectedYearId,
-        title: data.title,
-        story: data.story,
-        level,
-        questions: data.questions.map(
-          (q: Omit<QuestionDraft, "topic">): QuestionDraft => ({
-            ...q,
-            // Every existing English question carries "Comp" here.
-            topic: "Comp",
-          })
-        ),
-      });
-      setNotice(
-        `"${data.title}" is ready with ${data.questions.length} questions. Review it below, then save it.`
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Generation failed");
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const handleCreatePassage = async () => {
-    setError("");
-    setNotice("");
-
-    if (!generated) return;
-
-    setSaving(true);
-    try {
-      const response = await fetch("/api/admin/english", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          // The year it was generated for, even if the picker moved since.
-          yearId: generated.yearId,
-          title: generated.title,
-          story: generated.story,
-          difficultyLevel: generated.level,
-          questions: generated.questions,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(await readError(response, "Failed to create passage"));
-      }
-      const created: Passage = await response.json();
-      setNotice(
-        `"${created.label}" saved with ${created.questions.length} question(s). Students will not see it until you approve it in the list below.`
-      );
-      setGenerated(null);
-      await refreshPassages();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create passage");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const selectedYear = years.find((year) => year.id === selectedYearId);
-  const loadingPassages = Boolean(selectedYearId) && loadedYearId !== selectedYearId;
+  const levelPassages = passages.filter(
+    (p) => p.difficultyLevel?.toLowerCase() === level.toLowerCase()
+  );
 
   return (
     <div className="min-h-screen bg-ground">
@@ -758,189 +542,52 @@ export default function EnglishAdminPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        {notice && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-            {notice}
-          </div>
-        )}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* AI draft: fills the form below for review, saves nothing */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-ink">
-            Generate Comprehension
-          </h2>
-          <p className="text-ink-soft mt-1 mb-6">
-            Writes a passage and its questions for the chosen year and level.
-            It appears below for you to review - nothing is saved until you
-            press Save. The passage list at the bottom follows the year
-            chosen here.
-          </p>
-
-          <form onSubmit={handleGenerate} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-ink-soft mb-1">
-                  Year
-                </label>
-                <select
-                  value={selectedYearId}
-                  onChange={(e) => setSelectedYearId(e.target.value)}
-                  disabled={loadingYears || years.length === 0}
-                  className={inputClass}
+        {/* Same difficulty selector as the student English page */}
+        <div>
+          <h2 className="eyebrow mb-2.5">Difficulty level</h2>
+          <div className="flex flex-wrap gap-2">
+            {LEVELS.map((l) => {
+              const isActive = l === level;
+              return (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLevel(l)}
+                  aria-pressed={isActive}
+                  className={`chip chip-lg border transition inline-flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-brand text-white border-brand shadow-sm"
+                      : `${difficultyStyle(l)} hover:brightness-[0.97]`
+                  }`}
                 >
-                  {loadingYears ? (
-                    <option value="">Loading years…</option>
-                  ) : years.length === 0 ? (
-                    <option value="">No years set up</option>
-                  ) : (
-                    years.map((year) => (
-                      <option key={year.id} value={year.id}>
-                        {year.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-soft mb-1">
-                  Difficulty level
-                </label>
-                <select
-                  value={level}
-                  onChange={(e) => setLevel(e.target.value)}
-                  className={inputClass}
-                >
-                  {LEVELS.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-soft mb-1">
-                  Number of questions ({MIN_GENERATED}-{MAX_GENERATED})
-                </label>
-                <input
-                  type="number"
-                  min={MIN_GENERATED}
-                  max={MAX_GENERATED}
-                  value={genCount}
-                  onChange={(e) => setGenCount(Number(e.target.value))}
-                  required
-                  className={inputClass}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Theme (optional)
-              </label>
-              <input
-                type="text"
-                value={genTheme}
-                onChange={(e) => setGenTheme(e.target.value)}
-                maxLength={200}
-                className={inputClass}
-                placeholder="e.g., a lost dog at the seaside, the history of the bicycle"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={generating || !selectedYearId}
-              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover disabled:opacity-50"
-            >
-              {generating
-                ? "Writing the comprehension… this can take a few minutes"
-                : `Generate ${genCount} questions`}
-            </button>
-          </form>
+                  <LevelIcon level={l} />
+                  {l}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* The generated comprehension, read-only, awaiting save */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-ink">Comprehension preview</h2>
-
-          {!generated ? (
-            <p className="text-ink-soft mt-1">
-              Generate a comprehension above and it appears here to review.
-            </p>
-          ) : (
-            <div className="mt-4 space-y-6">
-              <div>
-                <p className="text-sm text-ink-soft">
-                  {years.find((y) => y.id === generated.yearId)?.name}{" "}
-                  · {generated.level}{" "}
-                  · {generated.questions.length} questions ·{" "}
-                  {countWords(generated.story)} words
-                </p>
-                <h3 className="text-xl font-bold text-ink mt-1">
-                  {generated.title}
-                </h3>
-              </div>
-
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-[15px] text-ink leading-[1.75] whitespace-pre-line">
-                {generated.story}
-              </div>
-
-              <ol className="space-y-4">
-                {generated.questions.map((q, index) => (
-                  <PreviewQuestion key={index} question={q} position={index + 1} />
-                ))}
-              </ol>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (window.confirm("Discard this comprehension without saving?")) {
-                      setGenerated(null);
-                      setNotice("");
-                    }
-                  }}
-                  disabled={saving}
-                  className="flex-1 bg-gray-100 text-ink-soft py-2 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50"
-                >
-                  Discard
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreatePassage}
-                  disabled={saving}
-                  className="flex-1 bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-hover disabled:opacity-50"
-                >
-                  {saving ? "Saving..." : "Save passage and questions"}
-                </button>
-              </div>
-              <p className="text-xs text-ink-faint">
-                Saved comprehensions stay hidden from students until you
-                approve them in the list below.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Existing passages for the selected year */}
+        {/* Existing passages at the selected level, all years */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="px-6 py-4 bg-brand text-white font-bold">
-            {selectedYear ? `${selectedYear.name} passages` : "Passages"}
+            {level} passages
           </div>
           {loadingPassages ? (
             <div className="p-6 text-center">Loading...</div>
-          ) : passages.length === 0 ? (
+          ) : levelPassages.length === 0 ? (
             <div className="p-6 text-center text-ink-soft">
-              No passages for this year yet.
+              No {level} passages yet.
             </div>
           ) : (
             <div>
-              {passages.map((passage) => (
+              {levelPassages.map((passage) => (
                 <PassageCard
                   key={passage.id}
                   passage={passage}

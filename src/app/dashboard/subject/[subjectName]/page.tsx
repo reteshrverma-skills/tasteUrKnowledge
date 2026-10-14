@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LevelIcon } from "../LevelIcon";
 import { redirect } from "next/navigation";
 import {
+  COMP_NEWEST_FIRST,
   APPROVED_COMP,
   QUESTIONS_PER_COMP_ROUND,
   compWhere,
@@ -69,7 +70,7 @@ export default async function SubjectPage({
       difficultyLevel: true,
       _count: { select: { questions: true } },
     },
-    orderBy: { id: "asc" },
+    orderBy: [...COMP_NEWEST_FIRST],
   });
 
   // Only comprehensions on the ladder, and only at levels the student has

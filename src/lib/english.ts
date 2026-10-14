@@ -43,6 +43,16 @@ export function compWhere(yearName?: string | null, subjectName?: string | null)
 export const APPROVED_COMP = { approvedByAdmin: true } as const;
 
 /**
+ * Newest comprehension first, wherever comps are listed. createdDate holds a
+ * day, not a time, and is empty on older rows, so id breaks ties and orders
+ * the undated ones (last) newest first too.
+ */
+export const COMP_NEWEST_FIRST = [
+  { createdDate: { sort: "desc", nulls: "last" } },
+  { id: "desc" },
+] as const;
+
+/**
  * How many questions one comprehension round asks.
  *
  * A comprehension now carries a bank of around fifty questions, far more than
