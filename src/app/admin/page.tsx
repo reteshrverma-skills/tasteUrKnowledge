@@ -58,30 +58,6 @@ export default async function AdminPage() {
               bar: "bg-master",
               wide: true,
             },
-            {
-              href: "/admin/years",
-              title: "Years",
-              blurb: "Manage academic years",
-              bar: "bg-explorer",
-            },
-            {
-              href: "/admin/subjects",
-              title: "Subjects",
-              blurb: "Manage subjects",
-              bar: "bg-starter",
-            },
-            {
-              href: "/admin/days",
-              title: "Days",
-              blurb: "Manage quiz days",
-              bar: "bg-navigator",
-            },
-            {
-              href: "/admin/questions",
-              title: "Questions",
-              blurb: "Manage questions",
-              bar: "bg-challenger",
-            },
           ].map((tile) => (
             <Link
               key={tile.href}

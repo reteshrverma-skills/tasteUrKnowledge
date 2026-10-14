@@ -8,6 +8,10 @@ import { ParentNav } from "../../ParentNav";
 import { EditKidForm } from "./EditKidForm";
 import { DeleteKid } from "./DeleteKid";
 
+// Deleting a child's profile is hidden from parents for now. The API route and
+// DeleteKid component are intact; set this to true to bring the option back.
+const SHOW_DELETE_PROFILE = false;
+
 /** One child's profile, editable by the parent who owns it. */
 export default async function EditKidPage({
   params,
@@ -82,7 +86,9 @@ export default async function EditKidPage({
           />
         </div>
 
-        <DeleteKid studentId={studentId} profileName={child.profileName} />
+        {SHOW_DELETE_PROFILE && (
+          <DeleteKid studentId={studentId} profileName={child.profileName} />
+        )}
       </div>
     </div>
   );
