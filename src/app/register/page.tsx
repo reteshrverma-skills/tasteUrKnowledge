@@ -180,13 +180,22 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
-          >
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
+          <div className="flex gap-3">
+            {/* Leaves without creating anything - back to sign in. */}
+            <Link
+              href="/login"
+              className="flex-1 text-center bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition"
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
+            >
+              {loading ? "Creating account..." : "Sign Up"}
+            </button>
+          </div>
         </form>
 
         <div className="mt-6 text-center">
