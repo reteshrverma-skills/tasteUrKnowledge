@@ -5,6 +5,8 @@ import { difficultyStyle } from "@/lib/level-style";
 import { nvrQuestionsForTopic, sanitiseFigure } from "@/lib/nvr";
 import { presentOptions } from "@/app/dashboard/subject/TestReview";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 /**
  * Every question in one Non-Verbal topic at one level, laid out like the
@@ -28,16 +30,18 @@ export default async function AdminNvrTopicPage({
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <Link
             href={backHref}
             className="text-brand hover:text-brand-hover font-medium"
           >
             ← Non-Verbal
           </Link>
-          <span className="font-display text-lg font-bold text-brand">
-            TasteUrKnowledge - Admin
+          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
+            <BrandLogo size={28} />
+            Practice Labs - Admin
           </span>
+          <LogoutButton />
         </div>
       </nav>
 

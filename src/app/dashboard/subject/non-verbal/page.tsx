@@ -16,6 +16,8 @@ import {
   nvrTopicsForLevel,
   recentNvrAttempts,
 } from "@/lib/nvr";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 /**
  * Non-Verbal Reasoning picker: difficulty at the top, then a collapsible
@@ -62,9 +64,11 @@ export default async function NonVerbalPage({
           >
             ← Subjects
           </Link>
-          <span className="font-display text-lg font-bold text-brand">
-            TasteUrKnowledge
+          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
+            <BrandLogo size={28} />
+            Practice Labs
           </span>
+          <LogoutButton />
         </div>
       </nav>
 

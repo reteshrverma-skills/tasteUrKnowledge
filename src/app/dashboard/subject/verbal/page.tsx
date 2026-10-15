@@ -15,6 +15,8 @@ import {
   vrTopicKey,
   vrTopicsForLevel,
 } from "@/lib/vr";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 /**
  * Verbal Reasoning picker, the same shape as Maths: choose a difficulty at the top, then open a topic to
@@ -61,9 +63,11 @@ export default async function VerbalPage({
           >
             ← Subjects
           </Link>
-          <span className="font-display text-lg font-bold text-brand">
-            TasteUrKnowledge
+          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
+            <BrandLogo size={28} />
+            Practice Labs
           </span>
+          <LogoutButton />
         </div>
       </nav>
 

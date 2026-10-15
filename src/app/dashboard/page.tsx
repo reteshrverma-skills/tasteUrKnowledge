@@ -5,6 +5,7 @@ import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import { isVrSubject } from "@/lib/vr";
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 /**
  * One mark per subject, so a child recognises where they are going before
@@ -112,8 +113,9 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
-          <span className="font-display text-lg font-bold text-brand">
-            TasteUrKnowledge
+          <span className="flex items-center gap-2 font-display text-lg font-bold text-brand">
+            <BrandLogo size={32} />
+            Practice Labs
           </span>
           <div className="flex items-center gap-3">
             {isAdmin && (

@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { difficultyStyle } from "@/lib/level-style";
 import { availableNvrLevels, nvrTopicsForLevel } from "@/lib/nvr";
 import { LevelIcon } from "@/app/dashboard/subject/LevelIcon";
+import { LogoutButton } from "@/components/LogoutButton";
 
 /**
  * Admin view of the Non-Verbal bank: difficulty chips at the top, then each
@@ -30,7 +31,7 @@ export default async function AdminNvrPage({
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <Link
             href="/admin"
             className="text-brand hover:text-brand-hover font-medium"
@@ -40,6 +41,7 @@ export default async function AdminNvrPage({
           <h1 className="text-2xl font-bold text-brand">
             Non-Verbal Reasoning
           </h1>
+          <LogoutButton />
         </div>
       </nav>
 

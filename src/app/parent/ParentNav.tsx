@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 /**
  * The bar every parent screen shares: Profile on the left of Logout, as a
@@ -14,9 +15,10 @@ export function ParentNav({ parentName }: { parentName: string }) {
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
         <Link
           href="/parent"
-          className="font-display text-lg font-bold text-brand"
+          className="font-display text-lg font-bold text-brand inline-flex items-center gap-2"
         >
-          TasteUrKnowledge
+          <BrandLogo size={28} />
+          Practice Labs
         </Link>
 
         <div className="flex items-center gap-4">

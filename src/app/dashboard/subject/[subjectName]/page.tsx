@@ -22,6 +22,8 @@ import {
   scoreStyle,
   sortDifficulties,
 } from "@/lib/student";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 /**
  * One subject's comprehensions, banded by difficulty. Each card carries the
@@ -123,9 +125,11 @@ export default async function SubjectPage({
           >
             ← Subjects
           </Link>
-          <span className="font-display text-lg font-bold text-brand">
-            TasteUrKnowledge
+          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
+            <BrandLogo size={28} />
+            Practice Labs
           </span>
+          <LogoutButton />
         </div>
       </nav>
 

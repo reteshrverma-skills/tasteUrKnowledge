@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,12 +47,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-ground flex items-center justify-center px-5 py-12">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <span className="inline-grid place-items-center w-12 h-12 rounded-xl bg-brand text-white font-display text-xl font-bold mb-4">
-            T
-          </span>
-          <h1 className="font-display text-2xl font-bold text-ink">
-            TasteUrKnowledge
-          </h1>
+          <div className="flex items-center justify-center gap-3">
+            <BrandLogo size={48} />
+            <h1 className="font-display text-2xl font-bold text-ink">
+              Practice Labs
+            </h1>
+          </div>
+          <p className="text-ink-soft text-sm font-medium tracking-wide mt-2">
+            Practice · Improve · Achieve
+          </p>
           <p className="text-ink-soft text-sm mt-1.5">
             11+ practice for Year 4 and 5
           </p>

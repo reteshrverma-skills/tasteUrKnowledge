@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { confirmSubmit } from "@/lib/quiz-confirm";
 import { scoreStyle } from "@/lib/level-style";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface Question {
   id: number;
@@ -290,9 +292,11 @@ function VrQuiz() {
           {level && ` · ${level}`}
           {isTopicTest && " · whole topic"}
         </p>
-        <span className="font-display text-base font-bold text-brand shrink-0">
-          TasteUrKnowledge
+        <span className="font-display text-base font-bold text-brand shrink-0 inline-flex items-center gap-2">
+          <BrandLogo size={28} />
+          Practice Labs
         </span>
+        <LogoutButton />
       </div>
     </nav>
   );

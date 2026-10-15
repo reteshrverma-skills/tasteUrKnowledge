@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { scoreStyle } from "@/lib/level-style";
+import { FlagUnclear } from "./FlagUnclear";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export const OPTION_LABELS = ["A", "B", "C", "D", "E"] as const;
 
@@ -17,6 +20,8 @@ export interface ReviewQuestion {
   explanation?: string | null;
   /** Why the chosen option was wrong, when the bank says (Verbal Reasoning). */
   whyWrong?: string | null;
+  /** Already reported by the student as unclear. */
+  flagged?: boolean;
 }
 
 export interface ReviewTest {
@@ -49,6 +54,7 @@ export function TestReview({
   figures = false,
   questions,
   retryHref,
+  flagSubject,
 }: {
   backHref: string;
   backLabel: string;
@@ -62,6 +68,8 @@ export function TestReview({
   /** Options and stems are SVG figures rather than text. */
   figures?: boolean;
   questions: ReviewQuestion[];
+  /** Offers "Answer not clear?" on each question; row ids are tracker rows. */
+  flagSubject?: "nvr" | "vr";
 }) {
   const total = questions.length;
   const correct = questions.filter((q) => q.isRight).length;
@@ -77,9 +85,11 @@ export function TestReview({
           >
             ← {backLabel}
           </Link>
-          <span className="font-display text-lg font-bold text-brand">
-            TasteUrKnowledge
+          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
+            <BrandLogo size={28} />
+            Practice Labs
           </span>
+          <LogoutButton />
         </div>
       </nav>
 
@@ -207,6 +217,14 @@ export function TestReview({
                 <p className="text-sm text-ink-soft mt-3 pt-3 border-t border-line">
                   <strong className="text-ink">Why:</strong> {row.explanation}
                 </p>
+              )}
+
+              {flagSubject && (
+                <FlagUnclear
+                  subject={flagSubject}
+                  rowId={row.id}
+                  initialFlagged={Boolean(row.flagged)}
+                />
               )}
             </li>
           ))}

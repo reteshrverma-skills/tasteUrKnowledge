@@ -312,6 +312,9 @@ model TestTrackerNvr {
   questionOrder       Int?     @db.SmallInt
   /// Snapshot of the question type, which the parent report groups by.
   topic               String?
+  /// Set from the answer sheet when the student finds the answer unclear.
+  flaggedUnclear      Boolean  @default(false)
+  flaggedUnclearAt    DateTime? @db.Timestamptz(3)
 
   @@index([testId])
   @@index([studentId, questionId])
@@ -579,6 +582,9 @@ model TestTrackerVr {
   chosenOption        String?            @db.VarChar(10)
   correctOption       String?            @db.VarChar(10)
   questionOrder       Int?               @db.SmallInt
+  /// Set from the answer sheet when the student finds the answer unclear.
+  flaggedUnclear      Boolean            @default(false)
+  flaggedUnclearAt    DateTime?          @db.Timestamptz(3)
 
   @@index([questionId], map: "idx_testTrackerVR_questionId")
   @@index([testId], map: "idx_testTrackerVR_testId")

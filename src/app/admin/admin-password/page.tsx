@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { listAccounts } from "@/lib/admin-password";
 import { AccountPasswordForm } from "../AccountPasswordForm";
+import { BrandLogo } from "@/components/BrandLogo";
 
 /** Admin-only screen for resetting an admin's password. */
 export default async function AdminAdminPasswordPage() {
@@ -15,8 +16,9 @@ export default async function AdminAdminPasswordPage() {
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/admin" className="text-2xl font-bold text-brand">
-            TasteUrKnowledge - Admin
+          <Link href="/admin" className="text-2xl font-bold text-brand inline-flex items-center gap-2">
+            <BrandLogo size={36} />
+            Practice Labs - Admin
           </Link>
           <div className="flex gap-4">
             <Link

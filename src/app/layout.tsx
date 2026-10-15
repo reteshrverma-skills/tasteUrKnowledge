@@ -27,7 +27,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "TasteUrKnowledge",
+  title: "Practice Labs",
   description:
     "11+ practice for Year 4 and 5 - English, Maths, Verbal and Non-Verbal, with progress a parent can actually read.",
 };

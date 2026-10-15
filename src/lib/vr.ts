@@ -255,6 +255,7 @@ export async function vrTestReview(testId: number, studentId: number) {
           isAnsRight: true,
           chosenOption: true,
           correctOption: true,
+          flaggedUnclear: true,
           question: {
             select: {
               quest: true,

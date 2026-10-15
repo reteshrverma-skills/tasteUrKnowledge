@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const inputClass =
   "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
@@ -86,7 +87,7 @@ export function ResetPasswordForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">TasteUrKnowledge</h1>
+          <h1 className="text-3xl font-bold text-gray-800 inline-flex items-center gap-2"><BrandLogo size={36} />Practice Labs</h1>
           <p className="text-gray-600 mt-2">Choose a new password</p>
         </div>
 

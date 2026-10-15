@@ -6,6 +6,8 @@ import Link from "next/link";
 import { confirmSubmit } from "@/lib/quiz-confirm";
 import { difficultyStyle, scoreStyle } from "@/lib/level-style";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface Question {
   id: number;
@@ -451,9 +453,11 @@ function Shell({
           >
             ← Non-Verbal
           </Link>
-          <span className="font-display text-lg font-bold text-brand">
-            TasteUrKnowledge
+          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
+            <BrandLogo size={28} />
+            Practice Labs
           </span>
+          <LogoutButton />
         </div>
       </nav>
       <div className="max-w-2xl mx-auto px-5 sm:px-8 py-8">{children}</div>

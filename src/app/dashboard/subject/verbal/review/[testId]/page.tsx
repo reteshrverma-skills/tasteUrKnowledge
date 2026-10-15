@@ -36,6 +36,7 @@ export default async function VrTestReviewPage({
         ...(test.subTopic ? { subTopic: test.subTopic } : {}),
         level: test.difficultyLevel ?? "",
       })}`}
+      flagSubject="vr"
       questions={test.questions
         .filter((row) => row.question)
         .map((row) => {
@@ -49,6 +50,7 @@ export default async function VrTestReviewPage({
             isRight: Boolean(row.isAnsRight),
             explanation: q.explanation,
             whyWrong: row.isAnsRight ? null : whyWrong(q, row.chosenOption),
+            flagged: row.flaggedUnclear,
           };
         })}
     />

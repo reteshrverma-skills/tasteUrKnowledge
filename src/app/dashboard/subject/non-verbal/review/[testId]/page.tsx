@@ -37,6 +37,7 @@ export default async function NvrTestReviewPage({
         level: test.difficultyLevel ?? "",
       })}`}
       figures
+      flagSubject="nvr"
       questions={test.questions.map(({ question: q, ...row }) => ({
         id: row.id,
         quest: q.quest,
@@ -54,6 +55,7 @@ export default async function NvrTestReviewPage({
         right: row.correctOption ?? q.ansChoice,
         isRight: row.isAnsRight,
         explanation: q.ansExplain,
+        flagged: row.flaggedUnclear,
       }))}
     />
   );
