@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { confirmSubmit } from "@/lib/quiz-confirm";
 import { difficultyStyle, scoreStyle } from "@/lib/level-style";
+import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
 
 interface Question {
   id: number;
@@ -38,27 +39,6 @@ interface Results {
   totalCount: number;
   percentage: number;
   answers: GradedAnswer[];
-}
-
-/**
- * Draws one stored figure.
- *
- * The markup has already been refused at the database and stripped again by
- * the server, so by the time it reaches here it is shape geometry and nothing
- * else. It still goes through dangerouslySetInnerHTML, which is the only way
- * to render inline SVG, so the two passes before this one are what make it
- * safe rather than this call site.
- *
- * The figures use `currentColor`, so they inherit the surrounding ink and
- * follow the theme without any per-figure styling.
- */
-function Figure({ markup, className }: { markup: string; className?: string }) {
-  return (
-    <span
-      className={`block [&>svg]:w-full [&>svg]:h-full ${className ?? ""}`}
-      dangerouslySetInnerHTML={{ __html: markup }}
-    />
-  );
 }
 
 interface FigureOption {
@@ -364,55 +344,43 @@ export function NvrQuiz() {
           {question.quest}
         </p>
 
-        {question.stemFigure && (
-          <div className="flex justify-center mb-5">
-            {/* Sized by the figure: a wide sequence strip spans the row, a
-                square figure stays square, and neither sits in empty box. */}
-            <span className="card-quiet w-full max-w-xl p-3 text-ink">
-              <span
-                className="block mx-auto [&>svg]:block [&>svg]:mx-auto [&>svg]:w-full [&>svg]:h-auto [&>svg]:max-h-56"
-                dangerouslySetInnerHTML={{ __html: question.stemFigure }}
-              />
-            </span>
-          </div>
-        )}
+        <FigureScale key={question.id}>
+          {question.stemFigure && <StemFigure markup={question.stemFigure} />}
 
-        {/* Options are figures, so they go in a grid rather than a list */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {optionsFor(question).map((option) => {
-            const chosen = answers[question.id] === option.label;
-            return (
-              <label
-                key={option.label}
-                className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border cursor-pointer transition ${
-                  chosen
-                    ? "border-brand bg-brand-tint text-brand"
-                    : "border-line hover:border-line-strong text-ink-soft hover:bg-ground/60"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name={String(question.id)}
-                  value={option.label}
-                  checked={chosen}
-                  onChange={() => choose(question.id, option.label)}
-                  className="sr-only"
-                />
-                <Figure
-                  markup={option.figure}
-                  className="w-full aspect-square"
-                />
-                <span
-                  className={`text-xs font-semibold ${
-                    chosen ? "text-brand" : "text-ink-faint"
+          {/* Options are figures, so they go in a grid rather than a list */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {optionsFor(question).map((option) => {
+              const chosen = answers[question.id] === option.label;
+              return (
+                <label
+                  key={option.label}
+                  className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border cursor-pointer transition ${
+                    chosen
+                      ? "border-brand bg-brand-tint text-brand"
+                      : "border-line hover:border-line-strong text-ink-soft hover:bg-ground/60"
                   }`}
                 >
-                  {option.label}
-                </span>
-              </label>
-            );
-          })}
-        </div>
+                  <input
+                    type="radio"
+                    name={String(question.id)}
+                    value={option.label}
+                    checked={chosen}
+                    onChange={() => choose(question.id, option.label)}
+                    className="sr-only"
+                  />
+                  <OptionFigure markup={option.figure} />
+                  <span
+                    className={`text-xs font-semibold ${
+                      chosen ? "text-brand" : "text-ink-faint"
+                    }`}
+                  >
+                    {option.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </FigureScale>
 
         <div className="flex gap-2 mt-6">
           <button

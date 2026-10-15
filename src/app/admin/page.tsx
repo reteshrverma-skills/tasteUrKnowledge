@@ -58,6 +58,14 @@ export default async function AdminPage() {
               bar: "bg-master",
               wide: true,
             },
+            {
+              href: "/admin/nvr",
+              title: "Non-Verbal Reasoning",
+              blurb:
+                "Browse questions by difficulty level and topic, with their database IDs",
+              bar: "bg-navigator",
+              wide: true,
+            },
           ].map((tile) => (
             <Link
               key={tile.href}

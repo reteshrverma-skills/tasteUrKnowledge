@@ -93,6 +93,35 @@ export async function nvrTopicsForLevel(
     .sort((a, b) => a.topic.localeCompare(b.topic));
 }
 
+/**
+ * Every question in one topic at one difficulty, answer key included - for the
+ * admin's review only, never a student route. Figures still need
+ * sanitiseFigure before render.
+ */
+export async function nvrQuestionsForTopic(topic: string, level: string) {
+  return prisma.gsNvrQuestion.findMany({
+    where: {
+      topic: { equals: topic, mode: "insensitive" },
+      difficultyLevel: { equals: level, mode: "insensitive" },
+    },
+    orderBy: [{ subTopic: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      subTopic: true,
+      typeOfQuestion: true,
+      quest: true,
+      stemFigure: true,
+      optionA: true,
+      optionB: true,
+      optionC: true,
+      optionD: true,
+      optionE: true,
+      ansChoice: true,
+      ansExplain: true,
+    },
+  });
+}
+
 /** Fisher-Yates: every ordering equally likely, unlike sort(() => 0.5 - rnd). */
 function shuffled(ids: number[]): number[] {
   const out = [...ids];

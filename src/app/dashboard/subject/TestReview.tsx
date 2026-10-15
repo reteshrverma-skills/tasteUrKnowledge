@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { scoreStyle } from "@/lib/level-style";
+import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
 
 export const OPTION_LABELS = ["A", "B", "C", "D", "E"] as const;
 
@@ -22,19 +23,6 @@ export interface ReviewTest {
   testStartTime: Date | null;
   difficultyLevel: string | null;
   completionReason: string | null;
-}
-
-/**
- * Inline SVG from the Non-Verbal bank. The caller passes markup that has been
- * through sanitiseFigure, as the quiz does.
- */
-function Figure({ markup, className }: { markup: string; className?: string }) {
-  return (
-    <span
-      className={`block [&>svg]:w-full [&>svg]:h-full ${className ?? ""}`}
-      dangerouslySetInnerHTML={{ __html: markup }}
-    />
-  );
 }
 
 /** Drops options the question does not offer - E is often absent. */
@@ -159,62 +147,55 @@ export function TestReview({
                 </span>
               </div>
 
-              {row.stemFigure && (
-                <div className="flex justify-center mb-4">
-                  {/* Sized by the figure, as in the quiz. */}
-                  <span className="card-quiet w-full max-w-xl p-3 text-ink">
-                    <span
-                      className="block mx-auto [&>svg]:block [&>svg]:mx-auto [&>svg]:w-full [&>svg]:h-auto [&>svg]:max-h-56"
-                      dangerouslySetInnerHTML={{ __html: row.stemFigure }}
-                    />
-                  </span>
-                </div>
-              )}
+              {/* Figures share one scale with the stem, as in the quiz. */}
+              <FigureScale>
+                {row.stemFigure && <StemFigure markup={row.stemFigure} />}
 
-              <ul
-                className={
-                  figures
-                    ? "grid grid-cols-2 sm:grid-cols-4 gap-2.5"
-                    : "space-y-1.5"
-                }
-              >
-                {row.options.map((o) => {
-                  const isRight = o.label === row.right;
-                  const isChosen = o.label === row.chosen;
-                  const tone = isRight
-                    ? "border-green-500 bg-green-50 text-green-900"
-                    : isChosen
-                    ? "border-red-400 bg-red-50 text-red-900"
-                    : "border-line text-ink-soft";
-                  const tag = isRight
-                    ? "Correct answer"
-                    : isChosen
-                    ? "Your answer"
-                    : null;
+                <ul
+                  className={
+                    figures
+                      ? "grid grid-cols-2 sm:grid-cols-4 gap-2.5"
+                      : "space-y-1.5"
+                  }
+                >
+                  {row.options.map((o) => {
+                    const isRight = o.label === row.right;
+                    const isChosen = o.label === row.chosen;
+                    const tone = isRight
+                      ? "border-green-500 bg-green-50 text-green-900"
+                      : isChosen
+                      ? "border-red-400 bg-red-50 text-red-900"
+                      : "border-line text-ink-soft";
+                    const tag = isRight
+                      ? "Correct answer"
+                      : isChosen
+                      ? "Your answer"
+                      : null;
 
-                  return figures ? (
-                    <li
-                      key={o.label}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border ${tone}`}
-                    >
-                      <Figure markup={o.content} className="w-full aspect-square" />
-                      <span className="text-xs font-semibold">
-                        {o.label}
-                        {tag && ` · ${tag}`}
-                      </span>
-                    </li>
-                  ) : (
-                    <li
-                      key={o.label}
-                      className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${tone}`}
-                    >
-                      <strong>{o.label}:</strong>
-                      <span className="flex-1">{o.content}</span>
-                      {tag && <span className="text-xs font-semibold">{tag}</span>}
-                    </li>
-                  );
-                })}
-              </ul>
+                    return figures ? (
+                      <li
+                        key={o.label}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border ${tone}`}
+                      >
+                        <OptionFigure markup={o.content} />
+                        <span className="text-xs font-semibold">
+                          {o.label}
+                          {tag && ` · ${tag}`}
+                        </span>
+                      </li>
+                    ) : (
+                      <li
+                        key={o.label}
+                        className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${tone}`}
+                      >
+                        <strong>{o.label}:</strong>
+                        <span className="flex-1">{o.content}</span>
+                        {tag && <span className="text-xs font-semibold">{tag}</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </FigureScale>
 
               {row.whyWrong && (
                 <p className="text-sm text-red-800 mt-3">
