@@ -114,8 +114,7 @@ export default async function DashboardPage() {
       <nav className="bg-surface border-b border-line">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
           <span className="flex items-center gap-2 font-display text-lg font-bold text-brand">
-            <BrandLogo size={32} />
-            SIGQS
+            <BrandLogo height={40} />
           </span>
           <div className="flex items-center gap-3">
             {isAdmin && (

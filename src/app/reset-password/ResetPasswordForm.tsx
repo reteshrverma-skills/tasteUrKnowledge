@@ -87,7 +87,7 @@ export function ResetPasswordForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 inline-flex items-center gap-2"><BrandLogo size={36} />SIGQS</h1>
+          <h1 className="text-3xl font-bold text-gray-800 inline-flex items-center gap-2"><BrandLogo height={72} motto /></h1>
           <p className="text-gray-600 mt-2">Choose a new password</p>
         </div>
 

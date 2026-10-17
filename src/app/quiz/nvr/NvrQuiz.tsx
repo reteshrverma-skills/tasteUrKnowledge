@@ -454,8 +454,7 @@ function Shell({
             ← Non-Verbal
           </Link>
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
-            <BrandLogo size={28} />
-            SIGQS
+            <BrandLogo height={36} />
           </span>
           <LogoutButton />
         </div>

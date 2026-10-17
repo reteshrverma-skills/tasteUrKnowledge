@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BrandLogo } from "@/components/BrandLogo";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,17 +47,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-ground flex flex-col">
       <header className="bg-surface border-b border-line">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3 flex items-center justify-between gap-4">
-          <Link href="/login" className="flex items-center gap-3">
-            <BrandLogo size={52} />
-            <span className="leading-tight">
-              <span className="block font-display text-2xl font-bold">
-                <span className="text-[#0b3a6e]">SIGQ</span>
-                <span className="text-[#12a874]">S</span>
-              </span>
-              <span className="block text-xs font-semibold text-ink-soft">
-                Intelligent practice. Measurable progress.
-              </span>
-            </span>
+          <Link href="/login" className="flex items-center">
+            <Image
+              src="/sigqs-logo.png"
+              alt="SIGQS - Intelligent practice. Measurable progress."
+              width={1810}
+              height={546}
+              priority
+              className="h-20 sm:h-28 w-auto"
+            />
           </Link>
           <Link
             href="/register"

@@ -22,8 +22,7 @@ export default function TermsPage() {
             href="/login"
             className="inline-flex items-center gap-2 font-display text-lg font-bold text-brand"
           >
-            <BrandLogo size={32} />
-            SIGQS
+            <BrandLogo height={40} />
           </Link>
         </div>
       </header>

@@ -60,7 +60,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 inline-flex items-center gap-2"><BrandLogo size={36} />SIGQS</h1>
+          <h1 className="text-3xl font-bold text-gray-800 inline-flex items-center gap-2"><BrandLogo height={72} motto /></h1>
           <p className="text-gray-600 mt-2">Create Your Parent Account</p>
           <p className="text-gray-500 text-sm mt-1">
             Sign up for yourself — you will add your children afterwards.

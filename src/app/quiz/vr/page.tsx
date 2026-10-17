@@ -293,8 +293,7 @@ function VrQuiz() {
           {isTopicTest && " · whole topic"}
         </p>
         <span className="font-display text-base font-bold text-brand shrink-0 inline-flex items-center gap-2">
-          <BrandLogo size={28} />
-          SIGQS
+          <BrandLogo height={36} />
         </span>
         <LogoutButton />
       </div>
