@@ -8,7 +8,7 @@ export default async function AdminPage() {
       {/* Navigation */}
       <nav className="bg-surface border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-brand inline-flex items-center gap-2"><BrandLogo height={44} />Admin</h1>
+          <h1 className="text-2xl font-bold text-brand inline-flex items-center gap-2"><BrandLogo height={56} />Admin</h1>
           <div className="flex gap-4">
             <Link
               href="/dashboard"

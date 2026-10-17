@@ -8,6 +8,7 @@ import { difficultyStyle, scoreStyle } from "@/lib/level-style";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { RoundHeading } from "@/components/RoundHeading";
 
 interface Question {
   id: number;
@@ -231,11 +232,17 @@ export function NvrQuiz() {
   const backHref = `/dashboard/subject/non-verbal${
     level ? `?level=${encodeURIComponent(level)}` : ""
   }`;
+  const shellProps = {
+    backHref,
+    level,
+    title: subTopic || topic,
+    isTopicTest: !subTopic && Boolean(topic),
+  };
 
   /* ------------------------------------------------------------------ */
   if (showLoading) {
     return (
-      <Shell backHref={backHref}>
+      <Shell {...shellProps}>
         <p className="text-center text-ink-soft py-16">Loading…</p>
       </Shell>
     );
@@ -243,7 +250,7 @@ export function NvrQuiz() {
 
   if (problem) {
     return (
-      <Shell backHref={backHref}>
+      <Shell {...shellProps}>
         <div className="card p-10 text-center">
           <p className="font-display text-lg font-semibold text-ink">
             Nothing to show
@@ -260,7 +267,7 @@ export function NvrQuiz() {
   /* Results ----------------------------------------------------------- */
   if (results) {
     return (
-      <Shell backHref={backHref}>
+      <Shell {...shellProps}>
         <div className="card p-6 sm:p-8 mb-5 text-center">
           <p className="eyebrow">Your score</p>
           <p className="font-display text-5xl font-bold text-ink mt-2 tabular">
@@ -325,7 +332,7 @@ export function NvrQuiz() {
   const answeredCount = questions.filter((q) => answers[q.id]).length;
 
   return (
-    <Shell backHref={backHref}>
+    <Shell {...shellProps}>
       <form onSubmit={handleSubmit} className="card p-5 sm:p-7">
         <div className="flex items-center justify-between gap-3 mb-1">
           <span className="text-sm font-medium text-ink tabular">
@@ -439,27 +446,37 @@ export function NvrQuiz() {
 function Shell({
   children,
   backHref,
+  level,
+  title,
+  isTopicTest,
 }: {
   children: React.ReactNode;
   backHref: string;
+  level?: string;
+  title?: string;
+  isTopicTest?: boolean;
 }) {
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+        {/* Equal side columns keep the logo dead centre. */}
+        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-3.5 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
           <Link
             href={backHref}
-            className="text-sm font-medium text-ink-soft hover:text-brand transition"
+            className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand transition"
           >
             ← Non-Verbal
           </Link>
-          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
-            <BrandLogo height={36} />
-          </span>
-          <LogoutButton />
+          <BrandLogo height={56} />
+          <div className="justify-self-end">
+            <LogoutButton />
+          </div>
         </div>
       </nav>
-      <div className="max-w-2xl mx-auto px-5 sm:px-8 py-8">{children}</div>
+      <div className="max-w-2xl mx-auto px-5 sm:px-8 pt-4">
+        <RoundHeading level={level} title={title} isTopicTest={isTopicTest} />
+      </div>
+      <div className="max-w-2xl mx-auto px-5 sm:px-8 py-6">{children}</div>
     </div>
   );
 }

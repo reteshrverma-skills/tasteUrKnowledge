@@ -7,6 +7,7 @@ import { confirmSubmit } from "@/lib/quiz-confirm";
 import { scoreStyle } from "@/lib/level-style";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { RoundHeading } from "@/components/RoundHeading";
 
 interface Question {
   id: number;
@@ -278,26 +279,29 @@ function VrQuiz() {
     );
   }
 
+  // The round's name sits on its own line under the bar, outside the
+  // question card, so it holds still while the questions change.
   const nav = (
-    <nav className="bg-surface border-b border-line shrink-0">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-3">
-        <Link
-          href={backHref}
-          className="text-sm font-medium text-ink-soft hover:text-brand transition shrink-0"
-        >
-          ← Verbal Reasoning
-        </Link>
-        <p className="text-sm text-ink-soft truncate hidden sm:block">
-          <span className="font-medium text-ink">{roundLabel}</span>
-          {level && ` · ${level}`}
-          {isTopicTest && " · whole topic"}
-        </p>
-        <span className="font-display text-base font-bold text-brand shrink-0 inline-flex items-center gap-2">
-          <BrandLogo height={36} />
-        </span>
-        <LogoutButton />
+    <>
+      <nav className="bg-surface border-b border-line shrink-0">
+        {/* Equal side columns keep the logo dead centre. */}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <Link
+            href={backHref}
+            className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand transition"
+          >
+            ← Verbal Reasoning
+          </Link>
+          <BrandLogo height={56} />
+          <div className="justify-self-end">
+            <LogoutButton />
+          </div>
+        </div>
+      </nav>
+      <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-4 shrink-0">
+        <RoundHeading level={level} title={roundLabel} isTopicTest={isTopicTest} />
       </div>
-    </nav>
+    </>
   );
 
   /* ---------------------------------------------------------------- */

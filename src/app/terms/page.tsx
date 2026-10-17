@@ -22,7 +22,7 @@ export default function TermsPage() {
             href="/login"
             className="inline-flex items-center gap-2 font-display text-lg font-bold text-brand"
           >
-            <BrandLogo height={40} />
+            <BrandLogo height={56} />
           </Link>
         </div>
       </header>

@@ -86,7 +86,7 @@ export function TestReview({
             ← {backLabel}
           </Link>
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
-            <BrandLogo height={36} />
+            <BrandLogo height={56} />
           </span>
           <LogoutButton />
         </div>

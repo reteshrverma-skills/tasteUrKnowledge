@@ -25,7 +25,7 @@ export default async function AdminParentPasswordPage() {
             href="/admin"
             className="text-2xl font-bold text-brand inline-flex items-center gap-2"
           >
-            <BrandLogo height={44} />
+            <BrandLogo height={56} />
             Admin
           </Link>
           <div className="flex gap-4">

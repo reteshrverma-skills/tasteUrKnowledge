@@ -327,7 +327,7 @@ export default function QuizPage() {
               ← {backLabel}
             </Link>
             <h1 className="font-display text-base font-bold text-brand inline-flex items-center gap-2">
-              <BrandLogo height={36} />
+              <BrandLogo height={56} />
             </h1>
             <LogoutButton />
           </div>
@@ -408,21 +408,19 @@ export default function QuizPage() {
     <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-ground">
       {/* Navigation */}
       <nav className="bg-surface border-b border-line shrink-0">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-3">
+        {/* Equal side columns keep the logo dead centre whatever the
+            back link says. */}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <Link
             href={backHref}
-            className="text-sm font-medium text-ink-soft hover:text-brand transition shrink-0"
+            className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand transition"
           >
             ← {backLabel}
           </Link>
-          <p className="text-sm text-ink-soft truncate hidden sm:block">
-            <span className="font-medium text-ink">{comp.label}</span>
-            {comp.difficultyLevel && ` · ${comp.difficultyLevel}`}
-          </p>
-          <span className="font-display text-base font-bold text-brand shrink-0 inline-flex items-center gap-2">
-            <BrandLogo height={36} />
-          </span>
-          <LogoutButton />
+          <BrandLogo height={56} />
+          <div className="justify-self-end">
+            <LogoutButton />
+          </div>
         </div>
       </nav>
 
