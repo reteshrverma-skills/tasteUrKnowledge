@@ -12,7 +12,7 @@ export function FlagUnclear({
   rowId,
   initialFlagged,
 }: {
-  subject: "nvr" | "vr";
+  subject: "nvr" | "vr" | "maths";
   rowId: number;
   initialFlagged: boolean;
 }) {

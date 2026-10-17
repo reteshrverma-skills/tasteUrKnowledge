@@ -69,7 +69,7 @@ export function TestReview({
   figures?: boolean;
   questions: ReviewQuestion[];
   /** Offers "Answer not clear?" on each question; row ids are tracker rows. */
-  flagSubject?: "nvr" | "vr";
+  flagSubject?: "nvr" | "vr" | "maths";
 }) {
   const total = questions.length;
   const correct = questions.filter((q) => q.isRight).length;

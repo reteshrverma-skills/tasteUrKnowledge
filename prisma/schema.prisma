@@ -368,6 +368,9 @@ model TestTrackerMath {
   correctOption String? @db.VarChar(1)
   /// Position in the round as presented, for spotting a late fall-off.
   questionOrder Int?    @db.SmallInt
+  /// Set from the answer sheet when the student finds the answer unclear.
+  flaggedUnclear   Boolean   @default(false)
+  flaggedUnclearAt DateTime? @db.Timestamptz(3)
 
   @@index([testId])
   @@index([studentId, questionId])

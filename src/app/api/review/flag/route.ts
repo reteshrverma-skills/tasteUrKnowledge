@@ -47,6 +47,11 @@ export async function POST(request: NextRequest) {
         where: { id: BigInt(rowId!), studentId: BigInt(session.userId) },
         data,
       }));
+    } else if (subject === "maths") {
+      ({ count: updated } = await prisma.testTrackerMath.updateMany({
+        where: { id: rowId, studentId: session.userId },
+        data,
+      }));
     } else {
       return NextResponse.json({ error: "Invalid subject" }, { status: 400 });
     }

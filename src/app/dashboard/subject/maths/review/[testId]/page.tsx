@@ -36,6 +36,7 @@ export default async function MathsTestReviewPage({
         ...(test.subTopic ? { subTopic: test.subTopic } : {}),
         level: test.difficultyLevel ?? "",
       })}`}
+      flagSubject="maths"
       questions={test.questions.map((row) => ({
         id: row.id,
         quest: row.question.quest,
@@ -44,6 +45,7 @@ export default async function MathsTestReviewPage({
         right: row.correctOption ?? row.question.ansChoice,
         isRight: row.isAnsRight,
         explanation: row.question.explanation,
+        flagged: row.flaggedUnclear,
       }))}
     />
   );

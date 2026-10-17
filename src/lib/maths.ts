@@ -262,6 +262,7 @@ export async function mathsTestReview(testId: number, studentId: number) {
           isSkipped: true,
           chosenOption: true,
           correctOption: true,
+          flaggedUnclear: true,
           question: {
             select: {
               quest: true,
