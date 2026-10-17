@@ -51,11 +51,11 @@ export default function LoginPage() {
             <BrandLogo size={52} />
             <span className="leading-tight">
               <span className="block font-display text-2xl font-bold">
-                <span className="text-[#0b3a6e]">Practice</span>
-                <span className="text-[#12a874]">Labs</span>
+                <span className="text-[#0b3a6e]">SIGQ</span>
+                <span className="text-[#12a874]">S</span>
               </span>
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
-                Practice · Improve · Achieve
+              <span className="block text-xs font-semibold text-ink-soft">
+                Intelligent practice. Measurable progress.
               </span>
             </span>
           </Link>

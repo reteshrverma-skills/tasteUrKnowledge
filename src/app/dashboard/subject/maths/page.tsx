@@ -65,7 +65,7 @@ export default async function MathsPage({
           </Link>
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
             <BrandLogo size={28} />
-            Practice Labs
+            SIGQS
           </span>
           <LogoutButton />
         </div>

@@ -39,7 +39,7 @@ export default async function AdminNvrTopicPage({
           </Link>
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
             <BrandLogo size={28} />
-            Practice Labs - Admin
+            SIGQS - Admin
           </span>
           <LogoutButton />
         </div>

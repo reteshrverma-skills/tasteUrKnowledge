@@ -18,7 +18,7 @@ export function ParentNav({ parentName }: { parentName: string }) {
           className="font-display text-lg font-bold text-brand inline-flex items-center gap-2"
         >
           <BrandLogo size={28} />
-          Practice Labs
+          SIGQS
         </Link>
 
         <div className="flex items-center gap-4">

@@ -16,6 +16,7 @@ export default function RegisterPage() {
     confirmPassword: "",
     emailAddress: "",
   });
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +34,7 @@ export default function RegisterPage() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, acceptTerms }),
       });
 
       const data = await response.json();
@@ -59,7 +60,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 inline-flex items-center gap-2"><BrandLogo size={36} />Practice Labs</h1>
+          <h1 className="text-3xl font-bold text-gray-800 inline-flex items-center gap-2"><BrandLogo size={36} />SIGQS</h1>
           <p className="text-gray-600 mt-2">Create Your Parent Account</p>
           <p className="text-gray-500 text-sm mt-1">
             Sign up for yourself — you will add your children afterwards.
@@ -173,6 +174,29 @@ export default function RegisterPage() {
               placeholder="••••••"
             />
           </div>
+
+          <label className="flex items-start gap-2.5 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              required
+              className="mt-0.5 h-4 w-4 accent-indigo-600"
+            />
+            <span>
+              I agree to the{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
+              >
+                Terms &amp; Copyright notice
+              </Link>
+              . All questions and passages are owned by SIGQS and are
+              for my family&apos;s personal use only - not to be copied,
+              shared or resold.
+            </span>
+          </label>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

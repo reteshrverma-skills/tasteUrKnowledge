@@ -37,6 +37,8 @@ model UserProfile {
   studentParentRef String?  @map("student_parent_ref")
   isActive         Boolean  @default(true)
   createDate       DateTime @default(now())
+  /// When a parent agreed to the Terms & Copyright notice at sign-up.
+  termsAcceptedAt  DateTime? @db.Timestamptz(3)
 
   personalDetails UserPersonalDetails?
   studentDetails  UserStudentDetails?

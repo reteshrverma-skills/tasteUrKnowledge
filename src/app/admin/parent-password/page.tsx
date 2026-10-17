@@ -26,7 +26,7 @@ export default async function AdminParentPasswordPage() {
             className="text-2xl font-bold text-brand inline-flex items-center gap-2"
           >
             <BrandLogo size={36} />
-            Practice Labs - Admin
+            SIGQS - Admin
           </Link>
           <div className="flex gap-4">
             <Link

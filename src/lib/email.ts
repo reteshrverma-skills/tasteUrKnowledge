@@ -18,7 +18,7 @@ export interface Mail {
   text: string;
 }
 
-const FROM = process.env.MAIL_FROM ?? "Practice Labs <onboarding@resend.dev>";
+const FROM = process.env.MAIL_FROM ?? "SIGQS <onboarding@resend.dev>";
 
 /**
  * Hands the message to whatever provider is configured.
@@ -84,11 +84,11 @@ export async function sendPasswordResetEmail(
 ): Promise<boolean> {
   return deliver({
     to,
-    subject: "Reset your Practice Labs password",
+    subject: "Reset your SIGQS password",
     text: [
       `Hello ${name},`,
       "",
-      "Somebody asked to reset the password for your Practice Labs account.",
+      "Somebody asked to reset the password for your SIGQS account.",
       "Open the link below to choose a new one:",
       "",
       resetUrl,
@@ -98,7 +98,7 @@ export async function sendPasswordResetEmail(
       "If this was not you, ignore this email. Your password has not changed,",
       "and nobody can get into your account with this message alone.",
       "",
-      "Practice Labs",
+      "SIGQS",
     ].join("\n"),
   });
 }

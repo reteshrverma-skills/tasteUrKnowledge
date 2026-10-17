@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 /**
- * The Practice Labs mark - cap over an open book - shown beside the name in
+ * The SIGQS mark - capped figure rising from an open book - shown beside the name in
  * every page header. Decorative: the name next to it carries the meaning.
  */
 export function BrandLogo({ size = 28 }: { size?: number }) {

@@ -23,7 +23,17 @@ export async function POST(request: NextRequest) {
       password,
       confirmPassword,
       emailAddress,
+      acceptTerms,
     } = body;
+
+    // Checked here as well as by the form, so an account cannot be created
+    // without agreeing to the Terms & Copyright notice.
+    if (acceptTerms !== true) {
+      return NextResponse.json(
+        { error: "Please agree to the Terms & Copyright notice to continue" },
+        { status: 400 }
+      );
+    }
 
     if (!fName?.trim() || !lName?.trim()) {
       return NextResponse.json(
@@ -69,6 +79,7 @@ export async function POST(request: NextRequest) {
         profilePassword,
         userType: "PARENT",
         isActive: true,
+        termsAcceptedAt: new Date(),
         ...(emailAddress?.trim()
           ? { personalDetails: { create: { emailAddress: emailAddress.trim() } } }
           : {}),

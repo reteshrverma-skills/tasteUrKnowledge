@@ -292,7 +292,7 @@ function MathsQuiz() {
         </p>
         <span className="font-display text-base font-bold text-brand shrink-0 inline-flex items-center gap-2">
           <BrandLogo size={28} />
-          Practice Labs
+          SIGQS
         </span>
         <LogoutButton />
       </div>
