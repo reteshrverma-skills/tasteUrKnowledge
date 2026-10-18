@@ -8,6 +8,7 @@ import { timeSpentBySubject } from "@/lib/progress";
 import { recordSubscription, stripe, subscriptionFor } from "@/lib/billing";
 import { ParentNav } from "./ParentNav";
 import { ChildProgress } from "./ChildProgress";
+import { HowItWorks } from "./HowItWorks";
 
 /**
  * Where a parent lands after logging in.
@@ -121,6 +122,8 @@ export default async function ParentDashboardPage({
             {notice.text}
           </p>
         )}
+
+        <HowItWorks open={children.length === 0} />
 
         {children.length === 0 ? (
           <div className="card p-12 text-center">

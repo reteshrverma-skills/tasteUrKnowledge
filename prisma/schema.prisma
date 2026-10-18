@@ -45,7 +45,6 @@ model UserProfile {
   /// Children, when this profile is a PARENT.
   children        UserStudentDetails[]     @relation("ParentChildren")
   paymentDetails  UserPaymentDetails[]
-  attempts        Attempt[]
   mathsTests      TestTrackerMathMain[]
   mathsAnswers    TestTrackerMath[]
   englishTests    TestTrackerEnglishMain[]
@@ -171,7 +170,6 @@ model GsEnglishComp {
   createdDate         DateTime? @map("createddate") @db.Date
 
   questions GsEnglishQuestion[]
-  attempts  Attempt[]
   tests     TestTrackerEnglishMain[]
 
   @@map("gsEnglishComp")
@@ -195,8 +193,6 @@ model GsEnglishQuestion {
   /// comprehension; a question is described by what it asks for, not how hard
   /// it is, and this is what the parent report groups by.
   typeOfQuestion String?       @db.VarChar(256)
-
-  answers     Answer[]
   trackerRows TestTrackerEnglish[]
 
   @@index([gsEngCompId])
@@ -469,60 +465,8 @@ model Subject {
   order  Int    @default(0)
   yearId String
   year   Year   @relation(fields: [yearId], references: [id], onDelete: Cascade)
-  days   Day[]
 
   @@unique([yearId, name])
-}
-
-model Day {
-  id        String     @id @default(cuid())
-  label     String
-  content   String? // Story/content for the day
-  order     Int        @default(0)
-  subjectId String
-  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  questions Question[]
-
-  @@unique([subjectId, label])
-}
-
-model Question {
-  id            String @id @default(cuid())
-  dayId         String
-  day           Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
-  text          String
-  optionA       String
-  optionB       String
-  optionC       String
-  optionD       String
-  correctOption String
-  order         Int    @default(0)
-}
-
-model Attempt {
-  id          String        @id @default(cuid())
-  userId      BigInt
-  user        UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gsEngCompId BigInt
-  comp        GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
-  score       Int
-  totalCount  Int
-  submittedAt DateTime      @default(now())
-  answers     Answer[]
-
-  @@index([gsEngCompId])
-}
-
-model Answer {
-  id              String            @id @default(cuid())
-  attemptId       String
-  attempt         Attempt           @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  gsEngQuestionId BigInt
-  question        GsEnglishQuestion @relation(fields: [gsEngQuestionId], references: [id], onDelete: Cascade)
-  chosenOption    String?
-  isCorrect       Boolean
-
-  @@index([gsEngQuestionId])
 }
 
 /// Verbal Reasoning MCQs, picked by topic/subTopic + difficultyLevel like Maths.

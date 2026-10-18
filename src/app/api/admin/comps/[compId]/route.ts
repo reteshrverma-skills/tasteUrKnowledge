@@ -162,7 +162,7 @@ export async function PATCH(
   }
 }
 
-/** Deletes the comprehension; questions, attempts and answers cascade away. */
+/** Deletes the comprehension; its questions cascade away. */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ compId: string }> }
