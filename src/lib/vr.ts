@@ -1,6 +1,5 @@
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { BANK_CACHE } from "@/lib/bank-cache";
+import { cachedUntilFlush } from "@/lib/bank-cache";
 import { normaliseOption } from "@/lib/tracker";
 import { sortDifficulties, type TestScore } from "@/lib/student";
 export { allowedLevels, canAccessLevel } from "@/lib/student";
@@ -68,20 +67,20 @@ export interface VrTopicGroup {
 }
 
 /** Every difficulty on the ladder that actually has questions behind it. */
-export const availableVrLevels = unstable_cache(
+export const availableVrLevels = cachedUntilFlush(
+  "vr-levels",
   async (): Promise<string[]> => {
     const rows = await prisma.gsVrQuestion.groupBy({
       by: ["difficultyLevel"],
       _count: { _all: true },
     });
     return sortDifficulties(rows.map((row) => row.difficultyLevel));
-  },
-  ["vr-levels"],
-  BANK_CACHE
+  }
 );
 
 /** Subtopics at one difficulty, grouped under their topic. */
-export const vrTopicsForLevel = unstable_cache(
+export const vrTopicsForLevel = cachedUntilFlush(
+  "vr-topics",
   async (level: string): Promise<VrTopicGroup[]> => {
     const rows = await prisma.gsVrQuestion.groupBy({
       by: ["topic", "subTopic"],
@@ -105,9 +104,7 @@ export const vrTopicsForLevel = unstable_cache(
         count: subTopics.reduce((total, s) => total + s.count, 0),
       }))
       .sort((a, b) => a.topic.localeCompare(b.topic));
-  },
-  ["vr-topics"],
-  BANK_CACHE
+  }
 );
 
 function shuffled<T>(items: T[]): T[] {

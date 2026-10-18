@@ -1,6 +1,5 @@
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { BANK_CACHE } from "@/lib/bank-cache";
+import { cachedUntilFlush } from "@/lib/bank-cache";
 import { sortDifficulties, type TestScore } from "@/lib/student";
 export { allowedLevels, canAccessLevel } from "@/lib/student";
 
@@ -72,7 +71,8 @@ export async function subTopicsForLevel(
  * Subtopics at one difficulty, grouped under their topic so the picker can
  * show one collapsible frame per topic.
  */
-export const topicsForLevel = unstable_cache(
+export const topicsForLevel = cachedUntilFlush(
+  "maths-topics",
   async (level: string): Promise<TopicGroup[]> => {
     const rows = await prisma.gsMathsQuestion.groupBy({
       by: ["topic", "subTopic"],
@@ -96,13 +96,12 @@ export const topicsForLevel = unstable_cache(
         count: subTopics.reduce((total, s) => total + s.count, 0),
       }))
       .sort((a, b) => a.topic.localeCompare(b.topic));
-  },
-  ["maths-topics"],
-  BANK_CACHE
+  }
 );
 
 /** Every difficulty that actually has questions behind it. */
-export const availableMathsLevels = unstable_cache(
+export const availableMathsLevels = cachedUntilFlush(
+  "maths-levels",
   async (): Promise<string[]> => {
     const rows = await prisma.gsMathsQuestion.groupBy({
       by: ["difficultyLevel"],
@@ -110,9 +109,7 @@ export const availableMathsLevels = unstable_cache(
     });
 
     return sortDifficulties(rows.map((row) => row.difficultyLevel));
-  },
-  ["maths-levels"],
-  BANK_CACHE
+  }
 );
 
 /**

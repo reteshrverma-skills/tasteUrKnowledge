@@ -1,6 +1,5 @@
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { BANK_CACHE } from "@/lib/bank-cache";
+import { cachedUntilFlush } from "@/lib/bank-cache";
 import { sortDifficulties } from "@/lib/student";
 
 import type { TestScore } from "@/lib/student";
@@ -57,7 +56,8 @@ export interface NvrTopicGroup {
 }
 
 /** Every difficulty that actually has questions behind it. */
-export const availableNvrLevels = unstable_cache(
+export const availableNvrLevels = cachedUntilFlush(
+  "nvr-levels",
   async (): Promise<string[]> => {
     const rows = await prisma.gsNvrQuestion.groupBy({
       by: ["difficultyLevel"],
@@ -65,16 +65,15 @@ export const availableNvrLevels = unstable_cache(
     });
 
     return sortDifficulties(rows.map((row) => row.difficultyLevel));
-  },
-  ["nvr-levels"],
-  BANK_CACHE
+  }
 );
 
 /**
  * Subtopics at one difficulty, grouped under their topic so the picker can
  * show one collapsible frame per topic - the same shape as Maths.
  */
-export const nvrTopicsForLevel = unstable_cache(
+export const nvrTopicsForLevel = cachedUntilFlush(
+  "nvr-topics",
   async (level: string): Promise<NvrTopicGroup[]> => {
     const rows = await prisma.gsNvrQuestion.groupBy({
       by: ["topic", "subTopic"],
@@ -96,9 +95,7 @@ export const nvrTopicsForLevel = unstable_cache(
         count: subTopics.reduce((total, s) => total + s.count, 0),
       }))
       .sort((a, b) => a.topic.localeCompare(b.topic));
-  },
-  ["nvr-topics"],
-  BANK_CACHE
+  }
 );
 
 /**

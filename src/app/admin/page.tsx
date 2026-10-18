@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { RefreshQuestionBank } from "./RefreshQuestionBank";
 
 export default async function AdminPage() {
   // Middleware handles authentication and role check
@@ -95,6 +96,8 @@ export default async function AdminPage() {
             </Link>
           ))}
         </div>
+
+        <RefreshQuestionBank />
       </div>
     </div>
   );
