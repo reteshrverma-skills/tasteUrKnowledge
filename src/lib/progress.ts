@@ -1,4 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import {
+  ENGLISH_FAMILY_ORDER,
+  FOCUS_COUNT,
+  MIN_ANSWERS,
+  TARGET_PERCENT,
+  TREND_DAYS,
+  englishFamilyFor,
+} from "@/lib/progress-config";
 
 /* ------------------------------------------------------------------ */
 /* Subjects                                                            */
@@ -212,27 +220,51 @@ export interface SkillArea {
   label: string;
   percentage: number;
   attempted: number;
+  correct: number;
+  /**
+   * The score as it stood TREND_DAYS ago, or null when there was too little
+   * then to compare with, or nothing new has been answered since.
+   */
+  previousPercentage: number | null;
+  /** Answers and correct ones up to TREND_DAYS ago, for family trends. */
+  previousAttempted: number;
+  previousCorrect: number;
+  /** What a practice round for this area is built from. */
+  practice: PracticeTarget;
 }
 
 /**
- * The line between the two lists, and the same one the score chips already
- * draw elsewhere in the app: green at 70 and up, amber or red below. Using a
- * different cut-off here would mean a parent sees a topic chipped green on one
- * screen and listed as a weakness on another.
+ * Enough to start a round on one area: the English question type, or the
+ * topic/subtopic of the other banks, at the level last practised.
  */
-export const STRONG_THRESHOLD = 70;
+export interface PracticeTarget {
+  topic: string | null;
+  subTopic: string | null;
+  level: string | null;
+}
+
+/**
+ * Green from here up. Read from src/config/progress.json so the parent
+ * dashboard and the details page draw the line in the same place.
+ */
+export const STRONG_THRESHOLD = TARGET_PERCENT;
 
 /**
  * Fewer answers than this is noise, not a verdict. Two out of two says far
  * less than nine out of fifteen, in either direction - a single lucky question
  * is not a strength any more than a single unlucky one is a weakness.
  */
-export const MIN_ATTEMPTED = 4;
+export const MIN_ATTEMPTED = MIN_ANSWERS;
 
 interface ScoreRow {
   bucket: string | null;
+  topic: string | null;
+  subtopic: string | null;
+  level: string | null;
   total: unknown;
   correct: unknown;
+  prev_total: unknown;
+  prev_correct: unknown;
 }
 
 /** "author's purpose" -> "Author's purpose": tags are stored in mixed case. */
@@ -242,7 +274,7 @@ function sentenceCase(label: string): string {
 
 /**
  * Correct/answered per topic in one subject, from every answer the student
- * gave.
+ * gave, plus the same counts up to `before` for the trend.
  *
  * Grouped by the question's own tags rather than the round's, because a
  * whole-topic test spans several subtopics and the round records only one.
@@ -251,67 +283,181 @@ function sentenceCase(label: string): string {
  * - Maths: subtopic.
  * - Verbal and Non-Verbal: "topic · subtopic", since their subtopic names
  *   repeat across topics ("Compare" sits under two Non-Verbal topics).
+ *
+ * `level` is the difficulty of the most recent round that touched the area,
+ * which is where "Practise this" starts the next one.
  */
 async function scoreRows(
   studentId: number,
-  subject: ProgressSubject
+  subject: ProgressSubject,
+  before: Date
 ): Promise<ScoreRow[]> {
   switch (subject) {
     case "English":
       return prisma.$queryRaw<ScoreRow[]>`
         SELECT lower(btrim(COALESCE(gq."typeOfQuestion", q."topic"))) AS bucket,
+               min(btrim(COALESCE(gq."typeOfQuestion", q."topic"))) AS topic,
+               NULL::text AS subtopic,
+               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
-               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
+               COUNT(*) FILTER (WHERE m."testStartTime" < ${before}) AS prev_total,
+               COUNT(*) FILTER (WHERE m."testStartTime" < ${before} AND q."isAnsRight") AS prev_correct
           FROM "testTrackerEnglish" q
           JOIN "gsEnglishQuestions" gq ON gq."id" = q."questionId"
+          JOIN "testTrackerEnglishMain" m ON m."id" = q."testId"
          WHERE q."studentId" = ${studentId}
            AND btrim(COALESCE(gq."typeOfQuestion", q."topic", '')) <> ''
          GROUP BY 1`;
     case "Maths":
       return prisma.$queryRaw<ScoreRow[]>`
         SELECT gq."subTopic" AS bucket,
+               min(gq."topic") AS topic,
+               gq."subTopic" AS subtopic,
+               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
-               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
+               COUNT(*) FILTER (WHERE m."testStartTime" < ${before}) AS prev_total,
+               COUNT(*) FILTER (WHERE m."testStartTime" < ${before} AND q."isAnsRight") AS prev_correct
           FROM "testTrackerMath" q
           JOIN "gsMathsQuestions" gq ON gq."id" = q."questionId"
+          JOIN "testTrackerMathMain" m ON m."id" = q."testId"
          WHERE q."studentId" = ${studentId}
            AND gq."subTopic" IS NOT NULL
          GROUP BY gq."subTopic"`;
     case "Verbal Reasoning":
+      // VR's testStartTime has no time zone; it is written as UTC.
       return prisma.$queryRaw<ScoreRow[]>`
         SELECT concat_ws(' · ', gq."topic", gq."subTopic") AS bucket,
+               gq."topic" AS topic,
+               gq."subTopic" AS subtopic,
+               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
-               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
+               COUNT(*) FILTER (WHERE m."testStartTime" AT TIME ZONE 'UTC' < ${before}) AS prev_total,
+               COUNT(*) FILTER (WHERE m."testStartTime" AT TIME ZONE 'UTC' < ${before} AND q."isAnsRight") AS prev_correct
           FROM "testTrackerVR" q
           JOIN "gsVRQuestions" gq ON gq."id" = q."questionId"
+          JOIN "testTrackerVRMain" m ON m."id" = q."testId"
          WHERE q."studentId" = ${studentId}
            AND gq."subTopic" IS NOT NULL
-         GROUP BY 1`;
+         GROUP BY gq."topic", gq."subTopic"`;
     case "Non-Verbal":
       return prisma.$queryRaw<ScoreRow[]>`
         SELECT concat_ws(' · ', gq."topic", gq."subTopic") AS bucket,
+               gq."topic" AS topic,
+               gq."subTopic" AS subtopic,
+               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
-               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct
+               COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
+               COUNT(*) FILTER (WHERE m."testStartTime" < ${before}) AS prev_total,
+               COUNT(*) FILTER (WHERE m."testStartTime" < ${before} AND q."isAnsRight") AS prev_correct
           FROM "testTrackerNvr" q
           JOIN "gsNvrQuestions" gq ON gq."id" = q."questionId"
+          JOIN "testTrackerNvrMain" m ON m."id" = q."testId"
          WHERE q."studentId" = ${studentId}
-         GROUP BY 1`;
+         GROUP BY gq."topic", gq."subTopic"`;
   }
 }
 
-/** Every topic with any answers, strongest first. */
+/** Every topic with any answers, weakest first. */
 function toAreas(rows: ScoreRow[]): SkillArea[] {
   return rows
     .filter((row) => row.bucket && num(row.total) > 0)
     .map((row) => {
       const total = num(row.total);
+      const correct = num(row.correct);
+      const prevTotal = num(row.prev_total);
+      // A trend needs a fair sample then, and something answered since.
+      const previousPercentage =
+        prevTotal >= MIN_ANSWERS && total > prevTotal
+          ? Math.round((num(row.prev_correct) / prevTotal) * 100)
+          : null;
       return {
         label: sentenceCase(row.bucket as string),
-        percentage: Math.round((num(row.correct) / total) * 100),
+        percentage: Math.round((correct / total) * 100),
         attempted: total,
+        correct,
+        previousPercentage,
+        previousAttempted: prevTotal,
+        previousCorrect: num(row.prev_correct),
+        practice: {
+          topic: row.topic,
+          subTopic: row.subtopic,
+          level: row.level,
+        },
       };
     })
-    .sort((a, b) => b.percentage - a.percentage || b.attempted - a.attempted);
+    .sort((a, b) => a.percentage - b.percentage || b.attempted - a.attempted);
+}
+
+/**
+ * The areas worth working on this week, biggest impact first.
+ *
+ * Impact is volume times gap: answers given times the share got wrong, which
+ * is simply the number of questions missed. A topic at 0% from four answers
+ * is a weaker signal than one at 31% from thirty-six, so sorting by score
+ * alone would point a parent at the wrong thing. Areas below MIN_ANSWERS or
+ * already on target are left out.
+ */
+export function focusNext(areas: SkillArea[]): SkillArea[] {
+  return areas
+    .filter((a) => a.attempted >= MIN_ANSWERS && a.percentage < TARGET_PERCENT)
+    .map((a) => ({ area: a, impact: a.attempted - a.correct }))
+    .sort((x, y) => y.impact - x.impact)
+    .slice(0, FOCUS_COUNT)
+    .map((x) => x.area);
+}
+
+export interface SkillFamily {
+  name: string;
+  percentage: number;
+  attempted: number;
+  correct: number;
+  previousPercentage: number | null;
+  areas: SkillArea[];
+}
+
+/**
+ * English question types gathered into the families named in
+ * src/config/progress.json, each scored on all its answers together, weakest
+ * family first. Types the config does not list fall under "Other skills".
+ */
+export function englishFamilies(areas: SkillArea[]): SkillFamily[] {
+  const byName = new Map<string, SkillArea[]>();
+  for (const area of areas) {
+    const name = englishFamilyFor(area.label);
+    byName.set(name, [...(byName.get(name) ?? []), area]);
+  }
+
+  return Array.from(byName.entries())
+    .map(([name, members]) => {
+      const attempted = members.reduce((n, a) => n + a.attempted, 0);
+      const correct = members.reduce((n, a) => n + a.correct, 0);
+
+      // The family score as it stood a week ago, from every member's answers
+      // then - the same rule as a single topic's trend.
+      const prevAttempted = members.reduce((n, a) => n + a.previousAttempted, 0);
+      const prevCorrect = members.reduce((n, a) => n + a.previousCorrect, 0);
+      const previousPercentage =
+        prevAttempted >= MIN_ANSWERS && attempted > prevAttempted
+          ? Math.round((prevCorrect / prevAttempted) * 100)
+          : null;
+
+      return {
+        name,
+        attempted,
+        correct,
+        percentage: Math.round((correct / attempted) * 100),
+        previousPercentage,
+        areas: members,
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.percentage - b.percentage ||
+        ENGLISH_FAMILY_ORDER.indexOf(a.name) - ENGLISH_FAMILY_ORDER.indexOf(b.name)
+    );
 }
 
 /* ------------------------------------------------------------------ */
@@ -406,8 +552,9 @@ export async function subjectDetail(
   subject: ProgressSubject,
   take = 20
 ): Promise<{ areas: SkillArea[]; tests: RecentTest[] }> {
+  const trendFrom = new Date(Date.now() - TREND_DAYS * 24 * 60 * 60 * 1000);
   const [rows, testRows] = await Promise.all([
-    scoreRows(studentId, subject),
+    scoreRows(studentId, subject, trendFrom),
     recentTestRows(studentId, subject, take),
   ]);
 

@@ -159,7 +159,13 @@ export default function QuizPage() {
   useEffect(() => {
     const fetchComp = async () => {
       try {
-        const response = await fetch(`/api/comps/${compId}`);
+        // A focus round (?type=) asks only one question type. Read from the
+        // URL here rather than useSearchParams, which would need a Suspense
+        // boundary around the whole page.
+        const type = new URLSearchParams(window.location.search).get("type");
+        const response = await fetch(
+          `/api/comps/${compId}${type ? `?type=${encodeURIComponent(type)}` : ""}`
+        );
         if (!response.ok) {
           const errorBody = await response.json().catch(() => ({}));
           throw new Error(

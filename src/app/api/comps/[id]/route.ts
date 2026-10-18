@@ -61,7 +61,13 @@ export async function GET(
 
     // Drawn only once the comprehension is known to be open to this student,
     // so a locked passage never costs a query.
-    const ids = await randomCompQuestionIds(Number(comp.id));
+    // `?type=` narrows the round to one question type, for a focus topic.
+    const questionType = request.nextUrl.searchParams.get("type");
+    const ids = await randomCompQuestionIds(
+      Number(comp.id),
+      undefined,
+      questionType
+    );
 
     const questions = await prisma.gsEnglishQuestion.findMany({
       where: { id: { in: ids } },

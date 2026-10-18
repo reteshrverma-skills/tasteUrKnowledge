@@ -6,6 +6,11 @@ import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import { isVrSubject } from "@/lib/vr";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import {
+  focusPracticeHref,
+  openFocusTopics,
+  type FocusTopic,
+} from "@/lib/focus";
 
 /**
  * One mark per subject, so a child recognises where they are going before
@@ -51,8 +56,15 @@ export default async function DashboardPage() {
 
   // Six independent reads, so they go to the database together rather than
   // one after another.
-  const [profile, subjectRows, compCounts, mathsCount, nvrCount, vrCount] =
-    await Promise.all([
+  const [
+    profile,
+    subjectRows,
+    compCounts,
+    mathsCount,
+    nvrCount,
+    vrCount,
+    focusTopics,
+  ] = await Promise.all([
       session
         ? prisma.userProfile.findUnique({
             where: { id: session.userId },
@@ -86,6 +98,10 @@ export default async function DashboardPage() {
       prisma.gsMathsQuestion.count(),
       prisma.gsNvrQuestion.count(),
       prisma.gsVrQuestion.count(),
+      // What a parent has asked this child to work on.
+      session?.userType === "STUDENT"
+        ? openFocusTopics(session.userId)
+        : Promise.resolve([] as FocusTopic[]),
     ]);
 
   const studentName = profile ? displayName(profile) : "Student";
@@ -151,6 +167,41 @@ export default async function DashboardPage() {
             </p>
           </div>
         </div>
+
+        {focusTopics.length > 0 && (
+          <section className="card p-5 sm:p-6 mb-6 border-l-4 border-l-brand">
+            <h2 className="font-display text-lg font-bold text-ink">
+              Your focus this week
+            </h2>
+            <p className="text-sm text-ink-soft mt-0.5">
+              Chosen by your parent - a short round on each will help most.
+            </p>
+            <ul className="mt-4 space-y-2">
+              {focusTopics.map((focus) => (
+                <li
+                  key={focus.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3"
+                >
+                  <span className="min-w-0">
+                    <span className="block font-semibold text-ink truncate">
+                      {focus.label}
+                    </span>
+                    <span className="block text-xs text-ink-faint">
+                      {focus.subject}
+                      {focus.level ? ` · ${focus.level}` : ""}
+                    </span>
+                  </span>
+                  <Link
+                    href={focusPracticeHref(focus)}
+                    className="btn-primary px-4 py-2 text-sm whitespace-nowrap"
+                  >
+                    Start
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {subjectNames.map((name) => {

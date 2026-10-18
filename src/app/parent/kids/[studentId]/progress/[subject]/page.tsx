@@ -7,12 +7,17 @@ import { ownsChild, parentProfile } from "@/lib/parent";
 import {
   MIN_ATTEMPTED,
   STRONG_THRESHOLD,
+  englishFamilies,
+  focusNext,
   formatDuration,
   subjectDetail,
   subjectForSlug,
   timeSpentBySubject,
 } from "@/lib/progress";
 import { difficultyStyle, scoreStyle } from "@/lib/level-style";
+import { openFocusTopics } from "@/lib/focus";
+import { AreaBars, BarLegend, FamilyBars, Trend } from "./ProgressBars";
+import { PractiseButton } from "./PractiseButton";
 import { ParentNav } from "../../../../ParentNav";
 import { SUBJECT_HEADING, SUBJECT_TONE } from "../../../../ChildProgress";
 
@@ -24,7 +29,8 @@ function formatDay(date: Date | null) {
 
 /**
  * One child's progress in one subject, opened from a Details button on the
- * parent dashboard: time spent, every topic's score (not just the top three)
+ * parent dashboard: time spent, what to focus on next, every topic's score as
+ * a bar (English grouped into the skill families in src/config/progress.json)
  * and their latest tests.
  */
 export default async function SubjectProgressPage({
@@ -43,7 +49,7 @@ export default async function SubjectProgressPage({
   if (!subject || !Number.isInteger(studentId)) notFound();
   if (!(await ownsChild(session.userId, studentId))) notFound();
 
-  const [child, profile, times, detail] = await Promise.all([
+  const [child, profile, times, detail, openFocus] = await Promise.all([
     prisma.userProfile.findUnique({
       where: { id: studentId },
       select: { fName: true, mName: true, lName: true, profileName: true },
@@ -51,11 +57,13 @@ export default async function SubjectProgressPage({
     parentProfile(session.userId),
     timeSpentBySubject(studentId),
     subjectDetail(studentId, subject),
+    openFocusTopics(studentId),
   ]);
   if (!child) notFound();
 
   const time = times.find((t) => t.subject === subject);
   const childName = displayName(child);
+  const focus = focusNext(detail.areas);
 
   return (
     <div className="min-h-screen bg-ground">
@@ -99,54 +107,88 @@ export default async function SubjectProgressPage({
           </dl>
         </section>
 
-        {/* Every topic */}
+        {/* What to work on this week: volume times gap, biggest first. */}
+        <section className="card p-5 sm:p-6 border-l-4 border-l-brand">
+          <h2 className="font-display text-base font-semibold text-ink">
+            Focus next
+          </h2>
+          {focus.length === 0 ? (
+            <p className="text-sm text-ink-faint mt-2">
+              {detail.areas.length === 0
+                ? `Nothing to suggest until ${childName} answers some ${subject} questions.`
+                : `Nothing stands out - every topic with ${MIN_ATTEMPTED}+ answers is at ${STRONG_THRESHOLD}% or above.`}
+            </p>
+          ) : (
+            <>
+              <p className="text-xs text-ink-faint mt-1">
+                Ranked by questions missed, so a topic answered often counts
+                for more than one tried a few times. &ldquo;Practise
+                this&rdquo; puts it on {childName}&rsquo;s dashboard.
+              </p>
+              <ol className="mt-4 space-y-3">
+                {focus.map((area, index) => (
+                  <li
+                    key={area.label}
+                    className="flex items-center gap-3 rounded-xl border border-line px-4 py-3"
+                  >
+                    <span className="w-7 h-7 rounded-full bg-brand-tint text-brand grid place-items-center font-display font-bold text-sm shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-ink truncate">{area.label}</p>
+                      <p className="text-xs text-ink-soft tabular">
+                        {area.attempted} answered · {area.percentage}%{" "}
+                        <Trend
+                          previous={area.previousPercentage}
+                          current={area.percentage}
+                        />
+                      </p>
+                    </div>
+                    <PractiseButton
+                      studentId={studentId}
+                      subject={subject}
+                      label={area.label}
+                      practice={area.practice}
+                      initialFocusId={
+                        openFocus.find(
+                          (f) => f.subject === subject && f.label === area.label
+                        )?.id ?? null
+                      }
+                    />
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+        </section>
+
+        {/* Every topic, as bars, weakest first */}
         <section className="card p-5 sm:p-6">
           <h2 className="font-display text-base font-semibold text-ink">
             {SUBJECT_HEADING[subject]}
           </h2>
-          <p className="text-xs text-ink-faint mt-1">
-            Green is {STRONG_THRESHOLD}% and above. Topics with fewer than{" "}
-            {MIN_ATTEMPTED} answers are shown but not yet counted as a
-            strength or a weakness on the dashboard.
-          </p>
+          {subject === "English" && detail.areas.length > 0 && (
+            <p className="text-xs text-ink-faint mt-1">
+              Grouped into skill families. Open a family to see the question
+              types inside it.
+            </p>
+          )}
 
           {detail.areas.length === 0 ? (
             <p className="text-sm text-ink-faint mt-4">
               No {subject} questions answered yet.
             </p>
           ) : (
-            <table className="w-full text-sm mt-4">
-              <thead>
-                <tr className="eyebrow">
-                  <th className="text-left pb-1.5 font-semibold">Topic</th>
-                  <th className="text-right pb-1.5 font-semibold">Answered</th>
-                  <th className="text-right pb-1.5 font-semibold">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detail.areas.map((area) => (
-                  <tr key={area.label} className="border-t border-line">
-                    <td className="py-2 pr-3 text-ink">
-                      {area.label}
-                      {area.attempted < MIN_ATTEMPTED && (
-                        <span className="text-ink-faint text-xs">
-                          {" "}
-                          · too few to judge
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 text-right tabular text-ink-soft">
-                      {area.attempted}
-                    </td>
-                    <td className="py-2 text-right">
-                      <span className={`chip ${scoreStyle(area.percentage)}`}>
-                        {area.percentage}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <>
+              <BarLegend />
+              <div className="mt-5">
+                {subject === "English" ? (
+                  <FamilyBars families={englishFamilies(detail.areas)} />
+                ) : (
+                  <AreaBars areas={detail.areas} />
+                )}
+              </div>
+            </>
           )}
         </section>
 

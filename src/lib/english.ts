@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { normaliseTopic } from "@/lib/progress-config";
 
 /** The four subjects a student sees on their landing page, in display order. */
 export const SUBJECT_ORDER = ["English", "Maths", "Verbal", "Non-Verbal"] as const;
@@ -74,14 +75,24 @@ export const QUESTIONS_PER_COMP_ROUND = 9;
  */
 export async function randomCompQuestionIds(
   compId: number,
-  take: number = QUESTIONS_PER_COMP_ROUND
+  take: number = QUESTIONS_PER_COMP_ROUND,
+  /** Only questions of this type - a parent's "Practise this" focus. */
+  questionType?: string | null
 ): Promise<number[]> {
   const rows = await prisma.gsEnglishQuestion.findMany({
     where: { gsEngCompId: compId },
-    select: { id: true },
+    select: { id: true, typeOfQuestion: true },
   });
 
-  const ids = rows.map((row) => Number(row.id));
+  // Matched the way the progress page groups them, so the round asks exactly
+  // the questions that made up the score the parent saw.
+  const wanted = questionType ? normaliseTopic(questionType) : null;
+  const ids = rows
+    .filter(
+      (row) =>
+        !wanted || (row.typeOfQuestion && normaliseTopic(row.typeOfQuestion) === wanted)
+    )
+    .map((row) => Number(row.id));
 
   // Fisher-Yates: every ordering equally likely, unlike sort(() => 0.5 - rnd).
   for (let i = ids.length - 1; i > 0; i--) {

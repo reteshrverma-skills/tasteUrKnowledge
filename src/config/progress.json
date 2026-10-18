@@ -1,0 +1,34 @@
+{
+  "_readme": [
+    "Settings for the parent's progress page. Edit here; no code change needed.",
+    "targetPercent: the dashed target line on each bar, and the start of green.",
+    "amberFromPercent: amber runs from here up to targetPercent; below it is red.",
+    "minAnswers: a topic with fewer answers than this is drawn as a faded grey bar and left out of Focus next.",
+    "focusCount: how many topics the Focus next card suggests.",
+    "trendDays: the trend arrow compares the score now with the score this many days ago.",
+    "englishSkillFamilies: groups English question types. Topic names match the question bank's typeOfQuestion, ignoring case. A type not listed here appears under 'Other skills'."
+  ],
+  "targetPercent": 70,
+  "amberFromPercent": 40,
+  "minAnswers": 4,
+  "focusCount": 3,
+  "trendDays": 7,
+  "englishSkillFamilies": [
+    {
+      "name": "Finding information",
+      "topics": ["retrieval", "direct retrieval"]
+    },
+    {
+      "name": "Vocabulary",
+      "topics": ["basic vocabulary", "synonyms", "antonyms"]
+    },
+    {
+      "name": "Order of events",
+      "topics": ["sequencing", "simple sequencing"]
+    },
+    {
+      "name": "Deeper understanding",
+      "topics": ["viewpoint", "author's purpose", "motivation", "multi-step reasoning"]
+    }
+  ]
+}

@@ -53,8 +53,38 @@ model UserProfile {
   nvrAnswers      TestTrackerNvr[]
   loginSessions   UserLoginSession[]
   resetTokens     PasswordResetToken[]
+  /// Topics a parent has asked this child to work on (as the STUDENT).
+  focusTopics     StudentFocus[] @relation("FocusStudent")
+  /// Topics this PARENT has set for their children.
+  focusSet        StudentFocus[] @relation("FocusSetBy")
 
   @@map("userProfile")
+}
+
+/// A topic a parent picked from "Focus next" for their child to practise.
+/// Shown on the child's dashboard until the parent removes it; removing sets
+/// clearedAt rather than deleting the row, so there is a history of focuses.
+model StudentFocus {
+  id          BigInt       @id @default(autoincrement())
+  studentId   BigInt
+  student     UserProfile  @relation("FocusStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  setById     BigInt?
+  setBy       UserProfile? @relation("FocusSetBy", fields: [setById], references: [id], onDelete: SetNull)
+  /// "English" | "Maths" | "Verbal Reasoning" | "Non-Verbal"
+  subject     String
+  /// What the parent saw: the English question type, or the subtopic.
+  label       String
+  /// English: the question type. Others: the bank's topic.
+  topic       String?
+  /// The bank's subtopic; null for English.
+  subTopic    String?
+  /// Difficulty the round starts at - where the child last practised it.
+  level       String?
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+  clearedAt   DateTime?    @db.Timestamptz(3)
+
+  @@index([studentId, clearedAt])
+  @@map("studentFocus")
 }
 
 /// One row per login, closed on logout: an audit trail of who was on and when.
