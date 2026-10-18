@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     // findMany returns id order; restore the shuffled order so the round is
     // genuinely random rather than always ascending by id.
-    const byId = new Map(questions.map((q) => [q.id, q]));
+    const byId = new Map(questions.map((q) => [Number(q.id), q]));
     const ordered = ids
       .map((id) => byId.get(id))
       .filter((q): q is NonNullable<typeof q> => Boolean(q));

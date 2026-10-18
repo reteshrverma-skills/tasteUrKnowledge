@@ -37,7 +37,7 @@ export default async function CompTestReviewPage({
       passage={test.comp.compStory}
       retryHref={`/quiz/${test.gsEngCompId}`}
       questions={test.questions.map((row) => ({
-        id: row.id,
+        id: Number(row.id),
         quest: row.question.quest,
         options: presentOptions(row.question),
         chosen: row.chosenOption,

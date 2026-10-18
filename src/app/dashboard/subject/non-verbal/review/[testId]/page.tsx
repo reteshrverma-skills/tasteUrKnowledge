@@ -39,7 +39,7 @@ export default async function NvrTestReviewPage({
       figures
       flagSubject="nvr"
       questions={test.questions.map(({ question: q, ...row }) => ({
-        id: row.id,
+        id: Number(row.id),
         quest: q.quest,
         // Figures become live markup, so they are stripped here exactly as
         // the quiz API strips them.

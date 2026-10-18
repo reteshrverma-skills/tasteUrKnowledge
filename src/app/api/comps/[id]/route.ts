@@ -61,7 +61,7 @@ export async function GET(
 
     // Drawn only once the comprehension is known to be open to this student,
     // so a locked passage never costs a query.
-    const ids = await randomCompQuestionIds(comp.id);
+    const ids = await randomCompQuestionIds(Number(comp.id));
 
     const questions = await prisma.gsEnglishQuestion.findMany({
       where: { id: { in: ids } },

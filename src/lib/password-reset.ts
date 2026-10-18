@@ -73,7 +73,7 @@ export async function resolveResetToken(
   if (row.usedAt !== null) return null;
   if (row.expiresAt.getTime() <= Date.now()) return null;
 
-  return { id: row.id, userId: row.userId };
+  return { id: Number(row.id), userId: Number(row.userId) };
 }
 
 /** Marks a token spent. Called in the same transaction as the password change. */

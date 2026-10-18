@@ -130,7 +130,7 @@ export async function randomQuestionIds(
     select: { id: true },
   });
 
-  const ids = rows.map((row) => row.id);
+  const ids = rows.map((row) => Number(row.id));
 
   // Fisher-Yates: every ordering equally likely, unlike sort(() => 0.5 - rnd).
   for (let i = ids.length - 1; i > 0; i--) {
@@ -158,7 +158,7 @@ export async function randomQuestionIdsForTopic(
     select: { id: true },
   });
 
-  const ids = rows.map((row) => row.id);
+  const ids = rows.map((row) => Number(row.id));
   for (let i = ids.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [ids[i], ids[j]] = [ids[j], ids[i]];
@@ -230,7 +230,7 @@ export async function recentMathsAttempts(
 
     const correct = test.questions.filter((q) => q.isAnsRight).length;
     bucket.push({
-      testId: test.id,
+      testId: Number(test.id),
       percentage: Math.round((correct / test.questions.length) * 100),
     });
     byKey.set(key, bucket);

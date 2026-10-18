@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // findMany returns rows in whatever order it likes; the draw decided the
     // order, so restore it.
-    const byId = new Map(rows.map((row) => [row.id, row]));
+    const byId = new Map(rows.map((row) => [Number(row.id), row]));
     const questions = ids
       .map((id) => byId.get(id))
       .filter((row): row is NonNullable<typeof row> => row !== undefined)

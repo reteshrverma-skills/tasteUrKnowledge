@@ -150,7 +150,7 @@ export async function randomNvrQuestionIds(
     select: { id: true },
   });
 
-  return shuffled(rows.map((row) => row.id)).slice(0, take);
+  return shuffled(rows.map((row) => Number(row.id))).slice(0, take);
 }
 
 /** A random draw across every subtopic of one topic. */
@@ -167,7 +167,7 @@ export async function randomNvrQuestionIdsForTopic(
     select: { id: true },
   });
 
-  return shuffled(rows.map((row) => row.id)).slice(0, take);
+  return shuffled(rows.map((row) => Number(row.id))).slice(0, take);
 }
 
 /**
@@ -263,7 +263,7 @@ export async function recentNvrAttempts(
 
     const correct = test.questions.filter((q) => q.isAnsRight).length;
     bucket.push({
-      testId: test.id,
+      testId: Number(test.id),
       percentage: Math.round((correct / test.questions.length) * 100),
     });
     byKey.set(key, bucket);

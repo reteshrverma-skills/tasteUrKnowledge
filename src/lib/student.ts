@@ -24,7 +24,7 @@ export async function resolveStudentId(
     orderBy: { studentId: "asc" },
     select: { studentId: true },
   });
-  return child?.studentId ?? null;
+  return child ? Number(child.studentId) : null;
 }
 
 /**
@@ -237,19 +237,19 @@ export async function recentAttemptsByComp(
   });
 
   for (const test of tests) {
-    const bucket = byComp.get(test.gsEngCompId) ?? [];
+    const bucket = byComp.get(Number(test.gsEngCompId)) ?? [];
     // Already newest-first, so the first three seen are the ones we want.
     if (bucket.length < 3) {
       const total = test.questions.length;
       const correct = test.questions.filter((q) => q.isAnsRight).length;
       bucket.push({
-        testId: test.id,
+        testId: Number(test.id),
         percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
         // Rounds carried in by 012 hold the old submission time here; live
         // ones hold the start time. Both render as the same date on the chip.
         submittedAt: test.testStartTime,
       });
-      byComp.set(test.gsEngCompId, bucket);
+      byComp.set(Number(test.gsEngCompId), bucket);
     }
   }
 

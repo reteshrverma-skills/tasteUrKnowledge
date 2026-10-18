@@ -49,7 +49,7 @@ export async function listChildren(parentId: number): Promise<Child[]> {
   });
 
   return rows.map((row) => ({
-    studentId: row.studentId,
+    studentId: Number(row.studentId),
     name: displayName(row.student),
     profileName: row.student.profileName,
     yearName: row.year?.name ?? null,

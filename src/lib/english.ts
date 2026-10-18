@@ -81,7 +81,7 @@ export async function randomCompQuestionIds(
     select: { id: true },
   });
 
-  const ids = rows.map((row) => row.id);
+  const ids = rows.map((row) => Number(row.id));
 
   // Fisher-Yates: every ordering equally likely, unlike sort(() => 0.5 - rnd).
   for (let i = ids.length - 1; i > 0; i--) {

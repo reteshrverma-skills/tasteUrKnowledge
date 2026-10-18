@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     // A deactivated account is not a route back in, and an account with no
     // email has nowhere to send the link. Both fall through to the same reply.
     if (user && user.isActive && email) {
-      const token = await issueResetToken(user.id);
+      const token = await issueResetToken(Number(user.id));
 
       // Built from the request, so the link points at whichever host the
       // person is actually using rather than a hardcoded domain.

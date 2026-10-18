@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     });
 
     const token = signToken({
-      userId: user.id,
+      userId: Number(user.id),
       profileName: user.profileName,
       userType: user.userType,
     });

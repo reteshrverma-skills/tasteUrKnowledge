@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   // The query engine is a native binary, so the host it runs on must be built
   // for. "native" covers this Windows machine; the debian target covers Azure
   // App Service and every other Linux host.
@@ -22,28 +22,28 @@ enum UserType {
 
 /// User's login Id
 model UserProfile {
-  id               Int      @id @default(autoincrement())
+  id               BigInt    @id @default(autoincrement())
   fName            String?
   mName            String?
   lName            String?
   /// Login user id
-  profileName      String   @unique
+  profileName      String    @unique
   /// bcrypt hash of the login password
   profilePassword  String
-  userType         UserType @default(STUDENT)
+  userType         UserType  @default(STUDENT)
   /// Legacy one-to-one link, kept only so older data is not lost. The live
   /// link is UserStudentDetails.parentId, which lets one parent hold many
   /// children. Nothing reads this.
-  studentParentRef String?  @map("student_parent_ref")
-  isActive         Boolean  @default(true)
-  createDate       DateTime @default(now())
+  studentParentRef String?   @map("student_parent_ref")
+  isActive         Boolean   @default(true)
+  createDate       DateTime  @default(now())
   /// When a parent agreed to the Terms & Copyright notice at sign-up.
   termsAcceptedAt  DateTime? @db.Timestamptz(3)
 
   personalDetails UserPersonalDetails?
   studentDetails  UserStudentDetails?
   /// Children, when this profile is a PARENT.
-  children        UserStudentDetails[] @relation("ParentChildren")
+  children        UserStudentDetails[]     @relation("ParentChildren")
   paymentDetails  UserPaymentDetails[]
   attempts        Attempt[]
   mathsTests      TestTrackerMathMain[]
@@ -62,8 +62,8 @@ model UserProfile {
 /// logoutAt stays null for a session still open or abandoned (tab closed), as
 /// the app only ever sees an explicit logout.
 model UserLoginSession {
-  id        Int         @id @default(autoincrement())
-  userId    Int
+  id        BigInt      @id @default(autoincrement())
+  userId    BigInt
   user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
   loginAt   DateTime    @default(now()) @db.Timestamptz(3)
   logoutAt  DateTime?   @db.Timestamptz(3)
@@ -80,8 +80,8 @@ model UserLoginSession {
 /// sent - profilePassword is a bcrypt hash - so the person follows a link and
 /// chooses a new one instead.
 model PasswordResetToken {
-  id        Int         @id @default(autoincrement())
-  userId    Int
+  id        BigInt      @id @default(autoincrement())
+  userId    BigInt
   user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// SHA-256 hex of the token that went out in the link; never the token.
   tokenHash String      @unique
@@ -95,8 +95,8 @@ model PasswordResetToken {
 }
 
 model UserPersonalDetails {
-  id             Int         @id @default(autoincrement())
-  userDetailsId  Int         @unique @map("userDetails_Id")
+  id             BigInt      @id @default(autoincrement())
+  userDetailsId  BigInt      @unique @map("userDetails_Id")
   profile        UserProfile @relation(fields: [userDetailsId], references: [id], onDelete: Cascade)
   userAdd1       String?
   userAdd2       String?
@@ -113,17 +113,17 @@ model UserPersonalDetails {
 
 /// School details for a STUDENT profile, including which Year they are in.
 model UserStudentDetails {
-  id            Int         @id @default(autoincrement())
-  studentId     Int         @unique
-  student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id            BigInt       @id @default(autoincrement())
+  studentId     BigInt       @unique
+  student       UserProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   /// The PARENT account that manages this child.
   /// SetNull, not Cascade: a child's work must outlive the parent account that
   /// happened to create it.
-  parentId      Int?
+  parentId      BigInt?
   parent        UserProfile? @relation("ParentChildren", fields: [parentId], references: [id], onDelete: SetNull)
   /// Year.id - drives which comprehensions the student is shown
   studentYear   String?
-  year          Year?       @relation(fields: [studentYear], references: [id], onDelete: SetNull)
+  year          Year?        @relation(fields: [studentYear], references: [id], onDelete: SetNull)
   schoolAdd1    String?
   schoolAdd2    String?
   schoolAdd3    String?
@@ -146,8 +146,8 @@ model UserStudentDetails {
 }
 
 model UserPaymentDetails {
-  id            Int         @id @default(autoincrement())
-  userProfileId Int         @map("userProfile_Id")
+  id            BigInt      @id @default(autoincrement())
+  userProfileId BigInt      @map("userProfile_Id")
   profile       UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
   paymentId     String?
   paymentAmount Decimal?    @db.Decimal(10, 2)
@@ -158,12 +158,12 @@ model UserPaymentDetails {
 
 /// English comprehension: the story plus the year/subject it belongs to.
 model GsEnglishComp {
-  id              Int     @id @default(autoincrement())
-  compStory       String?
-  difficultyLevel String?
-  yearName        String?
-  subjectName     String?
-  label           String?
+  id                  BigInt    @id @default(autoincrement())
+  compStory           String?
+  difficultyLevel     String?
+  yearName            String?
+  subjectName         String?
+  label               String?
   /// Students see a comprehension only once an admin has approved it. Null
   /// counts as not approved, so a new or AI-drafted passage starts hidden.
   approvedByAdmin     Boolean?  @map("approvedbyadmin")
@@ -179,22 +179,22 @@ model GsEnglishComp {
 
 /// Questions hanging off a comprehension - selecting a comp shows all of these.
 model GsEnglishQuestion {
-  id              Int           @id @default(autoincrement())
-  topic           String?
-  quest           String?
-  optionA         String?
-  optionB         String?
-  optionC         String?
-  optionD         String?
-  optionE         String?
-  ansChoice       String?
-  gsEngCompId     Int
-  comp            GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
+  id             BigInt        @id @default(autoincrement())
+  topic          String?
+  quest          String?
+  optionA        String?
+  optionB        String?
+  optionC        String?
+  optionD        String?
+  optionE        String?
+  ansChoice      String?
+  gsEngCompId    BigInt
+  comp           GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
   /// The comprehension skill this question tests - "Retrieval", "sequencing",
   /// "basic vocabulary" and so on. Difficulty now lives only on the
   /// comprehension; a question is described by what it asks for, not how hard
   /// it is, and this is what the parent report groups by.
-  typeOfQuestion  String?       @db.VarChar(256)
+  typeOfQuestion String?       @db.VarChar(256)
 
   answers     Answer[]
   trackerRows TestTrackerEnglish[]
@@ -206,7 +206,7 @@ model GsEnglishQuestion {
 /// Standalone Maths MCQs, picked by subTopic + difficultyLevel.
 /// Unlike English these are not tied to a year or a comprehension.
 model GsMathsQuestion {
-  id              Int     @id @default(autoincrement())
+  id              BigInt  @id @default(autoincrement())
   topic           String?
   subTopic        String?
   quest           String?
@@ -220,7 +220,7 @@ model GsMathsQuestion {
   explanation     String?
   /// Present in the database and declared here so a schema sync can never
   /// drop it. Nothing reads it - Maths is not scoped by year.
-  yearName        String?  @db.VarChar(255)
+  yearName        String? @db.VarChar(255)
 
   trackerRows TestTrackerMath[]
 
@@ -236,10 +236,10 @@ model GsMathsQuestion {
 /// executable (see the nvr_no_markup check in migration 018) and the renderer
 /// strips what survives - a regex blacklist is a second line, never the only one.
 model GsNvrQuestion {
-  id              Int      @id @default(autoincrement())
+  id              BigInt  @id @default(autoincrement())
   /// Metadata only. Year stopped gating content; difficulty does that.
   yearName        String?
-  subjectName     String   @default("Non-Verbal Reasoning")
+  subjectName     String  @default("Non-Verbal Reasoning")
   topic           String
   subTopic        String
   /// "Mirror image", "Quarter turn", "Sequence"... Same column name as
@@ -277,8 +277,8 @@ model GsNvrQuestion {
 /// One row per Non-Verbal Reasoning round; its id identifies the test.
 /// Mirrors the Maths and English pairs so one union spans every subject.
 model TestTrackerNvrMain {
-  id            Int         @id @default(autoincrement())
-  studentId     Int
+  id            BigInt      @id @default(autoincrement())
+  studentId     BigInt
   student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
   testStartTime DateTime    @default(now()) @db.Timestamptz(3)
 
@@ -297,25 +297,25 @@ model TestTrackerNvrMain {
 
 /// One row per question answered within a Non-Verbal round.
 model TestTrackerNvr {
-  id         Int                @id @default(autoincrement())
-  testId     Int
+  id         BigInt             @id @default(autoincrement())
+  testId     BigInt
   test       TestTrackerNvrMain @relation(fields: [testId], references: [id], onDelete: Cascade)
-  questionId Int
+  questionId BigInt
   /// Restrict: deleting a question must not erase a child's history of it.
   question   GsNvrQuestion      @relation(fields: [questionId], references: [id], onDelete: Restrict)
-  studentId  Int
+  studentId  BigInt
   student    UserProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
   isAnsRight Boolean            @default(false)
   isSkipped  Boolean            @default(false)
 
-  timeSpentOnQuestion Decimal? @db.Decimal(7, 2)
-  chosenOption        String?  @db.VarChar(1)
-  correctOption       String?  @db.VarChar(1)
-  questionOrder       Int?     @db.SmallInt
+  timeSpentOnQuestion Decimal?  @db.Decimal(7, 2)
+  chosenOption        String?   @db.VarChar(1)
+  correctOption       String?   @db.VarChar(1)
+  questionOrder       Int?      @db.SmallInt
   /// Snapshot of the question type, which the parent report groups by.
   topic               String?
   /// Set from the answer sheet when the student finds the answer unclear.
-  flaggedUnclear      Boolean  @default(false)
+  flaggedUnclear      Boolean   @default(false)
   flaggedUnclearAt    DateTime? @db.Timestamptz(3)
 
   @@index([testId])
@@ -325,17 +325,17 @@ model TestTrackerNvr {
 
 /// One row per Maths practice round; its id identifies the test.
 model TestTrackerMathMain {
-  id            Int         @id @default(autoincrement())
-  studentId     Int
+  id            BigInt      @id @default(autoincrement())
+  studentId     BigInt
   student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
   testStartTime DateTime    @default(now()) @db.Timestamptz(3)
 
   /// What the round was, snapshotted so re-tagging a question later cannot
   /// move a past result into a different bucket.
-  topic           String?
+  topic            String?
   /// Null marks a topic-level test spanning several subtopics.
-  subTopic        String?
-  difficultyLevel String?
+  subTopic         String?
+  difficultyLevel  String?
   /// "submitted" | "timed_out" | "abandoned" - a low score that ran out of
   /// time is a different finding from one handed in early.
   completionReason String?
@@ -349,25 +349,25 @@ model TestTrackerMathMain {
 
 /// One row per question answered within a test.
 model TestTrackerMath {
-  id         Int                 @id @default(autoincrement())
-  questionId Int
+  id                  BigInt              @id @default(autoincrement())
+  questionId          BigInt
   /// Restrict: deleting a question must not erase a child's history of it.
-  question   GsMathsQuestion     @relation(fields: [questionId], references: [id], onDelete: Restrict)
-  studentId  Int
-  student    UserProfile         @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  isAnsRight Boolean             @default(false)
-  isSkipped  Boolean             @default(false)
-  testId     Int
-  test       TestTrackerMathMain @relation(fields: [testId], references: [id], onDelete: Cascade)
+  question            GsMathsQuestion     @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  studentId           BigInt
+  student             UserProfile         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  isAnsRight          Boolean             @default(false)
+  isSkipped           Boolean             @default(false)
+  testId              BigInt
+  test                TestTrackerMathMain @relation(fields: [testId], references: [id], onDelete: Cascade)
   /// Seconds, to 2dp, clamped server-side before it is stored.
-  timeSpentOnQuestion Decimal?   @db.Decimal(7, 2)
+  timeSpentOnQuestion Decimal?            @db.Decimal(7, 2)
 
   /// Which answer was given and which was right - the wrong answer a child
   /// reaches for repeatedly says more than the fact that they were wrong.
-  chosenOption  String? @db.VarChar(1)
-  correctOption String? @db.VarChar(1)
+  chosenOption     String?   @db.VarChar(1)
+  correctOption    String?   @db.VarChar(1)
   /// Position in the round as presented, for spotting a late fall-off.
-  questionOrder Int?    @db.SmallInt
+  questionOrder    Int?      @db.SmallInt
   /// Set from the answer sheet when the student finds the answer unclear.
   flaggedUnclear   Boolean   @default(false)
   flaggedUnclearAt DateTime? @db.Timestamptz(3)
@@ -383,14 +383,14 @@ model TestTrackerMath {
 /// named and typed identically in both, so one union across subjects answers
 /// "which subject is weakest" without per-subject special casing.
 model TestTrackerEnglishMain {
-  id            Int         @id @default(autoincrement())
-  studentId     Int
+  id            BigInt      @id @default(autoincrement())
+  studentId     BigInt
   student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
   testStartTime DateTime    @default(now()) @db.Timestamptz(3)
 
   /// Which comprehension was sat. Restrict: retiring one must not erase the
   /// history of it.
-  gsEngCompId Int
+  gsEngCompId BigInt
   comp        GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Restrict)
 
   /// Snapshots taken at submission, so re-tagging a comprehension later cannot
@@ -427,13 +427,13 @@ model TestTrackerEnglishMain {
 
 /// One row per question answered within an English test.
 model TestTrackerEnglish {
-  id         Int                    @id @default(autoincrement())
-  testId     Int
+  id         BigInt                 @id @default(autoincrement())
+  testId     BigInt
   test       TestTrackerEnglishMain @relation(fields: [testId], references: [id], onDelete: Cascade)
-  questionId Int
+  questionId BigInt
   /// Restrict: deleting a question must not erase a child's history of it.
   question   GsEnglishQuestion      @relation(fields: [questionId], references: [id], onDelete: Restrict)
-  studentId  Int
+  studentId  BigInt
   student    UserProfile            @relation(fields: [studentId], references: [id], onDelete: Cascade)
   isAnsRight Boolean                @default(false)
   isSkipped  Boolean                @default(false)
@@ -477,7 +477,7 @@ model Subject {
 model Day {
   id        String     @id @default(cuid())
   label     String
-  content   String?    // Story/content for the day
+  content   String? // Story/content for the day
   order     Int        @default(0)
   subjectId String
   subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
@@ -500,24 +500,24 @@ model Question {
 }
 
 model Attempt {
-  id          String   @id @default(cuid())
-  userId      Int
+  id          String        @id @default(cuid())
+  userId      BigInt
   user        UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gsEngCompId Int
+  gsEngCompId BigInt
   comp        GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
   score       Int
   totalCount  Int
-  submittedAt DateTime @default(now())
+  submittedAt DateTime      @default(now())
   answers     Answer[]
 
   @@index([gsEngCompId])
 }
 
 model Answer {
-  id           String   @id @default(cuid())
-  attemptId    String
-  attempt      Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  gsEngQuestionId Int
+  id              String            @id @default(cuid())
+  attemptId       String
+  attempt         Attempt           @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  gsEngQuestionId BigInt
   question        GsEnglishQuestion @relation(fields: [gsEngQuestionId], references: [id], onDelete: Cascade)
   chosenOption    String?
   isCorrect       Boolean
@@ -526,8 +526,8 @@ model Answer {
 }
 
 /// Verbal Reasoning MCQs, picked by topic/subTopic + difficultyLevel like Maths.
-/// Created by prisma/sql/021_verbal_reasoning.sql. Ids are BIGINT there, so
-/// they are BigInt here; convert with Number() before they reach JSON.
+/// Created by prisma/sql/021_verbal_reasoning.sql. Ids are BIGINT, as every
+/// id in this schema is since migration 026.
 model GsVrQuestion {
   id              BigInt  @id
   topic           String? @db.VarChar(255)

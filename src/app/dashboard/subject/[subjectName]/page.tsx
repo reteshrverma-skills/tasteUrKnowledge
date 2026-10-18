@@ -88,7 +88,7 @@ export default async function SubjectPage({
   const attemptsByComp = session
     ? await recentAttemptsByComp(
         session.userId,
-        comps.map((c) => c.id)
+        comps.map((c) => Number(c.id))
       )
     : new Map<number, RecentAttempt[]>();
 
@@ -202,7 +202,7 @@ export default async function SubjectPage({
 
                   <div className="space-y-2">
                     {levelComps.map((comp) => {
-                      const recent = attemptsByComp.get(comp.id) ?? [];
+                      const recent = attemptsByComp.get(Number(comp.id)) ?? [];
 
                       return (
                         // A div, not a Link: the score chips are links of

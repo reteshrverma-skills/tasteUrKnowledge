@@ -37,7 +37,7 @@ export async function listAccounts(role: UserType) {
     },
   });
   return rows.map((r) => ({
-    id: r.id,
+    id: Number(r.id),
     profileName: r.profileName,
     name: displayName(r),
     isActive: r.isActive,

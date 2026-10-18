@@ -45,13 +45,13 @@ export async function POST(request: NextRequest) {
 
     // Create token and set cookie
     const token = signToken({
-      userId: user.id,
+      userId: Number(user.id),
       profileName: user.profileName,
       userType: user.userType,
     });
 
     // Opens the audit row. Non-fatal: a tracking failure must not block login.
-    await recordLogin(user.id);
+    await recordLogin(Number(user.id));
 
     // Each account type has its own home: admins the admin panel, parents the
     // parent dashboard, students the subject tiles.

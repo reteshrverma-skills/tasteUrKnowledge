@@ -117,7 +117,7 @@ export async function POST(
     // which is what the dashboard divides by.
     let correctCount = 0;
     const gradedAnswers = questions.map((question, index) => {
-      const submitted = answers.find((a) => a.questionId === question.id);
+      const submitted = answers.find((a) => a.questionId === Number(question.id));
       const chosenOption = submitted?.chosenOption ?? null;
       const isCorrect = chosenOption === question.ansChoice;
       if (isCorrect) correctCount++;
@@ -173,7 +173,7 @@ export async function POST(
           },
         },
       });
-      testId = test.id;
+      testId = Number(test.id);
     } catch (trackingError) {
       console.error("Failed to record english test:", trackingError);
     }

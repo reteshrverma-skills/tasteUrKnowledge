@@ -38,7 +38,7 @@ export default async function MathsTestReviewPage({
       })}`}
       flagSubject="maths"
       questions={test.questions.map((row) => ({
-        id: row.id,
+        id: Number(row.id),
         quest: row.question.quest,
         options: presentOptions(row.question),
         chosen: row.chosenOption,

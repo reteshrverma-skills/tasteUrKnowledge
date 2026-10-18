@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     let correctCount = 0;
     const graded = answers
       .map((submitted, index) => {
-        const question = questions.find((q) => q.id === submitted.questionId);
+        const question = questions.find((q) => Number(q.id) === submitted.questionId);
         if (!question) return null;
 
         const isCorrect = submitted.chosenOption === question.ansChoice;
