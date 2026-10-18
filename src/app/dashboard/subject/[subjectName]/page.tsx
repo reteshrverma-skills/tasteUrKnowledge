@@ -60,20 +60,22 @@ export default async function SubjectPage({
 
   const session = await getSession();
 
-  // Difficulty levels this student may open, shared with Maths.
-  const access = await allowedLevels(session);
-
-  const allComps = await prisma.gsEnglishComp.findMany({
-    // Only passages an admin has approved are listed.
-    where: { ...compWhere(null, name), ...APPROVED_COMP },
-    select: {
-      id: true,
-      label: true,
-      difficultyLevel: true,
-      _count: { select: { questions: true } },
-    },
-    orderBy: [...COMP_NEWEST_FIRST],
-  });
+  // Difficulty levels this student may open (shared with Maths), and the
+  // subject's passages: independent, so fetched together.
+  const [access, allComps] = await Promise.all([
+    allowedLevels(session),
+    prisma.gsEnglishComp.findMany({
+      // Only passages an admin has approved are listed.
+      where: { ...compWhere(null, name), ...APPROVED_COMP },
+      select: {
+        id: true,
+        label: true,
+        difficultyLevel: true,
+        _count: { select: { questions: true } },
+      },
+      orderBy: [...COMP_NEWEST_FIRST],
+    }),
+  ]);
 
   // Only comprehensions on the ladder, and only at levels the student has
   // been granted.

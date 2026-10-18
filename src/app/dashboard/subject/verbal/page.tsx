@@ -35,11 +35,18 @@ export default async function VerbalPage({
 
   const session = await getSession();
 
+  // The student's recent scores need nothing else, so they load alongside
+  // the rest rather than after it.
+  const attemptsPromise = session
+    ? recentVrAttempts(session.userId)
+    : Promise.resolve(new Map<string, TestScore[]>());
+
   // Only levels that have questions AND that this student is allowed to open.
-  const access = await allowedLevels(session);
-  const levels = (await availableVrLevels()).filter((level) =>
-    canAccessLevel(access, level)
-  );
+  const [access, bankLevels] = await Promise.all([
+    allowedLevels(session),
+    availableVrLevels(),
+  ]);
+  const levels = bankLevels.filter((level) => canAccessLevel(access, level));
 
   // Fall back to the easiest unlocked rung when the query string is missing,
   // bogus, or names a level this student may not open.
@@ -47,11 +54,10 @@ export default async function VerbalPage({
     levels.find((l) => l.toLowerCase() === requestedLevel?.toLowerCase()) ??
     levels[0];
 
-  const topics = activeLevel ? await vrTopicsForLevel(activeLevel) : [];
-
-  const attempts = session
-    ? await recentVrAttempts(session.userId)
-    : new Map<string, TestScore[]>();
+  const [topics, attempts] = await Promise.all([
+    activeLevel ? vrTopicsForLevel(activeLevel) : [],
+    attemptsPromise,
+  ]);
 
   return (
     <div className="min-h-screen bg-ground">

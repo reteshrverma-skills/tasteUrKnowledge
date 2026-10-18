@@ -49,50 +49,50 @@ export default async function DashboardPage() {
   const session = await getSession();
   const isAdmin = session?.userType === "ADMIN";
 
-  const profile = session
-    ? await prisma.userProfile.findUnique({
-        where: { id: session.userId },
-        select: {
-          fName: true,
-          mName: true,
-          lName: true,
-          profileName: true,
-          userType: true,
-        },
-      })
-    : null;
+  // Six independent reads, so they go to the database together rather than
+  // one after another.
+  const [profile, subjectRows, compCounts, mathsCount, nvrCount, vrCount] =
+    await Promise.all([
+      session
+        ? prisma.userProfile.findUnique({
+            where: { id: session.userId },
+            select: {
+              fName: true,
+              mName: true,
+              lName: true,
+              profileName: true,
+              userType: true,
+            },
+          })
+        : null,
+      // Subjects come from the Subject table, but the four canonical ones are
+      // always shown so a student never lands on an empty page.
+      prisma.subject.findMany({
+        select: { name: true },
+        distinct: ["name"],
+        orderBy: { order: "asc" },
+      }),
+      // Comprehensions are no longer filed by year - difficulty level alone
+      // decides what a student may open - so every comprehension counts here.
+      prisma.gsEnglishComp.groupBy({
+        by: ["subjectName"],
+        // Counts only what a student can open.
+        where: APPROVED_COMP,
+        _count: { _all: true },
+      }),
+      // Maths, Non-Verbal and Verbal each live in their own table, counted as
+      // questions rather than comprehensions. A subject missing from here
+      // reads as "Coming soon" however much content it actually has.
+      prisma.gsMathsQuestion.count(),
+      prisma.gsNvrQuestion.count(),
+      prisma.gsVrQuestion.count(),
+    ]);
 
   const studentName = profile ? displayName(profile) : "Student";
-
-  // Subjects come from the Subject table, but the four canonical ones are
-  // always shown so a student never lands on an empty page.
-  const subjectRows = await prisma.subject.findMany({
-    select: { name: true },
-    distinct: ["name"],
-    orderBy: { order: "asc" },
-  });
 
   const subjectNames = Array.from(
     new Set([...SUBJECT_ORDER, ...subjectRows.map((s) => s.name)])
   );
-
-  // Comprehensions are no longer filed by year - difficulty level alone
-  // decides what a student may open - so every comprehension counts here.
-  const compCounts = await prisma.gsEnglishComp.groupBy({
-    by: ["subjectName"],
-    // Counts only what a student can open.
-    where: APPROVED_COMP,
-    _count: { _all: true },
-  });
-
-  // Maths and Non-Verbal each live in their own table, counted as questions
-  // rather than comprehensions. A subject missing from here reads as "Coming
-  // soon" however much content it actually has, which is what hid Non-Verbal.
-  const [mathsCount, nvrCount, vrCount] = await Promise.all([
-    prisma.gsMathsQuestion.count(),
-    prisma.gsNvrQuestion.count(),
-    prisma.gsVrQuestion.count(),
-  ]);
 
   const countFor = (name: string) => {
     if (name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase()) {

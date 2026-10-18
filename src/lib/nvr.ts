@@ -1,4 +1,6 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { BANK_CACHE } from "@/lib/bank-cache";
 import { sortDifficulties } from "@/lib/student";
 
 import type { TestScore } from "@/lib/student";
@@ -55,43 +57,49 @@ export interface NvrTopicGroup {
 }
 
 /** Every difficulty that actually has questions behind it. */
-export async function availableNvrLevels(): Promise<string[]> {
-  const rows = await prisma.gsNvrQuestion.groupBy({
-    by: ["difficultyLevel"],
-    _count: { _all: true },
-  });
+export const availableNvrLevels = unstable_cache(
+  async (): Promise<string[]> => {
+    const rows = await prisma.gsNvrQuestion.groupBy({
+      by: ["difficultyLevel"],
+      _count: { _all: true },
+    });
 
-  return sortDifficulties(rows.map((row) => row.difficultyLevel));
-}
+    return sortDifficulties(rows.map((row) => row.difficultyLevel));
+  },
+  ["nvr-levels"],
+  BANK_CACHE
+);
 
 /**
  * Subtopics at one difficulty, grouped under their topic so the picker can
  * show one collapsible frame per topic - the same shape as Maths.
  */
-export async function nvrTopicsForLevel(
-  level: string
-): Promise<NvrTopicGroup[]> {
-  const rows = await prisma.gsNvrQuestion.groupBy({
-    by: ["topic", "subTopic"],
-    where: { difficultyLevel: { equals: level, mode: "insensitive" } },
-    _count: { _all: true },
-  });
+export const nvrTopicsForLevel = unstable_cache(
+  async (level: string): Promise<NvrTopicGroup[]> => {
+    const rows = await prisma.gsNvrQuestion.groupBy({
+      by: ["topic", "subTopic"],
+      where: { difficultyLevel: { equals: level, mode: "insensitive" } },
+      _count: { _all: true },
+    });
 
-  const byTopic = new Map<string, NvrSubTopicCount[]>();
-  for (const row of rows) {
-    const bucket = byTopic.get(row.topic) ?? [];
-    bucket.push({ subTopic: row.subTopic, count: row._count._all });
-    byTopic.set(row.topic, bucket);
-  }
+    const byTopic = new Map<string, NvrSubTopicCount[]>();
+    for (const row of rows) {
+      const bucket = byTopic.get(row.topic) ?? [];
+      bucket.push({ subTopic: row.subTopic, count: row._count._all });
+      byTopic.set(row.topic, bucket);
+    }
 
-  return Array.from(byTopic.entries())
-    .map(([topic, subTopics]) => ({
-      topic,
-      subTopics: subTopics.sort((a, b) => a.subTopic.localeCompare(b.subTopic)),
-      count: subTopics.reduce((total, s) => total + s.count, 0),
-    }))
-    .sort((a, b) => a.topic.localeCompare(b.topic));
-}
+    return Array.from(byTopic.entries())
+      .map(([topic, subTopics]) => ({
+        topic,
+        subTopics: subTopics.sort((a, b) => a.subTopic.localeCompare(b.subTopic)),
+        count: subTopics.reduce((total, s) => total + s.count, 0),
+      }))
+      .sort((a, b) => a.topic.localeCompare(b.topic));
+  },
+  ["nvr-topics"],
+  BANK_CACHE
+);
 
 /**
  * Every question in one topic at one difficulty, answer key included - for the
