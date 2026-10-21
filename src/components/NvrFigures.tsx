@@ -104,7 +104,24 @@ export function StemFigure({ markup }: { markup: string }) {
 }
 
 /** One option drawing: a square tile with the figure at the stem's scale. */
+/** An option that is a figure rather than plain text such as a letter code. */
+const isSvgMarkup = (value: string) => /^\s*<svg[\s>]/i.test(value);
+
 export function OptionFigure({ markup }: { markup: string }) {
+  // Letter-code and word options ("FM", "27") are text, not figures. Rendered
+  // as a text node rather than markup, so nothing in them is ever parsed as
+  // HTML.
+  if (!isSvgMarkup(markup)) {
+    return (
+      <span
+        data-nvr-option
+        className="flex w-full aspect-square items-center justify-center text-center font-display text-2xl font-bold tracking-wide break-words"
+      >
+        {markup}
+      </span>
+    );
+  }
+
   return (
     <span
       data-nvr-option

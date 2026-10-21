@@ -274,7 +274,8 @@ model GsNvrQuestion {
   difficultyLevel String
   quest           String
 
-  /// "svg" | "url" | "none" - both formats are constrained in the database.
+  /// stemFormat: "svg" | "url" | "none". optionFormat: the same plus "text"
+  /// (migration 030) - both are constrained in the database.
   stemFormat   String  @default("svg")
   stemFigure   String?
   optionFormat String  @default("svg")
@@ -287,6 +288,13 @@ model GsNvrQuestion {
   ansChoice    String  @db.Char(1)
   /// The "why", for a parent going through a wrong answer.
   ansExplain   String?
+  /// Why each wrong option is wrong, shown when that option was chosen -
+  /// the same columns as gsVRQuestions (migration 029).
+  whyWrongA    String?
+  whyWrongB    String?
+  whyWrongC    String?
+  whyWrongD    String?
+  whyWrongE    String?
 
   /// Where the figure came from; keeps the bank clear of third-party material.
   assetOrigin String   @default("original-generated")

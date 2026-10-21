@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { nvrTestReview, sanitiseFigure } from "@/lib/nvr";
+import { whyWrong } from "@/lib/vr";
 import { TestReview, presentOptions } from "../../../TestReview";
 
 /** Review of one past Non-Verbal round, opened from a score chip on the picker. */
@@ -55,6 +56,7 @@ export default async function NvrTestReviewPage({
         right: row.correctOption ?? q.ansChoice,
         isRight: row.isAnsRight,
         explanation: q.ansExplain,
+        whyWrong: row.isAnsRight ? null : whyWrong(q, row.chosenOption),
         flagged: row.flaggedUnclear,
       }))}
     />
