@@ -1,6 +1,7 @@
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import sessionConfig from "@/config/session.json";
 
 /**
  * The key every session token is signed with.
@@ -23,7 +24,15 @@ if (!secretFromEnv) {
 // check above cannot narrow a module constant inside a function body.
 const JWT_SECRET: string = secretFromEnv;
 
-const JWT_EXPIRY = "7d";
+/**
+ * How long a session lasts without activity (src/config/session.json). The
+ * token expires on its own after this long; while the user is active the
+ * browser renews it through /api/auth/keepalive, so an idle session ends on
+ * the server even if the page is left open.
+ */
+export const SESSION_MAX_AGE_SECONDS = sessionConfig.idleTimeoutMinutes * 60;
+
+const JWT_EXPIRY = SESSION_MAX_AGE_SECONDS;
 const COOKIE_NAME = "token";
 
 export type UserType = "STUDENT" | "PARENT" | "ADMIN";
@@ -86,7 +95,7 @@ export async function setAuthCookie(token: string): Promise<void> {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: SESSION_MAX_AGE_SECONDS,
   });
 }
 

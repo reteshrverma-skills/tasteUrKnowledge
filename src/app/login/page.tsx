@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,6 +11,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // Sent here by the inactivity sign-out. The server snapshot is false, so the
+  // server and browser agree on the first paint and the notice appears after.
+  const idleNotice = useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(window.location.search).get("reason") === "idle",
+    () => false
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,6 +156,16 @@ export default function LoginPage() {
                 placeholder="Password"
               />
             </div>
+
+            {idleNotice && !error && (
+              <p
+                role="status"
+                className="bg-warm-tint border border-warm/25 text-warm text-sm px-3.5 py-2.5 rounded-lg"
+              >
+                You were signed out because there was no activity for a while.
+                Please sign in again.
+              </p>
+            )}
 
             {error && (
               <p

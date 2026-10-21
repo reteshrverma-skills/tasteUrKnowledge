@@ -1,0 +1,11 @@
+{
+  "_readme": [
+    "Automatic sign-out for inactivity. Edit here; no code change needed.",
+    "idleTimeoutMinutes: signed out after this long with no activity (clicks, keys, touch, scrolling).",
+    "warningSeconds: a 'Stay signed in?' box appears this long before sign-out.",
+    "keepaliveEveryMinutes: while the user is active, the session is renewed at most this often. Keep it well under idleTimeoutMinutes."
+  ],
+  "idleTimeoutMinutes": 150,
+  "warningSeconds": 60,
+  "keepaliveEveryMinutes": 5
+}
