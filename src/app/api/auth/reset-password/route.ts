@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
 import { passwordProblem } from "@/lib/parent";
 import { resolveResetToken, spendTokenOp } from "@/lib/password-reset";
+import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
+import security from "@/config/security.json";
 
 const BAD_TOKEN = {
   error:
@@ -33,6 +35,14 @@ export async function GET(request: NextRequest) {
  * transaction, so a link can never be used twice even on a double submit.
  */
 export async function POST(request: NextRequest) {
+  // Stops a bot flooding this form from one network address.
+  const wait = hit(
+    `reset:ip:${clientIp(request)}`,
+    security.resetPassword.maxPerIp,
+    security.resetPassword.windowMinutes
+  );
+  if (wait > 0) return tooManyRequests(wait);
+
   try {
     const body = await request.json();
     const { token, password, confirmPassword } = body as {

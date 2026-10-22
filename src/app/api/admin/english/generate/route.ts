@@ -10,10 +10,14 @@ import {
   generateComprehension,
 } from "@/lib/comp-generator";
 
+/** How many existing passages an admin may show Claude as references. */
+const MAX_REFERENCES = 3;
+
 /**
- * Drafts an English comprehension with Claude for the admin to review. It
- * saves nothing: the admin edits the draft and saves it through the normal
- * create form.
+ * Drafts an English comprehension with Claude for the admin to review, from
+ * the admin's prompt, a difficulty level, chosen reference passages and
+ * copyright guidance. It saves nothing: the draft is shown on the admin page,
+ * and saving it goes through POST /api/admin/english as an unapproved passage.
  *
  * Writing a long passage and up to 50 questions takes minutes, and Azure App
  * Service drops a request that sends nothing back for about four. So the
@@ -69,8 +73,59 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Choose a year" }, { status: 400 });
     }
 
-    const theme =
-      typeof body.theme === "string" ? body.theme.trim().slice(0, 200) : null;
+    const text = (value: unknown, max: number) =>
+      typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+
+    // The admin's prompt. `theme` is the older single-line field.
+    const instructions = text(body.instructions, 2000) ?? text(body.theme, 200);
+    const copyrightGuidance = text(body.copyrightGuidance, 2000);
+
+    // Existing passages picked as references: read here, by id, so the
+    // browser never decides what text Claude is shown.
+    const referenceIds: number[] = Array.isArray(body.referenceIds)
+      ? body.referenceIds
+          .map(Number)
+          .filter((id: number) => Number.isSafeInteger(id) && id > 0)
+          .slice(0, MAX_REFERENCES)
+      : [];
+
+    const [referenceRows, sameLevel] = await Promise.all([
+      referenceIds.length
+        ? prisma.gsEnglishComp.findMany({
+            where: { id: { in: referenceIds } },
+            select: {
+              label: true,
+              difficultyLevel: true,
+              compStory: true,
+              questions: { select: { typeOfQuestion: true } },
+            },
+          })
+        : Promise.resolve([]),
+      // Every title at this level, approved or not, so the draft is distinct.
+      prisma.gsEnglishComp.findMany({
+        where: { difficultyLevel: { equals: level, mode: "insensitive" } },
+        select: { label: true },
+        take: 300,
+      }),
+    ]);
+
+    const references = referenceRows
+      .filter((r) => r.compStory?.trim())
+      .map((r) => ({
+        title: r.label?.trim() || "Untitled",
+        level: r.difficultyLevel,
+        story: r.compStory!,
+        questionTypes: Array.from(
+          new Set(
+            r.questions
+              .map((q) => q.typeOfQuestion?.trim().toLowerCase())
+              .filter((t): t is string => Boolean(t))
+          )
+        ),
+      }));
+    const avoidTitles = sameLevel
+      .map((r) => r.label?.trim())
+      .filter((t): t is string => Boolean(t));
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
@@ -81,12 +136,24 @@ export async function POST(request: NextRequest) {
         );
         let payload: unknown;
         try {
-          payload = await generateComprehension({
+          const draft = await generateComprehension({
             level,
             yearName: year.name,
             count,
-            theme,
+            instructions,
+            references,
+            copyrightGuidance,
+            avoidTitles,
           });
+          payload = {
+            ...draft,
+            // What the draft was steered by, shown beside it on the admin page.
+            basis: {
+              level,
+              yearName: year.name,
+              references: references.map((r) => r.title),
+            },
+          };
         } catch (error) {
           console.error("Generate comprehension error:", error);
           payload = {

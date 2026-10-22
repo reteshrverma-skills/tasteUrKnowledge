@@ -550,6 +550,18 @@ export default function EnglishAdminPage() {
           </div>
         )}
 
+        <div className="card p-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="font-display font-semibold text-ink">Draft a new passage with Claude</p>
+            <p className="text-sm text-ink-soft">
+              Your prompt, a level, reference passages and copyright guidance. Drafts are saved unapproved.
+            </p>
+          </div>
+          <Link href="/admin/english/generate" className="btn-primary px-5 py-2.5 text-sm whitespace-nowrap">
+            Generate with Claude
+          </Link>
+        </div>
+
         {/* Same difficulty selector as the student English page */}
         <div>
           <h2 className="eyebrow mb-2.5">Difficulty level</h2>

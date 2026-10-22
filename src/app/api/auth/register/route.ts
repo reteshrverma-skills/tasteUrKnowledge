@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, signToken, SESSION_MAX_AGE_SECONDS } from "@/lib/auth";
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
+import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
+import security from "@/config/security.json";
 
 /**
  * Signing up creates a PARENT account, and only a PARENT account.
@@ -13,6 +15,14 @@ import { normaliseProfileName, passwordProblem } from "@/lib/parent";
  * panel.
  */
 export async function POST(request: NextRequest) {
+  // Stops a bot flooding this form from one network address.
+  const wait = hit(
+    `register:ip:${clientIp(request)}`,
+    security.register.maxPerIp,
+    security.register.windowMinutes
+  );
+  if (wait > 0) return tooManyRequests(wait);
+
   try {
     const body = await request.json();
     const {

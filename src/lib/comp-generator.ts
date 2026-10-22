@@ -180,16 +180,46 @@ export class GenerationError extends Error {}
 
 let client: Anthropic | null = null;
 
+/**
+ * The copyright guidance the admin form starts with. The admin can edit it
+ * per request; the system prompt's own originality rule always applies too.
+ */
+export const DEFAULT_COPYRIGHT_GUIDANCE = `- Write a wholly original passage. Do not reproduce, closely paraphrase or continue any published book, story, poem, song, film, game or article.
+- Do not use characters, settings, names, catchphrases or plots belonging to existing works or franchises, or real brands and trademarks.
+- Do not imitate the distinctive style of a named living author.
+- If the request mentions a known book or character, take only the general theme (for example "a lost pet" or "a storm at sea") and invent everything else.
+- Real places, historical events and scientific facts may be described in your own words, without quoting any source.`;
+
+/** An existing comprehension the admin chose to show Claude for level and style. */
+export interface ReferenceComprehension {
+  title: string;
+  level: string | null;
+  story: string;
+  questionTypes: string[];
+}
+
+/** Long reference passages are cut here; level and style show early on. */
+const REFERENCE_STORY_CHARS = 4000;
+
 export async function generateComprehension({
   level,
   yearName,
   count,
-  theme,
+  instructions,
+  references = [],
+  copyrightGuidance,
+  avoidTitles = [],
 }: {
   level: DifficultyLevel;
   yearName: string;
   count: number;
-  theme?: string | null;
+  /** The admin's own prompt: theme, setting, anything else to steer the draft. */
+  instructions?: string | null;
+  /** A few existing passages, for level and style - never to copy. */
+  references?: ReferenceComprehension[];
+  copyrightGuidance?: string | null;
+  /** Titles already in the bank at this level, so the new one is distinct. */
+  avoidTitles?: string[];
 }): Promise<GeneratedComprehension> {
   const spec = LEVEL_SPEC[level];
   client ??= new Anthropic();
@@ -198,13 +228,38 @@ export async function generateComprehension({
 
 The passage is original fiction or narrative non-fiction, safe and suitable for children, with British spelling. It must be rich enough to support every question you write: each question must be answerable from the passage alone, have exactly one defensible correct answer, and use plausible wrong options that a careless reader might choose. Spread questions across the whole passage, vary which letter is correct, and do not repeat a question in different words.
 
-Write option E only where a fifth option genuinely helps; otherwise leave it as an empty string. Never make E the answer when it is empty.`;
+Write option E only where a fifth option genuinely helps; otherwise leave it as an empty string. Never make E the answer when it is empty.
+
+Everything you write must be original. Passages shown to you as references are existing material from this question bank: use them only to judge reading level, length and question style. Never copy, paraphrase or continue them, and never reuse their titles, characters, plots or settings.`;
+
+  const guidance = copyrightGuidance?.trim() || DEFAULT_COPYRIGHT_GUIDANCE;
+
+  const referenceBlock = references.length
+    ? "\n\nReference passages already in the bank (for level and style only - write something entirely different):\n" +
+      references
+        .map(
+          (r, i) =>
+            `<reference index="${i + 1}" title="${r.title}" level="${r.level ?? "unknown"}" question_types="${r.questionTypes.join(", ")}">\n${r.story.slice(0, REFERENCE_STORY_CHARS)}\n</reference>`
+        )
+        .join("\n")
+    : "";
+
+  const avoidBlock = avoidTitles.length
+    ? `\n\nTitles already used at this level - choose a different title and subject from all of them: ${avoidTitles.join("; ")}`
+    : "";
+
+  const request = instructions?.trim()
+    ? `\nThe admin's request (follow it where it fits the rules above):\n<admin_request>\n${instructions.trim()}\n</admin_request>\n`
+    : "";
 
   const prompt = `Write one comprehension for ${yearName}, difficulty level "${level}" - ${spec.reader}.
 
 - Passage length: ${spec.words} words, with a short title.
-${theme?.trim() ? `- Theme or subject: ${theme.trim()}\n` : ""}- Exactly ${count} multiple-choice questions.
-- Tag each question with one of these question types, using every type at least once and balancing them: ${spec.types.join(", ")}.`;
+- Exactly ${count} multiple-choice questions.
+- Tag each question with one of these question types, using every type at least once and balancing them: ${spec.types.join(", ")}.
+${request}
+Copyright guidance:
+${guidance}${referenceBlock}${avoidBlock}`;
 
   const stream = client.beta.messages.stream({
     model: MODEL,

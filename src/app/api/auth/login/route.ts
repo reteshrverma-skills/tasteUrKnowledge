@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, signToken, SESSION_MAX_AGE_SECONDS } from "@/lib/auth";
 import { recordLogin } from "@/lib/login-session";
+import {
+  blockedFor,
+  clear,
+  clientIp,
+  record,
+  tooManyRequests,
+} from "@/lib/rate-limit";
+import security from "@/config/security.json";
+
+const LIMITS = security.login;
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,12 +25,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Password guessing: one login ID is locked after too many wrong
+    // passwords, and one network address after too many attempts of any kind.
+    // Checked before the database or bcrypt, so a flood costs almost nothing.
+    const ipKey = `login:ip:${clientIp(request)}`;
+    const accountKey = `login:account:${String(profileName).trim().toLowerCase()}`;
+    const wait = Math.max(
+      blockedFor(accountKey, LIMITS.maxFailuresPerAccount),
+      blockedFor(ipKey, LIMITS.maxAttemptsPerIp)
+    );
+    if (wait > 0) return tooManyRequests(wait);
+    record(ipKey, LIMITS.windowMinutes);
+
     // Find user by their login user id
     const user = await prisma.userProfile.findUnique({
       where: { profileName },
     });
 
     if (!user) {
+      // Counted like a wrong password, so the limit gives away nothing about
+      // which login IDs exist.
+      record(accountKey, LIMITS.lockoutMinutes);
       return NextResponse.json(
         { error: "Invalid user ID or password" },
         { status: 401 }
@@ -37,11 +62,14 @@ export async function POST(request: NextRequest) {
     // Verify password
     const passwordValid = await verifyPassword(password, user.profilePassword);
     if (!passwordValid) {
+      record(accountKey, LIMITS.lockoutMinutes);
       return NextResponse.json(
         { error: "Invalid user ID or password" },
         { status: 401 }
       );
     }
+
+    clear(accountKey);
 
     // Create token and set cookie
     const token = signToken({

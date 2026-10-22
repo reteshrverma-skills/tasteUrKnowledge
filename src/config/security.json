@@ -1,0 +1,18 @@
+{
+  "_readme": [
+    "Limits that stop bots guessing passwords or flooding the sign-up and reset forms. Edit here; no code change needed.",
+    "login.maxFailuresPerAccount: wrong passwords for one login ID before it is locked for lockoutMinutes.",
+    "login.maxAttemptsPerIp: login attempts of any kind from one network address per windowMinutes.",
+    "register / forgotPassword / resetPassword: requests from one network address per windowMinutes.",
+    "Counters live in the server's memory, so a restart clears them."
+  ],
+  "login": {
+    "maxFailuresPerAccount": 8,
+    "lockoutMinutes": 15,
+    "maxAttemptsPerIp": 30,
+    "windowMinutes": 15
+  },
+  "register": { "maxPerIp": 5, "windowMinutes": 60 },
+  "forgotPassword": { "maxPerIp": 5, "windowMinutes": 15 },
+  "resetPassword": { "maxPerIp": 10, "windowMinutes": 15 }
+}

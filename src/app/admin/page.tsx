@@ -61,6 +61,14 @@ export default async function AdminPage() {
               wide: true,
             },
             {
+              href: "/admin/english/generate",
+              title: "Generate English with Claude",
+              blurb:
+                "Draft a new comprehension from your prompt, a level and reference passages; review it before saving",
+              bar: "bg-explorer",
+              wide: true,
+            },
+            {
               href: "/admin/nvr",
               title: "Non-Verbal Reasoning",
               blurb:

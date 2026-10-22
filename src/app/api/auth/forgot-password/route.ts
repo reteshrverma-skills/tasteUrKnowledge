@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { displayName } from "@/lib/english";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { RESET_VALID_MINUTES, issueResetToken } from "@/lib/password-reset";
+import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
+import security from "@/config/security.json";
 
 /**
  * Always the same answer, whatever happened.
@@ -19,6 +21,14 @@ const SAME_ANSWER = {
 
 /** Accepts either the login id or the registered email, since people forget which. */
 export async function POST(request: NextRequest) {
+  // Stops a bot flooding this form from one network address.
+  const wait = hit(
+    `forgot:ip:${clientIp(request)}`,
+    security.forgotPassword.maxPerIp,
+    security.forgotPassword.windowMinutes
+  );
+  if (wait > 0) return tooManyRequests(wait);
+
   try {
     const body = await request.json();
     const identifier =
