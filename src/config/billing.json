@@ -1,0 +1,8 @@
+{
+  "_readme": [
+    "Parent dashboard billing controls. Edit here; no code change needed.",
+    "showSubscribeButton: false hides the 'Not subscribed' chip and the Subscribe button on each child's card. The checkout code stays in place; set to true to bring it back.",
+    "A child who is already paid still shows 'Paid to <date>' and Manage billing, so the parent can update their card or cancel."
+  ],
+  "showSubscribeButton": false
+}

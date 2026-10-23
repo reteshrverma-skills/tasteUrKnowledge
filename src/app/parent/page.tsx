@@ -9,6 +9,7 @@ import { recordSubscription, stripe, subscriptionFor } from "@/lib/billing";
 import { ParentNav } from "./ParentNav";
 import { ChildProgress } from "./ChildProgress";
 import { HowItWorks } from "./HowItWorks";
+import billingConfig from "@/config/billing.json";
 
 /**
  * Where a parent lands after logging in.
@@ -184,7 +185,9 @@ export default async function ParentDashboardPage({
                           Manage billing
                         </button>
                       </form>
-                    ) : (
+                    ) : !billingConfig.showSubscribeButton ? null : (
+                      // Hidden while src/config/billing.json has
+                      // showSubscribeButton: false; the checkout route stays.
                       <form
                         action="/api/parent/billing/checkout"
                         method="post"
