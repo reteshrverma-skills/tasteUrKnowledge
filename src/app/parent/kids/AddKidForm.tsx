@@ -19,15 +19,32 @@ const EMPTY = {
   password: "",
   confirmPassword: "",
   studentYear: "",
+  countryCode: "",
 };
+
+export interface CountryOption {
+  code: string;
+  name: string;
+  dialCode: string | null;
+}
 
 /**
  * Creating a child gives them their own login: the child signs in as
  * themselves to practise, and the parent manages the account from here.
  */
-export function AddKidForm({ years }: { years: YearOption[] }) {
+export function AddKidForm({
+  years,
+  countries,
+  defaultCountry,
+}: {
+  years: YearOption[];
+  countries: CountryOption[];
+  /** The parent's own country, pre-selected. */
+  defaultCountry: string;
+}) {
   const router = useRouter();
-  const [form, setForm] = useState(EMPTY);
+  const blank = { ...EMPTY, countryCode: defaultCountry };
+  const [form, setForm] = useState(blank);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -56,7 +73,7 @@ export function AddKidForm({ years }: { years: YearOption[] }) {
         return;
       }
 
-      setForm(EMPTY);
+      setForm(blank);
       router.refresh();
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -135,6 +152,26 @@ export function AddKidForm({ years }: { years: YearOption[] }) {
             Decides which work your child is shown.
           </p>
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Country
+        </label>
+        <select
+          name="countryCode"
+          value={form.countryCode}
+          onChange={handleChange}
+          required
+          className={inputClass}
+        >
+          {countries.map((country) => (
+            <option key={country.code} value={country.code}>
+              {country.name}
+              {country.dialCode ? ` (${country.dialCode})` : ""}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

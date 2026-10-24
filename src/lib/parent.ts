@@ -97,6 +97,7 @@ export async function parentProfile(parentId: number) {
       mName: true,
       lName: true,
       profileName: true,
+      countryCode: true,
       personalDetails: {
         select: {
           userAdd1: true,

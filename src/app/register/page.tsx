@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -15,12 +15,33 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     emailAddress: "",
+    // The United Kingdom, pre-selected; it is also first in the list.
+    countryCode: "GB",
   });
+  const [countries, setCountries] = useState<
+    { code: string; name: string; dialCode: string | null }[]
+  >([]);
+
+  // The list comes from the country table, so it can change without a deploy.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/countries")
+      .then((response) => (response.ok ? response.json() : []))
+      .then((list) => {
+        if (active && Array.isArray(list)) setCountries(list);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -141,6 +162,30 @@ export default function RegisterPage() {
               className={inputClass}
               placeholder="your@email.com"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Country
+            </label>
+            <select
+              name="countryCode"
+              value={formData.countryCode}
+              onChange={handleChange}
+              required
+              className={inputClass}
+            >
+              {countries.length === 0 ? (
+                <option value="GB">United Kingdom (+44)</option>
+              ) : (
+                countries.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.name}
+                    {country.dialCode ? ` (${country.dialCode})` : ""}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
 
           <div>

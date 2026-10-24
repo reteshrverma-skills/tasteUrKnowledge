@@ -5,6 +5,7 @@ import { displayName } from "@/lib/english";
 import { listChildren, listYears, parentProfile } from "@/lib/parent";
 import { ParentNav } from "../ParentNav";
 import { AddKidForm } from "./AddKidForm";
+import { DEFAULT_COUNTRY_CODE, listCountries } from "@/lib/countries";
 
 /** Kids Profile: every child on the account, and the form to add another. */
 export default async function KidsProfilePage() {
@@ -13,10 +14,13 @@ export default async function KidsProfilePage() {
 
   const profile = await parentProfile(session.userId);
   const parentName = profile ? displayName(profile) : "Parent";
-  const [children, years] = await Promise.all([
+  const [children, years, countries] = await Promise.all([
     listChildren(session.userId),
     listYears(),
+    listCountries(),
   ]);
+  // A child usually lives where their parent registered.
+  const defaultCountry = profile?.countryCode ?? DEFAULT_COUNTRY_CODE;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -69,7 +73,7 @@ export default async function KidsProfilePage() {
               ? "No school years have been set up yet, so a child cannot be given one."
               : "Your child will sign in with the login id you choose here."}
           </p>
-          <AddKidForm years={years} />
+          <AddKidForm years={years} countries={countries} defaultCountry={defaultCountry} />
         </div>
       </div>
     </div>

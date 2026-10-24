@@ -39,6 +39,10 @@ model UserProfile {
   createDate       DateTime  @default(now())
   /// When a parent agreed to the Terms & Copyright notice at sign-up.
   termsAcceptedAt  DateTime? @db.Timestamptz(3)
+  /// ISO 3166-1 alpha-2 code of the country the account registered from
+  /// (migration 031). Null for accounts made before it was asked.
+  countryCode      String?   @db.Char(2)
+  country          Country?  @relation(fields: [countryCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
 
   personalDetails UserPersonalDetails?
   studentDetails  UserStudentDetails?
@@ -58,6 +62,7 @@ model UserProfile {
   /// Topics this PARENT has set for their children.
   focusSet        StudentFocus[] @relation("FocusSetBy")
 
+  @@index([countryCode])
   @@map("userProfile")
 }
 
@@ -85,6 +90,23 @@ model StudentFocus {
 
   @@index([studentId, clearedAt])
   @@map("studentFocus")
+}
+
+/// Every ISO 3166-1 country, for the country drop-downs (migration 031).
+model Country {
+  /// ISO 3166-1 alpha-2, e.g. "GB".
+  code      String        @id @db.Char(2)
+  name      String
+  /// International dialling code, e.g. "+44"; null where there is none.
+  dialCode  String?
+  /// Lower sorts first: the United Kingdom is 1, everything else 100.
+  sortOrder Int           @default(100) @db.SmallInt
+  /// False hides a country from the forms without deleting it.
+  isActive  Boolean       @default(true)
+
+  users     UserProfile[]
+
+  @@map("country")
 }
 
 /// One row per login, closed on logout: an audit trail of who was on and when.

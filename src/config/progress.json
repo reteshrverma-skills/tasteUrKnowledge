@@ -8,8 +8,8 @@
     "trendDays: the trend arrow compares the score now with the score this many days ago.",
     "englishSkillFamilies: groups English question types. Topic names match the question bank's typeOfQuestion, ignoring case. A type not listed here appears under 'Other skills'."
   ],
-  "targetPercent": 70,
-  "amberFromPercent": 40,
+  "targetPercent": 75,
+  "amberFromPercent": 50,
   "minAnswers": 4,
   "focusCount": 3,
   "trendDays": 7,

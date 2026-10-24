@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, signToken, SESSION_MAX_AGE_SECONDS } from "@/lib/auth";
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
 import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
+import { validCountryCode } from "@/lib/countries";
 import security from "@/config/security.json";
 
 /**
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
       confirmPassword,
       emailAddress,
       acceptTerms,
+      countryCode: submittedCountry,
     } = body;
 
     // Checked here as well as by the form, so an account cannot be created
@@ -48,6 +50,15 @@ export async function POST(request: NextRequest) {
     if (!fName?.trim() || !lName?.trim()) {
       return NextResponse.json(
         { error: "First name and last name are required" },
+        { status: 400 }
+      );
+    }
+
+    // Must be a country from the country table, not just any two letters.
+    const countryCode = await validCountryCode(submittedCountry);
+    if (!countryCode) {
+      return NextResponse.json(
+        { error: "Please choose your country" },
         { status: 400 }
       );
     }
@@ -90,6 +101,7 @@ export async function POST(request: NextRequest) {
         userType: "PARENT",
         isActive: true,
         termsAcceptedAt: new Date(),
+        countryCode,
         ...(emailAddress?.trim()
           ? { personalDetails: { create: { emailAddress: emailAddress.trim() } } }
           : {}),

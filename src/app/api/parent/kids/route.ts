@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow, hashPassword } from "@/lib/auth";
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
 import { defaultEntitlementsForYear } from "@/lib/student";
+import { validCountryCode } from "@/lib/countries";
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -61,6 +62,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // A country from the country table; the form starts on the parent's own.
+    const countryCode = await validCountryCode(body.countryCode);
+    if (!countryCode) {
+      return NextResponse.json(
+        { error: "Please choose a country" },
+        { status: 400 }
+      );
+    }
+
     const year = await prisma.year.findUnique({
       where: { id: studentYear },
       select: { id: true, name: true },
@@ -94,6 +104,7 @@ export async function POST(request: NextRequest) {
         profilePassword,
         userType: "STUDENT",
         isActive: true,
+        countryCode,
         studentDetails: {
           create: {
             parentId: session.userId,
