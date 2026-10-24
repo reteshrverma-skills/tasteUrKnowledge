@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { mathsTestReview } from "@/lib/maths";
+import { sanitiseFigure } from "@/lib/nvr";
 import { TestReview, presentOptions } from "../../../TestReview";
 
 /** Review of one past Maths round, opened from a score chip on the picker. */
@@ -40,6 +41,10 @@ export default async function MathsTestReviewPage({
       questions={test.questions.map((row) => ({
         id: Number(row.id),
         quest: row.question.quest,
+        // Stripped of anything executable, as the quiz route does.
+        stemFigure: row.question.imageSvg
+          ? sanitiseFigure(row.question.imageSvg)
+          : null,
         options: presentOptions(row.question),
         chosen: row.chosenOption,
         right: row.correctOption ?? row.question.ansChoice,

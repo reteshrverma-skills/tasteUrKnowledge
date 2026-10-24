@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { SESSION_MAX_AGE_SECONDS, getSession, signToken } from "@/lib/auth";
+import { cookies } from "next/headers";
+import {
+  SESSION_MAX_AGE_SECONDS,
+  isCurrentSession,
+  signToken,
+  verifyToken,
+} from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -15,9 +21,22 @@ import { prisma } from "@/lib/prisma";
  * user to the login page rather than keep trying.
  */
 export async function POST() {
-  const session = await getSession();
+  // Read directly rather than through getSession, so the answer can say why
+  // the session ended and the page can tell the user.
+  const current = (await cookies()).get("token")?.value;
+  const session = current ? verifyToken(current) : null;
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Unauthorized", reason: "expired" },
+      { status: 401 }
+    );
+  }
+  if (!(await isCurrentSession(session))) {
+    // Signed in on another device, or logged out / password reset elsewhere.
+    return NextResponse.json(
+      { error: "Unauthorized", reason: "replaced" },
+      { status: 401 }
+    );
   }
 
   // Re-read the account on renewal: a parent moving a child to another
@@ -38,6 +57,8 @@ export async function POST() {
     profileName: session.profileName,
     userType: session.userType,
     programme: account.programmeCode,
+    // The same login, so the same session key.
+    sid: session.sid,
   });
 
   const response = NextResponse.json({ renewed: true });

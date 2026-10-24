@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
+import { endAllSessions, hashPassword } from "@/lib/auth";
 import { passwordProblem } from "@/lib/parent";
 import { resolveResetToken, spendTokenOp } from "@/lib/password-reset";
 import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
@@ -76,6 +76,10 @@ export async function POST(request: NextRequest) {
         data: { usedAt: new Date() },
       }),
     ]);
+
+    // A new password ends any session still open with the old one - on a
+    // lost phone, say, or one someone else had signed in to.
+    await endAllSessions(resolved.userId);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

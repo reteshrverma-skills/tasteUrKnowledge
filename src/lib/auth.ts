@@ -1,7 +1,9 @@
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import sessionConfig from "@/config/session.json";
+import { prisma } from "@/lib/prisma";
 
 /**
  * The key every session token is signed with.
@@ -48,6 +50,12 @@ export interface Session {
    * Carried in the token so scoping a query costs no extra lookup.
    */
   programme: string;
+  /**
+   * Which login this token belongs to. Only the account's current one is
+   * accepted, so one account has one session at a time. Missing on tokens
+   * issued before single sessions existed.
+   */
+  sid?: string;
 }
 
 /** Tokens issued before programmes existed belong to Grammar School. */
@@ -100,6 +108,9 @@ export function verifyToken(token: string): Session | null {
         typeof payload.programme === "string" && payload.programme
           ? payload.programme
           : DEFAULT_PROGRAMME,
+      ...(typeof payload.sid === "string" && payload.sid
+        ? { sid: payload.sid }
+        : {}),
     };
   } catch {
     return null;
@@ -121,6 +132,79 @@ export async function clearAuthCookie(): Promise<void> {
   cookieStore.delete(COOKIE_NAME);
 }
 
+/* ------------------------------------------------------------------ */
+/* One session per account                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The current session key per account, cached so checking it costs a
+ * database read at most every 30 seconds per user, not one per request.
+ * On globalThis so routes and the proxy share it. With several app instances
+ * a login elsewhere is noticed within the 30 seconds.
+ */
+type KeyEntry = { key: string | null; active: boolean; at: number };
+const KEY_TTL_MS = 30_000;
+const keyCache: Map<number, KeyEntry> = ((
+  globalThis as unknown as { __sessionKeys?: Map<number, KeyEntry> }
+).__sessionKeys ??= new Map());
+
+async function currentKey(userId: number): Promise<KeyEntry> {
+  const cached = keyCache.get(userId);
+  if (cached && Date.now() - cached.at < KEY_TTL_MS) return cached;
+  const row = await prisma.userProfile.findUnique({
+    where: { id: userId },
+    select: { activeSessionKey: true, isActive: true },
+  });
+  const entry = {
+    key: row?.activeSessionKey ?? null,
+    active: Boolean(row?.isActive),
+    at: Date.now(),
+  };
+  keyCache.set(userId, entry);
+  return entry;
+}
+
+/**
+ * Whether this token is the account's one live session. False once the
+ * account signs in elsewhere, logs out, resets its password or is
+ * deactivated. A token from before single sessions (no sid) is honoured
+ * only until the account next signs in.
+ */
+export async function isCurrentSession(session: Session): Promise<boolean> {
+  const { key, active } = await currentKey(session.userId);
+  if (!active) return false;
+  if (!key) return !session.sid;
+  return session.sid === key;
+}
+
+/**
+ * Starts the account's only session: a fresh key replaces any earlier one,
+ * which ends the session on any other device. Returns the key for the token.
+ */
+export async function startSingleSession(userId: number): Promise<string> {
+  const key = randomUUID();
+  await prisma.userProfile.update({
+    where: { id: userId },
+    data: { activeSessionKey: key },
+  });
+  keyCache.set(userId, { key, active: true, at: Date.now() });
+  return key;
+}
+
+/** Ends the account's session everywhere: logout, password reset. */
+export async function endAllSessions(userId: number): Promise<void> {
+  await prisma.userProfile.update({
+    where: { id: userId },
+    data: { activeSessionKey: null },
+  });
+  keyCache.delete(userId);
+}
+
+/**
+ * The signed-in user, or null. A token that verifies but is no longer the
+ * account's current session (signed in elsewhere, logged out, password reset)
+ * counts as no session.
+ */
 export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
@@ -129,7 +213,9 @@ export async function getSession(): Promise<Session | null> {
     return null;
   }
 
-  return verifyToken(token);
+  const session = verifyToken(token);
+  if (!session) return null;
+  return (await isCurrentSession(session)) ? session : null;
 }
 
 export async function getSessionOrThrow(): Promise<Session> {

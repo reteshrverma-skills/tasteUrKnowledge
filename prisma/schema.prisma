@@ -39,6 +39,10 @@ model UserProfile {
   createDate       DateTime  @default(now())
   /// When a parent agreed to the Terms & Copyright notice at sign-up.
   termsAcceptedAt  DateTime? @db.Timestamptz(3)
+  /// The one session allowed for this account (migration 034): a random key
+  /// set at login and carried in the token. Null after logout or a password
+  /// reset, which ends the session everywhere.
+  activeSessionKey String?
   /// ISO 3166-1 alpha-2 code of the country the account registered from
   /// (migration 031). Null for accounts made before it was asked.
   countryCode      String?   @db.Char(2)
@@ -297,6 +301,10 @@ model GsMathsQuestion {
   ansChoice       String?
   difficultyLevel String?
   explanation     String?
+  /// Optional diagram as inline SVG, shown above the options (migration
+  /// 033). Executable markup is refused by the database and stripped again
+  /// by sanitiseFigure before it is rendered.
+  imageSvg        String?
   /// Present in the database and declared here so a schema sync can never
   /// drop it. Nothing reads it - Maths is not scoped by year.
   yearName        String? @db.VarChar(255)

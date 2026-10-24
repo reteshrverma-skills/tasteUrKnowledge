@@ -32,6 +32,9 @@ export const mathsQuestionPublicSelect = {
   optionD: true,
   optionE: true,
   difficultyLevel: true,
+  // Raw SVG: callers must pass it through sanitiseFigure before it reaches
+  // the browser.
+  imageSvg: true,
 } as const;
 
 export interface SubTopicCount {
@@ -292,6 +295,7 @@ export async function mathsTestReview(testId: number, studentId: number) {
               optionE: true,
               ansChoice: true,
               explanation: true,
+              imageSvg: true,
             },
           },
         },

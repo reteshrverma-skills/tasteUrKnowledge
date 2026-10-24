@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { endAllSessions, getSession } from "@/lib/auth";
 import { recordLogout } from "@/lib/login-session";
 
 /**
@@ -20,6 +20,10 @@ export async function POST() {
   const session = await getSession();
   if (session) {
     await recordLogout(session.userId);
+    // The account has one session; logging out ends it on every device.
+    await endAllSessions(session.userId).catch((error) =>
+      console.error("Failed to end sessions on logout:", error)
+    );
   }
 
   // A relative Location, not NextResponse.redirect. Behind Azure's proxy the

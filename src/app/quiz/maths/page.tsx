@@ -8,6 +8,7 @@ import { scoreStyle } from "@/lib/level-style";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
 import { RoundHeading } from "@/components/RoundHeading";
+import { StemFigure } from "@/components/NvrFigures";
 
 interface Question {
   id: number;
@@ -20,6 +21,8 @@ interface Question {
   optionD: string | null;
   optionE: string | null;
   difficultyLevel: string | null;
+  /** A diagram, already sanitised by the questions route. */
+  imageSvg: string | null;
 }
 
 interface GradedAnswer {
@@ -402,6 +405,11 @@ function MathsQuiz() {
                 <h3 className="font-display text-[17px] font-semibold text-ink mb-4 leading-snug">
                   {currentQuestion.quest}
                 </h3>
+
+                {/* key: a fresh figure per question, so sizes never carry over */}
+                {currentQuestion.imageSvg && (
+                  <StemFigure key={currentQuestion.id} markup={currentQuestion.imageSvg} />
+                )}
 
                 <div className="space-y-2">
                   {optionsFor(currentQuestion).map((option) => {

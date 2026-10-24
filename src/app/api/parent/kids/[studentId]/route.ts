@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionOrThrow, hashPassword } from "@/lib/auth";
+import { endAllSessions, getSessionOrThrow, hashPassword } from "@/lib/auth";
 import { ownsChild, passwordProblem } from "@/lib/parent";
 import { deleteChild, parseDeleteMode } from "@/lib/child-delete";
 import { validProgrammeCode } from "@/lib/programme";
@@ -101,6 +101,9 @@ export async function PUT(
         studentDetails: { update: { studentYear: year.id } },
       },
     });
+
+    // A parent changing the child's password signs the child out everywhere.
+    if (profilePassword) await endAllSessions(studentId);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

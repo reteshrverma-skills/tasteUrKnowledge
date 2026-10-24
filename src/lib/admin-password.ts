@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionOrThrow, hashPassword } from "@/lib/auth";
+import { endAllSessions, getSessionOrThrow, hashPassword } from "@/lib/auth";
 import { displayName } from "@/lib/english";
 import { passwordProblem } from "@/lib/parent";
 import type { UserType } from "@/lib/auth";
@@ -90,6 +90,9 @@ export async function resetAccountPassword(
         data: { usedAt: new Date() },
       }),
     ]);
+
+    // The old password's session ends everywhere.
+    await endAllSessions(Number(account.id));
 
     return NextResponse.json(
       { success: true, profileName: account.profileName },

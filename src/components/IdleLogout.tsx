@@ -52,6 +52,12 @@ function goToLogin(query = ""): void {
   window.location.assign(`/login${query}`);
 }
 
+/** Whether a 401 from keepalive means this account signed in elsewhere. */
+async function wasReplaced(response: Response): Promise<boolean> {
+  const data = await response.json().catch(() => ({}));
+  return data?.reason === "replaced";
+}
+
 function storedActivity(): number {
   try {
     return Number(window.localStorage.getItem(STORAGE_KEY)) || 0;
@@ -87,9 +93,17 @@ function IdleWatcher() {
     const ping = () => {
       lastPing.current = Date.now();
       fetch("/api/auth/keepalive", { method: "POST" })
-        .then((response) => {
-          // Already expired (or logged out in another tab).
-          if (response.status === 401) signOut();
+        .then(async (response) => {
+          if (response.status !== 401) return;
+          if (await wasReplaced(response)) {
+            // Signed in on another device. No logout call: that would end
+            // the new session too. Just leave, saying why.
+            signingOut.current = true;
+            goToLogin("?reason=elsewhere");
+          } else {
+            // Expired, or logged out in another tab.
+            signOut();
+          }
         })
         .catch(() => {});
     };
@@ -162,8 +176,10 @@ function IdleWatcher() {
       // see above
     }
     fetch("/api/auth/keepalive", { method: "POST" })
-      .then((response) => {
-        if (response.status === 401) goToLogin("?reason=idle");
+      .then(async (response) => {
+        if (response.status === 401) {
+          goToLogin((await wasReplaced(response)) ? "?reason=elsewhere" : "?reason=idle");
+        }
       })
       .catch(() => {});
   };

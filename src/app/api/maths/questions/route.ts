@@ -8,6 +8,7 @@ import {
   randomQuestionIds,
   randomQuestionIdsForTopic,
 } from "@/lib/maths";
+import { sanitiseFigure } from "@/lib/nvr";
 
 /**
  * A round of randomly drawn Maths questions for one subtopic + difficulty.
@@ -59,7 +60,13 @@ export async function GET(request: NextRequest) {
     const byId = new Map(questions.map((q) => [Number(q.id), q]));
     const ordered = ids
       .map((id) => byId.get(id))
-      .filter((q): q is NonNullable<typeof q> => Boolean(q));
+      .filter((q): q is NonNullable<typeof q> => Boolean(q))
+      // A diagram becomes live markup in the browser, so it is stripped here
+      // exactly as Non-Verbal figures are.
+      .map((q) => ({
+        ...q,
+        imageSvg: q.imageSvg ? sanitiseFigure(q.imageSvg) : null,
+      }));
 
     return NextResponse.json(
       { subTopic, topic, level, questions: ordered },

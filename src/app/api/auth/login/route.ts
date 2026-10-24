@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyPassword, signToken, SESSION_MAX_AGE_SECONDS } from "@/lib/auth";
-import { recordLogin } from "@/lib/login-session";
+import {
+  SESSION_MAX_AGE_SECONDS,
+  signToken,
+  startSingleSession,
+  verifyPassword,
+} from "@/lib/auth";
+import { closeOpenSessions, recordLogin } from "@/lib/login-session";
 import {
   blockedFor,
   clear,
@@ -71,12 +76,18 @@ export async function POST(request: NextRequest) {
 
     clear(accountKey);
 
+    // One session per account: this login ends any other (another device,
+    // another browser), whose next request is sent to the login page.
+    await closeOpenSessions(Number(user.id), "replaced");
+    const sid = await startSingleSession(Number(user.id));
+
     // Create token and set cookie
     const token = signToken({
       userId: Number(user.id),
       profileName: user.profileName,
       userType: user.userType,
       programme: user.programmeCode,
+      sid,
     });
 
     // Opens the audit row. Non-fatal: a tracking failure must not block login.

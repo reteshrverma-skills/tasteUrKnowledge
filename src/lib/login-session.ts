@@ -17,6 +17,24 @@ export async function recordLogin(userId: number): Promise<void> {
 }
 
 /**
+ * Closes every still-open session row for the user, as one account may only
+ * have one session: a new login ends the older ones ("replaced").
+ */
+export async function closeOpenSessions(
+  userId: number,
+  endReason: string
+): Promise<void> {
+  try {
+    await prisma.userLoginSession.updateMany({
+      where: { userId, logoutAt: null },
+      data: { logoutAt: new Date(), endReason },
+    });
+  } catch (error) {
+    console.error("Failed to close open sessions:", error);
+  }
+}
+
+/**
  * Closes the user's most recent still-open session on an explicit logout.
  *
  * Exact for the usual one-device case. With two devices open at once this

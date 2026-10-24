@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, signToken, SESSION_MAX_AGE_SECONDS } from "@/lib/auth";
+import {
+  SESSION_MAX_AGE_SECONDS,
+  hashPassword,
+  signToken,
+  startSingleSession,
+} from "@/lib/auth";
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
 import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
 import { validCountryCode } from "@/lib/countries";
@@ -108,11 +113,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const sid = await startSingleSession(Number(user.id));
+
     const token = signToken({
       userId: Number(user.id),
       profileName: user.profileName,
       userType: user.userType,
       programme: user.programmeCode,
+      sid,
     });
 
     const response = NextResponse.json(
