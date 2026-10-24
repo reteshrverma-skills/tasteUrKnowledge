@@ -46,15 +46,15 @@ export async function GET(request: NextRequest) {
     }
 
     const ids = subTopic
-      ? await randomNvrQuestionIds(subTopic, level, topic || null)
-      : await randomNvrQuestionIdsForTopic(topic, level);
+      ? await randomNvrQuestionIds(session.programme, subTopic, level, topic || null)
+      : await randomNvrQuestionIdsForTopic(session.programme, topic, level);
 
     if (ids.length === 0) {
       return NextResponse.json({ questions: [] }, { status: 200 });
     }
 
     const rows = await prisma.gsNvrQuestion.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, programmeCode: session.programme },
       select: nvrQuestionPublicSelect,
     });
 

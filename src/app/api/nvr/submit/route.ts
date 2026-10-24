@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
       .map((answer) => answer.questionId)
       .filter((id): id is number => Number.isInteger(id));
 
+    // Only this programme's questions can be graded in this programme.
     const questions = await prisma.gsNvrQuestion.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, programmeCode: session.programme },
     });
 
     if (questions.length === 0) {

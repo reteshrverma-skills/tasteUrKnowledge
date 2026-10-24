@@ -43,7 +43,15 @@ export interface Session {
   /** userProfile.profileName - the login user id */
   profileName: string;
   userType: UserType;
+  /**
+   * The programme this account practises: "GRAMMAR", "GCSE" or "ALEVEL".
+   * Carried in the token so scoping a query costs no extra lookup.
+   */
+  programme: string;
 }
+
+/** Tokens issued before programmes existed belong to Grammar School. */
+export const DEFAULT_PROGRAMME = "GRAMMAR";
 
 export async function hashPassword(password: string): Promise<string> {
   return bcryptjs.hash(password, 10);
@@ -83,7 +91,16 @@ function isSession(payload: unknown): payload is Session {
 export function verifyToken(token: string): Session | null {
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    return isSession(payload) ? payload : null;
+    if (!isSession(payload)) return null;
+    return {
+      userId: payload.userId,
+      profileName: payload.profileName,
+      userType: payload.userType,
+      programme:
+        typeof payload.programme === "string" && payload.programme
+          ? payload.programme
+          : DEFAULT_PROGRAMME,
+    };
   } catch {
     return null;
   }

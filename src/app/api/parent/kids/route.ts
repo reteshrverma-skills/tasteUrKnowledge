@@ -4,6 +4,7 @@ import { getSessionOrThrow, hashPassword } from "@/lib/auth";
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
 import { defaultEntitlementsForYear } from "@/lib/student";
 import { validCountryCode } from "@/lib/countries";
+import { DEFAULT_PROGRAMME, validProgrammeCode } from "@/lib/programme";
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -71,6 +72,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Grammar School, GCSE or A-Level. The form leaves it out while only one
+    // programme is offered, so a missing value means the default one.
+    const programmeCode = await validProgrammeCode(
+      body.programmeCode ?? DEFAULT_PROGRAMME
+    );
+    if (!programmeCode) {
+      return NextResponse.json(
+        { error: "Please choose a programme" },
+        { status: 400 }
+      );
+    }
+
     const year = await prisma.year.findUnique({
       where: { id: studentYear },
       select: { id: true, name: true },
@@ -105,6 +118,7 @@ export async function POST(request: NextRequest) {
         userType: "STUDENT",
         isActive: true,
         countryCode,
+        programmeCode,
         studentDetails: {
           create: {
             parentId: session.userId,

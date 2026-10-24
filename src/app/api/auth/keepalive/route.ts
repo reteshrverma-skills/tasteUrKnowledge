@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { SESSION_MAX_AGE_SECONDS, getSession, signToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Renews the session while the user is active.
@@ -19,12 +20,24 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Only the three session fields are carried over; the old token's iat/exp
-  // must not be copied into the new one.
+  // Re-read the account on renewal: a parent moving a child to another
+  // programme, or an admin deactivating an account, takes effect within a few
+  // minutes instead of at the next login.
+  const account = await prisma.userProfile.findUnique({
+    where: { id: session.userId },
+    select: { isActive: true, programmeCode: true },
+  });
+  if (!account?.isActive) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Only the session fields are carried over; the old token's iat/exp must
+  // not be copied into the new one.
   const token = signToken({
     userId: session.userId,
     profileName: session.profileName,
     userType: session.userType,
+    programme: account.programmeCode,
   });
 
   const response = NextResponse.json({ renewed: true });

@@ -20,7 +20,15 @@ const EMPTY = {
   confirmPassword: "",
   studentYear: "",
   countryCode: "",
+  programmeCode: "",
 };
+
+export interface ProgrammeOption {
+  code: string;
+  name: string;
+  /** False: shown as "coming soon" and cannot be chosen yet. */
+  available: boolean;
+}
 
 export interface CountryOption {
   code: string;
@@ -36,14 +44,21 @@ export function AddKidForm({
   years,
   countries,
   defaultCountry,
+  programmes,
 }: {
   years: YearOption[];
   countries: CountryOption[];
   /** The parent's own country, pre-selected. */
   defaultCountry: string;
+  /** Every programme; those without content yet show as "coming soon". */
+  programmes: ProgrammeOption[];
 }) {
   const router = useRouter();
-  const blank = { ...EMPTY, countryCode: defaultCountry };
+  const blank = {
+    ...EMPTY,
+    countryCode: defaultCountry,
+    programmeCode: programmes.find((p) => p.available)?.code ?? "",
+  };
   const [form, setForm] = useState(blank);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -152,6 +167,33 @@ export function AddKidForm({
             Decides which work your child is shown.
           </p>
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Preparing for
+        </label>
+        <select
+          name="programmeCode"
+          value={form.programmeCode}
+          onChange={handleChange}
+          required
+          className={inputClass}
+        >
+          {programmes.map((programme) => (
+            <option
+              key={programme.code}
+              value={programme.code}
+              disabled={!programme.available}
+            >
+              {programme.name}
+              {programme.available ? "" : " (coming soon)"}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 mt-1">
+          Your child sees only this programme&apos;s subjects and questions.
+        </p>
       </div>
 
       <div>

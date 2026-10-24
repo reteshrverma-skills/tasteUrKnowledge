@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LevelIcon } from "../LevelIcon";
 import { getSession } from "@/lib/auth";
+import { programmeOf } from "@/lib/programme";
 import { scoreStyle, type TestScore } from "@/lib/student";
 import {
   QUESTIONS_PER_VR_ROUND,
@@ -34,6 +35,8 @@ export default async function VerbalPage({
   const { level: requestedLevel } = await searchParams;
 
   const session = await getSession();
+  // Only this programme's content: Grammar School, GCSE or A-Level.
+  const programme = programmeOf(session);
 
   // The student's recent scores need nothing else, so they load alongside
   // the rest rather than after it.
@@ -44,7 +47,7 @@ export default async function VerbalPage({
   // Only levels that have questions AND that this student is allowed to open.
   const [access, bankLevels] = await Promise.all([
     allowedLevels(session),
-    availableVrLevels(),
+    availableVrLevels(programme),
   ]);
   const levels = bankLevels.filter((level) => canAccessLevel(access, level));
 
@@ -55,7 +58,7 @@ export default async function VerbalPage({
     levels[0];
 
   const [topics, attempts] = await Promise.all([
-    activeLevel ? vrTopicsForLevel(activeLevel) : [],
+    activeLevel ? vrTopicsForLevel(programme, activeLevel) : [],
     attemptsPromise,
   ]);
 

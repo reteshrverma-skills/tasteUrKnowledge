@@ -55,7 +55,7 @@ export default async function EnglishFocusPage({
     prisma.gsEnglishQuestion.findMany({
       where: {
         typeOfQuestion: { contains: questionType.trim(), mode: "insensitive" },
-        comp: APPROVED_COMP,
+        comp: { ...APPROVED_COMP, programmeCode: session.programme },
       },
       select: {
         gsEngCompId: true,

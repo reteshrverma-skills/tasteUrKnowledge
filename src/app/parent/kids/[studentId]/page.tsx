@@ -6,6 +6,7 @@ import { displayName } from "@/lib/english";
 import { listYears, ownsChild, parentProfile } from "@/lib/parent";
 import { ParentNav } from "../../ParentNav";
 import { EditKidForm } from "./EditKidForm";
+import { listProgrammes } from "@/lib/programme";
 import { DeleteKid } from "./DeleteKid";
 
 // Deleting a child's profile is hidden from parents for now. The API route and
@@ -29,7 +30,7 @@ export default async function EditKidPage({
   if (!Number.isInteger(studentId)) notFound();
   if (!(await ownsChild(session.userId, studentId))) notFound();
 
-  const [child, years, profile] = await Promise.all([
+  const [child, years, profile, programmes] = await Promise.all([
     prisma.userProfile.findUnique({
       where: { id: studentId },
       select: {
@@ -38,11 +39,13 @@ export default async function EditKidPage({
         lName: true,
         profileName: true,
         isActive: true,
+        programmeCode: true,
         studentDetails: { select: { studentYear: true } },
       },
     }),
     listYears(),
     parentProfile(session.userId),
+    listProgrammes(),
   ]);
 
   if (!child) notFound();
@@ -76,11 +79,13 @@ export default async function EditKidPage({
           <EditKidForm
             studentId={studentId}
             years={years}
+            programmes={programmes}
             initial={{
               fName: child.fName ?? "",
               mName: child.mName ?? "",
               lName: child.lName ?? "",
               studentYear: child.studentDetails?.studentYear ?? "",
+              programmeCode: child.programmeCode,
               isActive: child.isActive,
             }}
           />

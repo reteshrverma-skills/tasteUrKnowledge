@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LevelIcon } from "../LevelIcon";
 import { getSession } from "@/lib/auth";
+import { programmeOf } from "@/lib/programme";
 import { scoreStyle } from "@/lib/level-style";
 import type { TestScore } from "@/lib/student";
 import {
@@ -35,6 +36,8 @@ export default async function NonVerbalPage({
   const { level: requestedLevel } = await searchParams;
 
   const session = await getSession();
+  // Only this programme's content: Grammar School, GCSE or A-Level.
+  const programme = programmeOf(session);
 
   // The student's recent scores need nothing else, so they load alongside
   // the rest rather than after it.
@@ -45,7 +48,7 @@ export default async function NonVerbalPage({
   // Only levels that have questions AND that this student may open.
   const [access, bankLevels] = await Promise.all([
     allowedLevels(session),
-    availableNvrLevels(),
+    availableNvrLevels(programme),
   ]);
   const levels = bankLevels.filter((level) => canAccessLevel(access, level));
 
@@ -56,7 +59,7 @@ export default async function NonVerbalPage({
     levels[0];
 
   const [topics, attempts] = await Promise.all([
-    activeLevel ? nvrTopicsForLevel(activeLevel) : [],
+    activeLevel ? nvrTopicsForLevel(programme, activeLevel) : [],
     attemptsPromise,
   ]);
 

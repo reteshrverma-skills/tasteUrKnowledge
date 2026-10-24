@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
       userId: Number(user.id),
       profileName: user.profileName,
       userType: user.userType,
+      programme: user.programmeCode,
     });
 
     // Opens the audit row. Non-fatal: a tracking failure must not block login.

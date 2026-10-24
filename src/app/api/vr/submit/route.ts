@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     const key = await vrAnswerKey(
+      session.programme,
       answers
         .map((a) => toVrId(a.questionId))
         .filter((id): id is bigint => id !== null)

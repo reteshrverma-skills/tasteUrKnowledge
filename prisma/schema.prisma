@@ -58,11 +58,17 @@ model UserProfile {
   loginSessions   UserLoginSession[]
   resetTokens     PasswordResetToken[]
   /// Topics a parent has asked this child to work on (as the STUDENT).
-  focusTopics     StudentFocus[] @relation("FocusStudent")
+  focusTopics     StudentFocus[]           @relation("FocusStudent")
   /// Topics this PARENT has set for their children.
-  focusSet        StudentFocus[] @relation("FocusSetBy")
+  focusSet        StudentFocus[]           @relation("FocusSetBy")
+
+  /// Grammar School, GCSE or A-Level (migration 032). Every student query
+  /// filters on it, so a child only ever sees their own programme's content.
+  programmeCode String    @default("GRAMMAR")
+  programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
 
   @@index([countryCode])
+  @@index([programmeCode])
   @@map("userProfile")
 }
 
@@ -70,41 +76,60 @@ model UserProfile {
 /// Shown on the child's dashboard until the parent removes it; removing sets
 /// clearedAt rather than deleting the row, so there is a history of focuses.
 model StudentFocus {
-  id          BigInt       @id @default(autoincrement())
-  studentId   BigInt
-  student     UserProfile  @relation("FocusStudent", fields: [studentId], references: [id], onDelete: Cascade)
-  setById     BigInt?
-  setBy       UserProfile? @relation("FocusSetBy", fields: [setById], references: [id], onDelete: SetNull)
+  id        BigInt       @id @default(autoincrement())
+  studentId BigInt
+  student   UserProfile  @relation("FocusStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  setById   BigInt?
+  setBy     UserProfile? @relation("FocusSetBy", fields: [setById], references: [id], onDelete: SetNull)
   /// "English" | "Maths" | "Verbal Reasoning" | "Non-Verbal"
-  subject     String
+  subject   String
   /// What the parent saw: the English question type, or the subtopic.
-  label       String
+  label     String
   /// English: the question type. Others: the bank's topic.
-  topic       String?
+  topic     String?
   /// The bank's subtopic; null for English.
-  subTopic    String?
+  subTopic  String?
   /// Difficulty the round starts at - where the child last practised it.
-  level       String?
-  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
-  clearedAt   DateTime?    @db.Timestamptz(3)
+  level     String?
+  createdAt DateTime     @default(now()) @db.Timestamptz(3)
+  clearedAt DateTime?    @db.Timestamptz(3)
 
   @@index([studentId, clearedAt])
   @@map("studentFocus")
 }
 
+/// Grammar School (11+), GCSE and A-Level: which exam a child prepares for,
+/// and which every piece of content belongs to (migration 032).
+model Programme {
+  /// "GRAMMAR" | "GCSE" | "ALEVEL"
+  code      String  @id
+  name      String
+  sortOrder Int     @default(100) @db.SmallInt
+  /// False: not offered when adding a child (no content loaded yet).
+  isActive  Boolean @default(true)
+
+  users          UserProfile[]
+  englishComps   GsEnglishComp[]
+  mathsQuestions GsMathsQuestion[]
+  nvrQuestions   GsNvrQuestion[]
+  vrQuestions    GsVrQuestion[]
+
+  @@map("programme")
+}
+
 /// Every ISO 3166-1 country, for the country drop-downs (migration 031).
 model Country {
   /// ISO 3166-1 alpha-2, e.g. "GB".
-  code      String        @id @db.Char(2)
+  code      String  @id @db.Char(2)
   name      String
   /// International dialling code, e.g. "+44"; null where there is none.
   dialCode  String?
   /// Lower sorts first: the United Kingdom is 1, everything else 100.
-  sortOrder Int           @default(100) @db.SmallInt
+  sortOrder Int     @default(100) @db.SmallInt
   /// False hides a country from the forms without deleting it.
-  isActive  Boolean       @default(true)
+  isActive  Boolean @default(true)
 
-  users     UserProfile[]
+  users UserProfile[]
 
   @@map("country")
 }
@@ -224,12 +249,18 @@ model GsEnglishComp {
   questions GsEnglishQuestion[]
   tests     TestTrackerEnglishMain[]
 
+  /// Grammar School, GCSE or A-Level (migration 032). Every student query
+  /// filters on it, so a child only ever sees their own programme's content.
+  programmeCode String    @default("GRAMMAR")
+  programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+
+  @@index([programmeCode, subjectName, difficultyLevel], map: "gsEnglishComp_programme_subject_level_idx")
   @@map("gsEnglishComp")
 }
 
 /// Questions hanging off a comprehension - selecting a comp shows all of these.
 model GsEnglishQuestion {
-  id             BigInt        @id @default(autoincrement())
+  id             BigInt               @id @default(autoincrement())
   topic          String?
   quest          String?
   optionA        String?
@@ -239,13 +270,13 @@ model GsEnglishQuestion {
   optionE        String?
   ansChoice      String?
   gsEngCompId    BigInt
-  comp           GsEnglishComp @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
+  comp           GsEnglishComp        @relation(fields: [gsEngCompId], references: [id], onDelete: Cascade)
   /// The comprehension skill this question tests - "Retrieval", "sequencing",
   /// "basic vocabulary" and so on. Difficulty now lives only on the
   /// comprehension; a question is described by what it asks for, not how hard
   /// it is, and this is what the parent report groups by.
-  typeOfQuestion String?       @db.VarChar(256)
-  trackerRows TestTrackerEnglish[]
+  typeOfQuestion String?              @db.VarChar(256)
+  trackerRows    TestTrackerEnglish[]
 
   @@index([gsEngCompId])
   @@map("gsEnglishQuestions")
@@ -272,8 +303,15 @@ model GsMathsQuestion {
 
   trackerRows TestTrackerMath[]
 
+  /// Grammar School, GCSE or A-Level (migration 032). Every student query
+  /// filters on it, so a child only ever sees their own programme's content.
+  programmeCode String    @default("GRAMMAR")
+  programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+
   @@index([subTopic, difficultyLevel])
   @@index([topic])
+  @@index([programmeCode, subTopic, difficultyLevel], map: "gsMathsQuestions_programme_subTopic_level_idx")
+  @@index([programmeCode, topic, difficultyLevel], map: "gsMathsQuestions_programme_topic_level_idx")
   @@map("gsMathsQuestions")
 }
 
@@ -324,9 +362,16 @@ model GsNvrQuestion {
 
   trackerRows TestTrackerNvr[]
 
+  /// Grammar School, GCSE or A-Level (migration 032). Every student query
+  /// filters on it, so a child only ever sees their own programme's content.
+  programmeCode String    @default("GRAMMAR")
+  programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+
   @@index([topic, difficultyLevel], map: "gsNvrQuestions_topic_level_idx")
   @@index([subTopic, difficultyLevel], map: "gsNvrQuestions_subTopic_level_idx")
   @@index([typeOfQuestion], map: "gsNvrQuestions_typeOfQuestion_idx")
+  @@index([programmeCode, topic, difficultyLevel], map: "gsNvrQuestions_programme_topic_level_idx")
+  @@index([programmeCode, subTopic, difficultyLevel], map: "gsNvrQuestions_programme_subTopic_level_idx")
   @@map("gsNvrQuestions")
 }
 
@@ -555,6 +600,12 @@ model GsVrQuestion {
 
   trackerRows TestTrackerVr[]
 
+  /// Grammar School, GCSE or A-Level (migration 032). Every student query
+  /// filters on it, so a child only ever sees their own programme's content.
+  programmeCode String    @default("GRAMMAR")
+  programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+
+  @@index([programmeCode, topic, subTopic, difficultyLevel], map: "gsVRQuestions_programme_topic_level_idx")
   @@map("gsVRQuestions")
 }
 

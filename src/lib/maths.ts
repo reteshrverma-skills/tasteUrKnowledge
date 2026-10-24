@@ -51,11 +51,15 @@ export const UNGROUPED_TOPIC = "Other";
 
 /** Subtopics available at one difficulty, with how many questions each holds. */
 export async function subTopicsForLevel(
+  programme: string,
   level: string
 ): Promise<SubTopicCount[]> {
   const rows = await prisma.gsMathsQuestion.groupBy({
     by: ["subTopic"],
-    where: { difficultyLevel: { equals: level, mode: "insensitive" } },
+    where: {
+      programmeCode: programme,
+      difficultyLevel: { equals: level, mode: "insensitive" },
+    },
     _count: { _all: true },
   });
 
@@ -73,10 +77,13 @@ export async function subTopicsForLevel(
  */
 export const topicsForLevel = cachedUntilFlush(
   "maths-topics",
-  async (level: string): Promise<TopicGroup[]> => {
+  async (programme: string, level: string): Promise<TopicGroup[]> => {
     const rows = await prisma.gsMathsQuestion.groupBy({
       by: ["topic", "subTopic"],
-      where: { difficultyLevel: { equals: level, mode: "insensitive" } },
+      where: {
+        programmeCode: programme,
+        difficultyLevel: { equals: level, mode: "insensitive" },
+      },
       _count: { _all: true },
     });
 
@@ -102,9 +109,10 @@ export const topicsForLevel = cachedUntilFlush(
 /** Every difficulty that actually has questions behind it. */
 export const availableMathsLevels = cachedUntilFlush(
   "maths-levels",
-  async (): Promise<string[]> => {
+  async (programme: string): Promise<string[]> => {
     const rows = await prisma.gsMathsQuestion.groupBy({
       by: ["difficultyLevel"],
+      where: { programmeCode: programme },
       _count: { _all: true },
     });
 
@@ -121,6 +129,7 @@ export const availableMathsLevels = cachedUntilFlush(
  * rows), so this stays cheap.
  */
 export async function randomQuestionIds(
+  programme: string,
   subTopic: string,
   level: string,
   // Subtopic names repeat across topics, so the topic keeps the draw inside
@@ -130,6 +139,7 @@ export async function randomQuestionIds(
 ): Promise<number[]> {
   const rows = await prisma.gsMathsQuestion.findMany({
     where: {
+      programmeCode: programme,
       subTopic: { equals: subTopic, mode: "insensitive" },
       difficultyLevel: { equals: level, mode: "insensitive" },
       ...(topic ? { topic: { equals: topic, mode: "insensitive" } } : {}),
@@ -153,12 +163,14 @@ export async function randomQuestionIds(
  * Same shuffle as the subtopic draw, over a wider pool.
  */
 export async function randomQuestionIdsForTopic(
+  programme: string,
   topic: string,
   level: string,
   take: number = QUESTIONS_PER_TOPIC_TEST
 ): Promise<number[]> {
   const rows = await prisma.gsMathsQuestion.findMany({
     where: {
+      programmeCode: programme,
       topic: { equals: topic, mode: "insensitive" },
       difficultyLevel: { equals: level, mode: "insensitive" },
     },

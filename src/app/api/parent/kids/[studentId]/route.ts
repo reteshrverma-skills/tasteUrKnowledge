@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow, hashPassword } from "@/lib/auth";
 import { ownsChild, passwordProblem } from "@/lib/parent";
 import { deleteChild, parseDeleteMode } from "@/lib/child-delete";
+import { validProgrammeCode } from "@/lib/programme";
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -63,6 +64,20 @@ export async function PUT(
       );
     }
 
+    // The programme changes only when the form sends one (it is not shown
+    // while a single programme is offered), and only to an active one.
+    let programmeCode: string | undefined;
+    if (body.programmeCode !== undefined && body.programmeCode !== null) {
+      const valid = await validProgrammeCode(body.programmeCode);
+      if (!valid) {
+        return NextResponse.json(
+          { error: "Please choose a programme" },
+          { status: 400 }
+        );
+      }
+      programmeCode = valid;
+    }
+
     // Only set a password when one was actually typed; an untouched form
     // leaves the child's existing password alone.
     let profilePassword: string | undefined;
@@ -82,6 +97,7 @@ export async function PUT(
         lName,
         isActive: body.isActive !== false,
         ...(profilePassword ? { profilePassword } : {}),
+        ...(programmeCode ? { programmeCode } : {}),
         studentDetails: { update: { studentYear: year.id } },
       },
     });

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const questions = await randomVrRound(level, topic, subTopic);
+    const questions = await randomVrRound(session.programme, level, topic, subTopic);
     if (questions.length === 0) {
       return NextResponse.json(
         { error: "No questions for that selection and difficulty" },

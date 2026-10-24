@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
       userId: Number(user.id),
       profileName: user.profileName,
       userType: user.userType,
+      programme: user.programmeCode,
     });
 
     const response = NextResponse.json(

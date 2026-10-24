@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { programmeOf } from "@/lib/programme";
 import { APPROVED_COMP, SUBJECT_ORDER, displayName } from "@/lib/english";
 import { MATHS_SUBJECT_NAME } from "@/lib/maths";
 import { NVR_SUBJECT_NAME } from "@/lib/nvr";
@@ -52,6 +53,8 @@ const FALLBACK_STYLE = {
 export default async function DashboardPage() {
   // Middleware handles authentication, so we can safely proceed
   const session = await getSession();
+  // Counts only this programme's content: Grammar School, GCSE or A-Level.
+  const programme = programmeOf(session);
   const isAdmin = session?.userType === "ADMIN";
 
   // Six independent reads, so they go to the database together rather than
@@ -89,15 +92,15 @@ export default async function DashboardPage() {
       prisma.gsEnglishComp.groupBy({
         by: ["subjectName"],
         // Counts only what a student can open.
-        where: APPROVED_COMP,
+        where: { ...APPROVED_COMP, programmeCode: programme },
         _count: { _all: true },
       }),
       // Maths, Non-Verbal and Verbal each live in their own table, counted as
       // questions rather than comprehensions. A subject missing from here
       // reads as "Coming soon" however much content it actually has.
-      prisma.gsMathsQuestion.count(),
-      prisma.gsNvrQuestion.count(),
-      prisma.gsVrQuestion.count(),
+      prisma.gsMathsQuestion.count({ where: { programmeCode: programme } }),
+      prisma.gsNvrQuestion.count({ where: { programmeCode: programme } }),
+      prisma.gsVrQuestion.count({ where: { programmeCode: programme } }),
       // What a parent has asked this child to work on.
       session?.userType === "STUDENT"
         ? openFocusTopics(session.userId)

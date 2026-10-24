@@ -39,12 +39,20 @@ export async function GET(
         subjectName: true,
         difficultyLevel: true,
         approvedByAdmin: true,
+        programmeCode: true,
       },
     });
 
     // Unapproved passages are hidden from students; admins can still open
     // them to check one before approving it.
-    if (!comp || (!comp.approvedByAdmin && session.userType !== "ADMIN")) {
+    // Hidden from students until approved, and only ever shown inside the
+    // student's own programme. Admins can open any passage to check it.
+    const isAdmin = session.userType === "ADMIN";
+    if (
+      !comp ||
+      (!isAdmin &&
+        (!comp.approvedByAdmin || comp.programmeCode !== session.programme))
+    ) {
       return NextResponse.json(
         { error: "Comprehension not found" },
         { status: 404 }

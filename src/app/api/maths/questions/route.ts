@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
 
     // A subtopic round is narrower, so it wins if both are supplied.
     const ids = subTopic
-      ? await randomQuestionIds(subTopic, level, topic)
-      : await randomQuestionIdsForTopic(topic!, level);
+      ? await randomQuestionIds(session.programme, subTopic, level, topic)
+      : await randomQuestionIdsForTopic(session.programme, topic!, level);
 
     if (ids.length === 0) {
       return NextResponse.json(
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     const questions = await prisma.gsMathsQuestion.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, programmeCode: session.programme },
       select: mathsQuestionPublicSelect,
     });
 

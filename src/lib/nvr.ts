@@ -58,9 +58,10 @@ export interface NvrTopicGroup {
 /** Every difficulty that actually has questions behind it. */
 export const availableNvrLevels = cachedUntilFlush(
   "nvr-levels",
-  async (): Promise<string[]> => {
+  async (programme: string): Promise<string[]> => {
     const rows = await prisma.gsNvrQuestion.groupBy({
       by: ["difficultyLevel"],
+      where: { programmeCode: programme },
       _count: { _all: true },
     });
 
@@ -74,10 +75,13 @@ export const availableNvrLevels = cachedUntilFlush(
  */
 export const nvrTopicsForLevel = cachedUntilFlush(
   "nvr-topics",
-  async (level: string): Promise<NvrTopicGroup[]> => {
+  async (programme: string, level: string): Promise<NvrTopicGroup[]> => {
     const rows = await prisma.gsNvrQuestion.groupBy({
       by: ["topic", "subTopic"],
-      where: { difficultyLevel: { equals: level, mode: "insensitive" } },
+      where: {
+        programmeCode: programme,
+        difficultyLevel: { equals: level, mode: "insensitive" },
+      },
       _count: { _all: true },
     });
 
@@ -139,6 +143,7 @@ function shuffled(ids: number[]): number[] {
 
 /** A random draw from one subtopic at one difficulty. */
 export async function randomNvrQuestionIds(
+  programme: string,
   subTopic: string,
   level: string,
   // Subtopic names repeat across topics ("Compare" sits under several), so
@@ -148,6 +153,7 @@ export async function randomNvrQuestionIds(
 ): Promise<number[]> {
   const rows = await prisma.gsNvrQuestion.findMany({
     where: {
+      programmeCode: programme,
       subTopic: { equals: subTopic, mode: "insensitive" },
       difficultyLevel: { equals: level, mode: "insensitive" },
       ...(topic ? { topic: { equals: topic, mode: "insensitive" } } : {}),
@@ -160,12 +166,14 @@ export async function randomNvrQuestionIds(
 
 /** A random draw across every subtopic of one topic. */
 export async function randomNvrQuestionIdsForTopic(
+  programme: string,
   topic: string,
   level: string,
   take: number = QUESTIONS_PER_NVR_TOPIC_TEST
 ): Promise<number[]> {
   const rows = await prisma.gsNvrQuestion.findMany({
     where: {
+      programmeCode: programme,
       topic: { equals: topic, mode: "insensitive" },
       difficultyLevel: { equals: level, mode: "insensitive" },
     },

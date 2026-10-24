@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { YearOption } from "../AddKidForm";
+import type { ProgrammeOption, YearOption } from "../AddKidForm";
 
 const inputClass =
   "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
@@ -12,6 +12,7 @@ export interface EditKidInitial {
   mName: string;
   lName: string;
   studentYear: string;
+  programmeCode: string;
   isActive: boolean;
 }
 
@@ -19,10 +20,13 @@ export function EditKidForm({
   studentId,
   initial,
   years,
+  programmes,
 }: {
   studentId: number;
   initial: EditKidInitial;
   years: YearOption[];
+  /** Every programme; those without content yet show as "coming soon". */
+  programmes: ProgrammeOption[];
 }) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
@@ -32,6 +36,8 @@ export function EditKidForm({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const programmeChanged = form.programmeCode !== initial.programmeCode;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -55,6 +61,9 @@ export function EditKidForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          // Sent only when changed, so saving other details never trips
+          // over a programme that has since been switched off.
+          programmeCode: programmeChanged ? form.programmeCode : undefined,
           ...(password ? { password, confirmPassword } : {}),
         }),
       });
@@ -115,6 +124,29 @@ export function EditKidForm({
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Preparing for</label>
+        <select name="programmeCode" value={form.programmeCode} onChange={handleChange} required className={inputClass}>
+          {programmes.map((programme) => (
+            <option
+              key={programme.code}
+              value={programme.code}
+              // The child's current programme stays selectable even if it
+              // has since been switched off.
+              disabled={!programme.available && programme.code !== initial.programmeCode}
+            >
+              {programme.name}
+              {programme.available ? "" : " (coming soon)"}
+            </option>
+          ))}
+        </select>
+        <p className={`text-xs mt-1 ${programmeChanged ? "text-amber-700 font-medium" : "text-gray-500"}`}>
+          {programmeChanged
+            ? "Saving switches the subjects and questions your child sees. Past results stay in their history."
+            : "Your child sees only this programme's subjects and questions."}
+        </p>
       </div>
 
       <label className="flex items-center gap-3 cursor-pointer">

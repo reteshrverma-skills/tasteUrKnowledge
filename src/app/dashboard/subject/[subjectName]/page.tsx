@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { programmeOf } from "@/lib/programme";
 import Link from "next/link";
 import { LevelIcon } from "../LevelIcon";
 import { redirect } from "next/navigation";
@@ -66,7 +67,12 @@ export default async function SubjectPage({
     allowedLevels(session),
     prisma.gsEnglishComp.findMany({
       // Only passages an admin has approved are listed.
-      where: { ...compWhere(null, name), ...APPROVED_COMP },
+      where: {
+        ...compWhere(null, name),
+        ...APPROVED_COMP,
+        // Only this child's programme: Grammar School, GCSE or A-Level.
+        programmeCode: programmeOf(session),
+      },
       select: {
         id: true,
         label: true,

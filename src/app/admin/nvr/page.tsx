@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
+import { programmeOf } from "@/lib/programme";
 import { difficultyStyle } from "@/lib/level-style";
 import { availableNvrLevels, nvrTopicsForLevel } from "@/lib/nvr";
 import { LevelIcon } from "@/app/dashboard/subject/LevelIcon";
@@ -16,17 +17,19 @@ export default async function AdminNvrPage({
   searchParams: Promise<{ level?: string }>;
 }) {
   const session = await getSession();
+  // Only this programme's content: Grammar School, GCSE or A-Level.
+  const programme = programmeOf(session);
   if (!session || session.userType !== "ADMIN") redirect("/login");
 
   const { level: requestedLevel } = await searchParams;
 
   // Every level with questions behind it - the admin is not gated by level.
-  const levels = await availableNvrLevels();
+  const levels = await availableNvrLevels(programme);
   const activeLevel =
     levels.find((l) => l.toLowerCase() === requestedLevel?.toLowerCase()) ??
     levels[0];
 
-  const topics = activeLevel ? await nvrTopicsForLevel(activeLevel) : [];
+  const topics = activeLevel ? await nvrTopicsForLevel(programme, activeLevel) : [];
 
   return (
     <div className="min-h-screen bg-ground">

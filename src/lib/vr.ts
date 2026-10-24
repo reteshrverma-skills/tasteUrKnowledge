@@ -69,9 +69,10 @@ export interface VrTopicGroup {
 /** Every difficulty on the ladder that actually has questions behind it. */
 export const availableVrLevels = cachedUntilFlush(
   "vr-levels",
-  async (): Promise<string[]> => {
+  async (programme: string): Promise<string[]> => {
     const rows = await prisma.gsVrQuestion.groupBy({
       by: ["difficultyLevel"],
+      where: { programmeCode: programme },
       _count: { _all: true },
     });
     return sortDifficulties(rows.map((row) => row.difficultyLevel));
@@ -81,10 +82,13 @@ export const availableVrLevels = cachedUntilFlush(
 /** Subtopics at one difficulty, grouped under their topic. */
 export const vrTopicsForLevel = cachedUntilFlush(
   "vr-topics",
-  async (level: string): Promise<VrTopicGroup[]> => {
+  async (programme: string, level: string): Promise<VrTopicGroup[]> => {
     const rows = await prisma.gsVrQuestion.groupBy({
       by: ["topic", "subTopic"],
-      where: { difficultyLevel: { equals: level, mode: "insensitive" } },
+      where: {
+        programmeCode: programme,
+        difficultyLevel: { equals: level, mode: "insensitive" },
+      },
       _count: { _all: true },
     });
 
@@ -123,6 +127,7 @@ function shuffled<T>(items: T[]): T[] {
  * ids as numbers.
  */
 export async function randomVrRound(
+  programme: string,
   level: string,
   topic: string | null,
   subTopic: string | null
@@ -130,6 +135,7 @@ export async function randomVrRound(
   const take = subTopic ? QUESTIONS_PER_VR_ROUND : QUESTIONS_PER_VR_TOPIC_TEST;
   const rows = await prisma.gsVrQuestion.findMany({
     where: {
+      programmeCode: programme,
       difficultyLevel: { equals: level, mode: "insensitive" },
       ...(subTopic
         ? { subTopic: { equals: subTopic, mode: "insensitive" } }
@@ -156,9 +162,10 @@ export async function randomVrRound(
 }
 
 /** The answer and explanations for graded questions, keyed by numeric id. */
-export async function vrAnswerKey(ids: bigint[]) {
+export async function vrAnswerKey(programme: string, ids: bigint[]) {
   const rows = await prisma.gsVrQuestion.findMany({
-    where: { id: { in: ids } },
+    // Only this programme's questions can be graded in this programme.
+    where: { id: { in: ids }, programmeCode: programme },
     select: {
       id: true,
       quest: true,
