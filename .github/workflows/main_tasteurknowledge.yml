@@ -47,10 +47,18 @@ jobs:
           DATABASE_URL: 'postgresql://user:pass@localhost:5432/db'
           JWT_SECRET: 'build-time-placeholder-not-used-at-runtime'
 
+      # Clean deployment: wipe /home/site/wwwroot before unpacking, then
+      # restart. Without it, files from older builds (and the running process)
+      # survived deploys, and the live site kept serving pages from a build
+      # several commits old while its API routes were new. The site is down
+      # for the minute or two the deploy takes.
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'tasteurknowledge'
           slot-name: 'Production'
           package: .
+          type: 'ZIP'
+          clean: true
+          restart: true
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C14C7517A0F144AB8294DA2007E72BE9 }}
