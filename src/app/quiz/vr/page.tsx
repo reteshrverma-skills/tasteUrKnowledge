@@ -385,6 +385,9 @@ function VrQuiz() {
             <div className="flex justify-between items-center mb-2">
               <p className="text-sm font-medium text-ink tabular">
                 Question {safeIndex + 1} of {total}
+                <span className="ml-2 text-xs font-normal text-ink-faint" title="Question ID in the question bank">
+                  ID {currentQuestion.id}
+                </span>
               </p>
               <p className="text-xs text-ink-faint tabular">
                 <span className="font-semibold text-brand">{answeredCount}</span>

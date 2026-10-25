@@ -337,6 +337,9 @@ export function NvrQuiz() {
         <div className="flex items-center justify-between gap-3 mb-1">
           <span className="text-sm font-medium text-ink tabular">
             Question {currentIndex + 1} of {questions.length}
+            <span className="ml-2 text-xs font-normal text-ink-faint" title="Question ID in the question bank">
+              ID {question.id}
+            </span>
           </span>
           <span className={`chip ${difficultyStyle(question.difficultyLevel)}`}>
             {question.typeOfQuestion}
