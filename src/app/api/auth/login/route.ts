@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   SESSION_MAX_AGE_SECONDS,
+  homePathFor,
   signToken,
   startSingleSession,
   verifyPassword,
@@ -94,13 +95,9 @@ export async function POST(request: NextRequest) {
     await recordLogin(Number(user.id));
 
     // Each account type has its own home: admins the admin panel, parents the
-    // parent dashboard, students the subject tiles.
-    const destination =
-      user.userType === "ADMIN"
-        ? "/admin"
-        : user.userType === "PARENT"
-        ? "/parent"
-        : "/dashboard";
+    // parent dashboard, product directors the statistics, students the
+    // subject tiles.
+    const destination = homePathFor(user.userType);
 
     // Return the destination as data and let the client navigate, rather than
     // issuing an HTTP redirect. A server-built redirect has to name an

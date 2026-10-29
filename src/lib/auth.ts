@@ -37,7 +37,24 @@ export const SESSION_MAX_AGE_SECONDS = sessionConfig.idleTimeoutMinutes * 60;
 const JWT_EXPIRY = SESSION_MAX_AGE_SECONDS;
 const COOKIE_NAME = "token";
 
-export type UserType = "STUDENT" | "PARENT" | "ADMIN";
+export type UserType = "STUDENT" | "PARENT" | "ADMIN" | "PRODUCT_DIRECTOR";
+
+/**
+ * Where each account type lands after login, and where it is sent when it
+ * opens a page that is not for it.
+ */
+export function homePathFor(userType: UserType): string {
+  switch (userType) {
+    case "ADMIN":
+      return "/admin";
+    case "PARENT":
+      return "/parent";
+    case "PRODUCT_DIRECTOR":
+      return "/director";
+    default:
+      return "/dashboard";
+  }
+}
 
 export interface Session {
   /** userProfile.id */
@@ -76,7 +93,7 @@ export function signToken(data: Session): string {
   return jwt.sign(data, JWT_SECRET, { expiresIn: JWT_EXPIRY });
 }
 
-const USER_TYPES: readonly string[] = ["STUDENT", "PARENT", "ADMIN"];
+const USER_TYPES: readonly string[] = ["STUDENT", "PARENT", "ADMIN", "PRODUCT_DIRECTOR"];
 
 /**
  * A signature check is not enough: tokens issued before the userProfile

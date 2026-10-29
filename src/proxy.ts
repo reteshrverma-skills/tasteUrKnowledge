@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isCurrentSession, verifyToken } from "@/lib/auth";
+import { homePathFor, isCurrentSession, verifyToken } from "@/lib/auth";
 
 // Renamed from middleware.ts: Proxy runs on the Node.js runtime, which
 // `jsonwebtoken` needs. Under the Edge runtime verifyToken always returned
@@ -32,6 +32,27 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
+  // A product director sees statistics only: any student or parent page
+  // sends them back to their own.
+  if (
+    decoded?.userType === "PRODUCT_DIRECTOR" &&
+    (pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/quiz") ||
+      pathname.startsWith("/parent"))
+  ) {
+    return NextResponse.redirect(new URL("/director", request.url));
+  }
+
+  // The statistics page: product directors, and admins.
+  if (pathname.startsWith("/director")) {
+    if (!decoded) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    if (decoded.userType !== "PRODUCT_DIRECTOR" && decoded.userType !== "ADMIN") {
+      return NextResponse.redirect(new URL(homePathFor(decoded.userType), request.url));
+    }
+  }
+
   // Protect dashboard routes
   if (pathname.startsWith("/dashboard")) {
     // Temporarily allow dashboard access to debug
@@ -55,8 +76,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
     if (decoded.userType !== "PARENT") {
-      const home = decoded.userType === "ADMIN" ? "/admin" : "/dashboard";
-      return NextResponse.redirect(new URL(home, request.url));
+      return NextResponse.redirect(new URL(homePathFor(decoded.userType), request.url));
     }
   }
 
@@ -73,19 +93,15 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
     if (decoded.userType !== "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL(homePathFor(decoded.userType), request.url));
     }
   }
 
   // Redirect logged-in users away from auth pages
   if ((pathname === "/login" || pathname === "/register") && decoded) {
-    const destination =
-      decoded.userType === "ADMIN"
-        ? "/admin"
-        : decoded.userType === "PARENT"
-        ? "/parent"
-        : "/dashboard";
-    return NextResponse.redirect(new URL(destination, request.url));
+    return NextResponse.redirect(
+      new URL(homePathFor(decoded.userType), request.url)
+    );
   }
 
   return NextResponse.next();
@@ -96,6 +112,7 @@ export const config = {
     "/dashboard/:path*",
     "/quiz/:path*",
     "/admin/:path*",
+    "/director/:path*",
     "/parent/:path*",
     "/login",
     "/register",

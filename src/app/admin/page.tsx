@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { RefreshQuestionBank } from "./RefreshQuestionBank";
 
 export default async function AdminPage() {
-  // Middleware handles authentication and role check
+  // The proxy guards /admin; the page checks the role as well.
+  const session = await getSession();
+  if (!session || session.userType !== "ADMIN") redirect("/login");
+
   return (
     <div className="min-h-screen bg-ground">
       {/* Navigation */}
@@ -28,6 +33,12 @@ export default async function AdminPage() {
               className="text-ink-soft hover:text-brand font-medium"
             >
               Change Admin Password
+            </Link>
+            <Link
+              href="/admin/director-accounts"
+              className="text-ink-soft hover:text-brand font-medium"
+            >
+              Product Directors
             </Link>
             <form action="/api/auth/logout" method="POST">
               <button
