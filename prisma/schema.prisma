@@ -18,6 +18,8 @@ enum UserType {
   STUDENT
   PARENT
   ADMIN
+  /// Read-only statistics at /director (migration 035).
+  PRODUCT_DIRECTOR
 }
 
 /// User's login Id
