@@ -74,10 +74,10 @@ export default function TermsPage() {
             <p>
               Questions about these terms:{" "}
               <a
-                href="mailto:support@practicelabs.ai"
+                href="mailto:support@sigqs.uk"
                 className="font-medium text-brand hover:text-brand-hover"
               >
-                support@practicelabs.ai
+                support@sigqs.uk
               </a>
             </p>
           </section>
