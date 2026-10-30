@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { listAccounts } from "@/lib/admin-password";
 import { AccountPasswordForm } from "../AccountPasswordForm";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /** Admin-only screen for resetting an admin's password. */
 export default async function AdminAdminPasswordPage() {
@@ -20,22 +21,7 @@ export default async function AdminAdminPasswordPage() {
             <BrandLogo height={56} />
             Admin
           </Link>
-          <div className="flex gap-4">
-            <Link
-              href="/admin"
-              className="text-ink-soft hover:text-brand font-medium"
-            >
-              ← Admin Panel
-            </Link>
-            <form action="/api/auth/logout" method="POST">
-              <button
-                type="submit"
-                className="text-ink-soft hover:text-red-600 font-medium"
-              >
-                Logout
-              </button>
-            </form>
-          </div>
+          <ProfileMenu initial="A" items={ADMIN_MENU} />
         </div>
       </nav>
 

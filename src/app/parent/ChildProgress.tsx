@@ -18,8 +18,8 @@ export const SUBJECT_HEADING: Record<ProgressSubject, string> = {
   "Non-Verbal": "Non-Verbal Reasoning · by topic",
 };
 
-/** The per-subject details page for this child. */
-function detailsHref(studentId: number, subject: ProgressSubject) {
+/** The per-subject details page for this child, on the parent's side. */
+function parentDetailsHref(studentId: number, subject: ProgressSubject) {
   return `/parent/kids/${studentId}/progress/${slugForSubject(subject)}`;
 }
 
@@ -51,9 +51,12 @@ function DetailsLink({ href }: { href: string }) {
 export function ChildProgress({
   studentId,
   times,
+  detailsHref = parentDetailsHref,
 }: {
   studentId: number;
   times: SubjectTime[];
+  /** Where Details leads; the teacher dashboard points it at its own pages. */
+  detailsHref?: (studentId: number, subject: ProgressSubject) => string;
 }) {
   // Keyed off all-time, not this month: a child who practised last month but
   // not yet this one has a table worth showing, which is the whole point of

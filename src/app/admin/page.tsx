@@ -3,6 +3,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { RefreshQuestionBank } from "./RefreshQuestionBank";
+import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 export default async function AdminPage() {
   // The proxy guards /admin; the page checks the role as well.
@@ -15,40 +16,7 @@ export default async function AdminPage() {
       <nav className="bg-surface border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-brand inline-flex items-center gap-2"><BrandLogo height={56} />Admin</h1>
-          <div className="flex gap-4">
-            <Link
-              href="/dashboard"
-              className="text-ink-soft hover:text-brand font-medium"
-            >
-              Student Dashboard
-            </Link>
-            <Link
-              href="/admin/parent-password"
-              className="text-ink-soft hover:text-brand font-medium"
-            >
-              Change Parent Password
-            </Link>
-            <Link
-              href="/admin/admin-password"
-              className="text-ink-soft hover:text-brand font-medium"
-            >
-              Change Admin Password
-            </Link>
-            <Link
-              href="/admin/director-accounts"
-              className="text-ink-soft hover:text-brand font-medium"
-            >
-              Product Directors
-            </Link>
-            <form action="/api/auth/logout" method="POST">
-              <button
-                type="submit"
-                className="text-ink-soft hover:text-red-600 font-medium"
-              >
-                Logout
-              </button>
-            </form>
-          </div>
+          <ProfileMenu initial="A" items={ADMIN_MENU} />
         </div>
       </nav>
 

@@ -5,8 +5,8 @@ import { difficultyStyle } from "@/lib/level-style";
 import { nvrQuestionsForTopic, sanitiseFigure } from "@/lib/nvr";
 import { presentOptions } from "@/app/dashboard/subject/TestReview";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
-import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /**
  * Every question in one Non-Verbal topic at one level, laid out like the
@@ -41,7 +41,7 @@ export default async function AdminNvrTopicPage({
             <BrandLogo height={56} />
             Admin
           </span>
-          <LogoutButton />
+          <ProfileMenu initial="A" items={ADMIN_MENU} />
         </div>
       </nav>
 

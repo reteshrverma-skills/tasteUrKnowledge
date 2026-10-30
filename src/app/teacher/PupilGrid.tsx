@@ -98,7 +98,7 @@ export function PupilGrid({
                     >
                       <span className="block font-medium text-ink">{p.name}</span>
                       <span className={`block text-xs mt-0.5 ${p.inSession ? "text-good" : "text-ink-faint"}`}>
-                        {busy === p.studentId ? "Opening…" : p.inSession ? "Practising now" : "Tap to start"}
+                        {busy === p.studentId ? "Opening…" : p.inSession ? "Practising now" : "Click to start"}
                       </span>
                     </button>
                     {p.inSession && (

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { listPupils, listYears, requireSchoolStaff } from "@/lib/school";
-import { BrandLogo } from "@/components/BrandLogo";
-import { LogoutButton } from "@/components/LogoutButton";
 import { AddPupilForm, PupilListItem } from "@/components/SchoolForms";
+import { TeacherNav } from "../TeacherNav";
 
 /**
  * Teacher: add pupils to the Years they take and edit them. Inactive pupils
@@ -14,25 +14,23 @@ export default async function TeacherPupilsPage() {
   const staff = await requireSchoolStaff(["TEACHER"]).catch(() => null);
   if (!staff) redirect("/login");
 
-  const years = await listYears(staff);
+  const [years, allYears] = await Promise.all([
+    listYears(staff),
+    prisma.year.findMany({ orderBy: { order: "asc" }, select: { id: true, name: true } }),
+  ]);
   const pupils = await listPupils(staff, years.map((y) => y.id), { includeInactive: true });
   const yearOptions = years.map((y) => ({ id: y.id, label: y.name }));
+  // Editing may move a pupil to any Year; adding stays within the teacher's own.
+  const moveOptions = allYears.map((y) => ({ id: y.id, label: y.name }));
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <Link href="/teacher" className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand">
-            ← Dashboard
-          </Link>
-          <BrandLogo height={56} />
-          <div className="justify-self-end">
-            <LogoutButton />
-          </div>
-        </div>
-      </nav>
+      <TeacherNav userId={staff.userId} />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+        <Link href="/teacher" className="text-sm font-medium text-ink-soft hover:text-brand transition">
+          ← Back to dashboard
+        </Link>
         <header>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">Manage pupils</h1>
         </header>
@@ -64,7 +62,7 @@ export default async function TeacherPupilsPage() {
                       pupil={p}
                       yearName={p.yearName}
                       inSession={p.inSession}
-                      years={yearOptions}
+                      years={moveOptions}
                     />
                   ))}
                 </ul>

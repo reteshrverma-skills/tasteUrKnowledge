@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { adminStats, countryStats } from "@/lib/admin-stats";
 import { BrandLogo } from "@/components/BrandLogo";
-import { LogoutButton } from "@/components/LogoutButton";
 import { StatsPanel } from "@/components/StatsPanel";
 import { CountryStatsTable } from "@/components/CountryStatsTable";
+import { ADMIN_MENU, DIRECTOR_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /**
  * The Product Director's home: user statistics - accounts by type, students
@@ -35,7 +35,10 @@ export default async function DirectorPage() {
           </span>
           <BrandLogo height={56} />
           <div className="justify-self-end">
-            <LogoutButton />
+            <ProfileMenu
+              initial={session.profileName}
+              items={session.userType === "ADMIN" ? ADMIN_MENU : DIRECTOR_MENU}
+            />
           </div>
         </div>
       </nav>

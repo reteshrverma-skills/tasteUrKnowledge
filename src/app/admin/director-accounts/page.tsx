@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { listAccounts } from "@/lib/admin-password";
 import { BrandLogo } from "@/components/BrandLogo";
-import { LogoutButton } from "@/components/LogoutButton";
 import { AccountPasswordForm } from "../AccountPasswordForm";
 import { CreateDirectorForm } from "./CreateDirectorForm";
+import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /**
  * Admin-only: create Product Director logins and reset their passwords. A
@@ -26,7 +26,7 @@ export default async function DirectorAccountsPage() {
           </Link>
           <BrandLogo height={56} />
           <div className="justify-self-end">
-            <LogoutButton />
+            <ProfileMenu initial="A" items={ADMIN_MENU} />
           </div>
         </div>
       </nav>

@@ -136,17 +136,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <div className="flex items-baseline justify-between">
-                <label htmlFor="password" className="label">
-                  Your password *
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-medium text-brand hover:text-brand-hover"
-                >
-                  Forgotten?
-                </Link>
-              </div>
+              <label htmlFor="password" className="label">
+                Your password *
+              </label>
               <input
                 id="password"
                 type="password"
@@ -157,6 +149,14 @@ export default function LoginPage() {
                 className="field"
                 placeholder="Password"
               />
+              <div className="mt-1.5 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-brand hover:text-brand-hover"
+                >
+                  Forgotten?
+                </Link>
+              </div>
             </div>
 
             {(signOutReason === "idle" || signOutReason === "elsewhere") && !error && (

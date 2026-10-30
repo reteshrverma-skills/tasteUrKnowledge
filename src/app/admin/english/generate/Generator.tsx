@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton";
 import { difficultyStyle } from "@/lib/level-style";
+import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 // The difficulty ladder, in teaching order. Kept here rather than imported
 // from lib/student, which pulls the database client into the browser bundle.
@@ -187,7 +187,7 @@ export function Generator({
             ← English Comprehension
           </Link>
           <h1 className="text-xl sm:text-2xl font-bold text-brand">Generate with Claude</h1>
-          <LogoutButton />
+          <ProfileMenu initial="A" items={ADMIN_MENU} />
         </div>
       </nav>
 

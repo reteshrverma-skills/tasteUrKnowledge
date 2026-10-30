@@ -4,9 +4,9 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { displayName } from "@/lib/english";
 import { BrandLogo } from "@/components/BrandLogo";
-import { LogoutButton } from "@/components/LogoutButton";
 import { CreateSchoolForm } from "./CreateSchoolForm";
 import { SchoolListItem } from "./SchoolListItem";
+import { ADMIN_MENU, DIRECTOR_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /**
  * Product Director: create schools, each with its first School Admin, and see
@@ -53,7 +53,10 @@ export default async function DirectorSchoolsPage() {
           </Link>
           <BrandLogo height={56} />
           <div className="justify-self-end">
-            <LogoutButton />
+            <ProfileMenu
+              initial={session.profileName}
+              items={session.userType === "ADMIN" ? ADMIN_MENU : DIRECTOR_MENU}
+            />
           </div>
         </div>
       </nav>

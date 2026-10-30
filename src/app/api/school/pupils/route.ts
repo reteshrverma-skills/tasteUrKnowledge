@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
 
 /**
  * School Admin or teacher: edit a pupil - name, username, Year and whether
- * they are active. A teacher can edit only pupils in Years they take, and
- * move them only to another of those Years. Clearing the username gives the
+ * they are active. A teacher can edit only pupils in Years they take, but
+ * may move them to any Year. Clearing the username gives the
  * pupil a made-up one; the password stays null throughout.
  *
  * Switching a pupil off ends any turn they have open; switching one back on
@@ -80,7 +80,12 @@ export async function PATCH(request: NextRequest) {
     if (!fName || !lName) {
       return NextResponse.json({ error: "First name and last name are required" }, { status: 400 });
     }
-    const year = await yearFor(staff, text(body.yearId));
+    // Any Year: a teacher moving a pupil up (or to the right class) may send
+    // them to a Year they do not take, after which the pupil leaves their list.
+    const yearId = text(body.yearId);
+    const year = yearId
+      ? await prisma.year.findUnique({ where: { id: yearId }, select: { id: true } })
+      : null;
     if (!year) {
       return NextResponse.json({ error: "Please choose a year" }, { status: 400 });
     }
