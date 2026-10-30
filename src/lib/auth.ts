@@ -37,7 +37,13 @@ export const SESSION_MAX_AGE_SECONDS = sessionConfig.idleTimeoutMinutes * 60;
 const JWT_EXPIRY = SESSION_MAX_AGE_SECONDS;
 const COOKIE_NAME = "token";
 
-export type UserType = "STUDENT" | "PARENT" | "ADMIN" | "PRODUCT_DIRECTOR";
+export type UserType =
+  | "STUDENT"
+  | "PARENT"
+  | "ADMIN"
+  | "PRODUCT_DIRECTOR"
+  | "SCHOOL_ADMIN"
+  | "TEACHER";
 
 /**
  * Where each account type lands after login, and where it is sent when it
@@ -51,6 +57,10 @@ export function homePathFor(userType: UserType): string {
       return "/parent";
     case "PRODUCT_DIRECTOR":
       return "/director";
+    case "SCHOOL_ADMIN":
+      return "/school";
+    case "TEACHER":
+      return "/teacher";
     default:
       return "/dashboard";
   }
@@ -73,6 +83,13 @@ export interface Session {
    * issued before single sessions existed.
    */
   sid?: string;
+  /**
+   * Set when a teacher opened this pupil on a classroom device: the teacher's
+   * userProfile.id and the classroomSession row. Logging out of such a session
+   * asks for the teacher's PIN and returns the device to the teacher.
+   */
+  teacherId?: number;
+  classroomId?: number;
 }
 
 /** Tokens issued before programmes existed belong to Grammar School. */
@@ -82,10 +99,12 @@ export async function hashPassword(password: string): Promise<string> {
   return bcryptjs.hash(password, 10);
 }
 
+/** False for an account with no password (a school pupil): it never signs in. */
 export async function verifyPassword(
   password: string,
-  hash: string
+  hash: string | null
 ): Promise<boolean> {
+  if (!hash) return false;
   return bcryptjs.compare(password, hash);
 }
 
@@ -93,7 +112,14 @@ export function signToken(data: Session): string {
   return jwt.sign(data, JWT_SECRET, { expiresIn: JWT_EXPIRY });
 }
 
-const USER_TYPES: readonly string[] = ["STUDENT", "PARENT", "ADMIN", "PRODUCT_DIRECTOR"];
+const USER_TYPES: readonly string[] = [
+  "STUDENT",
+  "PARENT",
+  "ADMIN",
+  "PRODUCT_DIRECTOR",
+  "SCHOOL_ADMIN",
+  "TEACHER",
+];
 
 /**
  * A signature check is not enough: tokens issued before the userProfile
@@ -128,6 +154,10 @@ export function verifyToken(token: string): Session | null {
       ...(typeof payload.sid === "string" && payload.sid
         ? { sid: payload.sid }
         : {}),
+      ...(typeof payload.teacherId === "number" &&
+      typeof payload.classroomId === "number"
+        ? { teacherId: payload.teacherId, classroomId: payload.classroomId }
+        : {}),
     };
   } catch {
     return null;
@@ -159,7 +189,13 @@ export async function clearAuthCookie(): Promise<void> {
  * On globalThis so routes and the proxy share it. With several app instances
  * a login elsewhere is noticed within the 30 seconds.
  */
-type KeyEntry = { key: string | null; active: boolean; at: number };
+type KeyEntry = {
+  key: string | null;
+  active: boolean;
+  /** Teachers: any number of sessions, so the key is not checked. */
+  multi: boolean;
+  at: number;
+};
 const KEY_TTL_MS = 30_000;
 const keyCache: Map<number, KeyEntry> = ((
   globalThis as unknown as { __sessionKeys?: Map<number, KeyEntry> }
@@ -170,11 +206,18 @@ async function currentKey(userId: number): Promise<KeyEntry> {
   if (cached && Date.now() - cached.at < KEY_TTL_MS) return cached;
   const row = await prisma.userProfile.findUnique({
     where: { id: userId },
-    select: { activeSessionKey: true, isActive: true },
+    select: {
+      activeSessionKey: true,
+      isActive: true,
+      allowMultipleSessions: true,
+      school: { select: { isActive: true } },
+    },
   });
   const entry = {
     key: row?.activeSessionKey ?? null,
-    active: Boolean(row?.isActive),
+    // Switching a school off signs out its staff and pupils too.
+    active: Boolean(row?.isActive) && row?.school?.isActive !== false,
+    multi: Boolean(row?.allowMultipleSessions),
     at: Date.now(),
   };
   keyCache.set(userId, entry);
@@ -185,11 +228,13 @@ async function currentKey(userId: number): Promise<KeyEntry> {
  * Whether this token is the account's one live session. False once the
  * account signs in elsewhere, logs out, resets its password or is
  * deactivated. A token from before single sessions (no sid) is honoured
- * only until the account next signs in.
+ * only until the account next signs in. A teacher's tokens (several devices
+ * at once) are honoured while the account is active and unexpired.
  */
 export async function isCurrentSession(session: Session): Promise<boolean> {
-  const { key, active } = await currentKey(session.userId);
+  const { key, active, multi } = await currentKey(session.userId);
   if (!active) return false;
+  if (multi) return true;
   if (!key) return !session.sid;
   return session.sid === key;
 }
@@ -204,7 +249,7 @@ export async function startSingleSession(userId: number): Promise<string> {
     where: { id: userId },
     data: { activeSessionKey: key },
   });
-  keyCache.set(userId, { key, active: true, at: Date.now() });
+  keyCache.set(userId, { key, active: true, multi: false, at: Date.now() });
   return key;
 }
 

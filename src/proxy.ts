@@ -43,6 +43,37 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/director", request.url));
   }
 
+  // School staff work from their own pages: a School Admin from /school, a
+  // teacher from /teacher. Practice pages are for the pupils they open.
+  if (
+    (decoded?.userType === "SCHOOL_ADMIN" || decoded?.userType === "TEACHER") &&
+    (pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/quiz") ||
+      pathname.startsWith("/parent"))
+  ) {
+    return NextResponse.redirect(new URL(homePathFor(decoded.userType), request.url));
+  }
+
+  // The School Admin's page and the teacher's page, each for that role only.
+  for (const [prefix, role] of [
+    ["/school", "SCHOOL_ADMIN"],
+    ["/teacher", "TEACHER"],
+  ] as const) {
+    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
+      if (!decoded) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (decoded.userType !== role) {
+        return NextResponse.redirect(new URL(homePathFor(decoded.userType), request.url));
+      }
+    }
+  }
+
+  // Ending a classroom turn needs the pupil's session to end.
+  if (pathname.startsWith("/classroom") && !decoded) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   // The statistics page: product directors, and admins.
   if (pathname.startsWith("/director")) {
     if (!decoded) {
@@ -114,6 +145,9 @@ export const config = {
     "/admin/:path*",
     "/director/:path*",
     "/parent/:path*",
+    "/school/:path*",
+    "/teacher/:path*",
+    "/classroom/:path*",
     "/login",
     "/register",
   ],

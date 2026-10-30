@@ -238,7 +238,7 @@ export async function countryStats(): Promise<CountryStats[]> {
            l.login_today, l.login_week, l.login_month,
            p.secs_month, p.secs_alltime
       FROM accounts a
-      LEFT JOIN "country"  c ON c."code" = a.code
+      LEFT JOIN "coreCountry" c ON c."code" = a.code
       LEFT JOIN logins     l ON l.code IS NOT DISTINCT FROM a.code
       LEFT JOIN practice   p ON p.code IS NOT DISTINCT FROM a.code
      WHERE a.students > 0 OR a.parents > 0`;

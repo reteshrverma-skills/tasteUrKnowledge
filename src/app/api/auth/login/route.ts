@@ -65,6 +65,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // A school's staff cannot sign in once the school is switched off.
+    if (user.schoolId) {
+      const school = await prisma.school.findUnique({
+        where: { id: user.schoolId },
+        select: { isActive: true },
+      });
+      if (!school?.isActive) {
+        return NextResponse.json(
+          { error: "This school's account is inactive. Please contact SIGQS support." },
+          { status: 403 }
+        );
+      }
+    }
+
     // Verify password
     const passwordValid = await verifyPassword(password, user.profilePassword);
     if (!passwordValid) {
@@ -79,8 +93,13 @@ export async function POST(request: NextRequest) {
 
     // One session per account: this login ends any other (another device,
     // another browser), whose next request is sent to the login page.
-    await closeOpenSessions(Number(user.id), "replaced");
-    const sid = await startSingleSession(Number(user.id));
+    // Teachers are the exception - they sign in on several classroom devices
+    // at once - so their token carries no session key.
+    let sid: string | undefined;
+    if (!user.allowMultipleSessions) {
+      await closeOpenSessions(Number(user.id), "replaced");
+      sid = await startSingleSession(Number(user.id));
+    }
 
     // Create token and set cookie
     const token = signToken({

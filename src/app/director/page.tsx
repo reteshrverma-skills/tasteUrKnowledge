@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { adminStats, countryStats } from "@/lib/admin-stats";
@@ -7,9 +8,10 @@ import { StatsPanel } from "@/components/StatsPanel";
 import { CountryStatsTable } from "@/components/CountryStatsTable";
 
 /**
- * The Product Director's home: user statistics only, read-only - accounts by
- * type, students logged in, and practice time. No student, parent or admin
- * tools are reachable from this account; the proxy sends it back here.
+ * The Product Director's home: user statistics - accounts by type, students
+ * logged in, and practice time - plus the way into creating schools. No
+ * student, parent or admin tools are reachable from this account; the proxy
+ * sends it back here.
  */
 export default async function DirectorPage() {
   // The proxy lets only product directors (and admins) in; checked again here
@@ -39,9 +41,14 @@ export default async function DirectorPage() {
       </nav>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink mb-6">
-          Platform statistics
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">
+            Platform statistics
+          </h1>
+          <Link href="/director/schools" className="btn-primary px-5 py-2 text-sm">
+            Schools
+          </Link>
+        </div>
         <StatsPanel stats={stats} />
         <CountryStatsTable rows={byCountry} />
       </main>

@@ -82,8 +82,9 @@ function IdleWatcher() {
       if (signingOut.current) return;
       signingOut.current = true;
       try {
-        // Records the logout and clears the cookie.
-        await fetch("/api/auth/logout", { method: "POST", redirect: "manual" });
+        // Records the logout and clears the cookie. reason=idle: a classroom
+        // pupil's turn ends here too, rather than asking for the PIN.
+        await fetch("/api/auth/logout?reason=idle", { method: "POST", redirect: "manual" });
       } catch {
         // Offline: the token still expires on its own; send them away anyway.
       }
@@ -187,7 +188,7 @@ function IdleWatcher() {
   const leave = async () => {
     signingOut.current = true;
     try {
-      await fetch("/api/auth/logout", { method: "POST", redirect: "manual" });
+      await fetch("/api/auth/logout?reason=idle", { method: "POST", redirect: "manual" });
     } catch {
       // see above
     }

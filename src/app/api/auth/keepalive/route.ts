@@ -59,6 +59,10 @@ export async function POST() {
     programme: account.programmeCode,
     // The same login, so the same session key.
     sid: session.sid,
+    // A classroom turn stays a classroom turn.
+    ...(session.teacherId && session.classroomId
+      ? { teacherId: session.teacherId, classroomId: session.classroomId }
+      : {}),
   });
 
   const response = NextResponse.json({ renewed: true });

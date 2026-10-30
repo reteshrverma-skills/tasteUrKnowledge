@@ -20,6 +20,10 @@ enum UserType {
   ADMIN
   /// Read-only statistics at /director (migration 035).
   PRODUCT_DIRECTOR
+  /// Runs one school at /school: classes, teachers, pupils (migration 036).
+  SCHOOL_ADMIN
+  /// Opens pupils for practice from /teacher (migration 036).
+  TEACHER
 }
 
 /// User's login Id
@@ -30,8 +34,9 @@ model UserProfile {
   lName            String?
   /// Login user id
   profileName      String    @unique
-  /// bcrypt hash of the login password
-  profilePassword  String
+  /// bcrypt hash of the login password. Null for school pupils, who are
+  /// opened by their teacher and can never sign in themselves (migration 036).
+  profilePassword  String?
   userType         UserType  @default(STUDENT)
   /// Legacy one-to-one link, kept only so older data is not lost. The live
   /// link is UserStudentDetails.parentId, which lets one parent hold many
@@ -49,6 +54,22 @@ model UserProfile {
   /// (migration 031). Null for accounts made before it was asked.
   countryCode      String?   @db.Char(2)
   country          Country?  @relation(fields: [countryCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+
+  /// The school a SCHOOL_ADMIN, TEACHER or school pupil belongs to (migration
+  /// 036). Null for parents, home students, admins and product directors.
+  schoolId              BigInt?
+  school                School? @relation("SchoolMembers", fields: [schoolId], references: [id], onDelete: Restrict)
+  /// True for teachers, who sign in on several classroom devices at once; the
+  /// one-session rule applies to everyone else.
+  allowMultipleSessions Boolean @default(false)
+  /// bcrypt hash of a teacher's 4-digit PIN, which ends a pupil's turn on a
+  /// classroom device and returns it to the teacher's screen.
+  pinHash               String?
+
+  schoolsCreated  School[]             @relation("SchoolCreatedBy")
+  classesTaught   SchoolClassTeacher[]
+  classroomTurns  ClassroomSession[]   @relation("ClassroomStudent")
+  classroomOpened ClassroomSession[]   @relation("ClassroomTeacher")
 
   personalDetails UserPersonalDetails?
   studentDetails  UserStudentDetails?
@@ -75,6 +96,7 @@ model UserProfile {
 
   @@index([countryCode])
   @@index([programmeCode])
+  @@index([schoolId])
   @@map("userProfile")
 }
 
@@ -115,12 +137,13 @@ model Programme {
   isActive  Boolean @default(true)
 
   users          UserProfile[]
+  schools        School[]
   englishComps   GsEnglishComp[]
   mathsQuestions GsMathsQuestion[]
   nvrQuestions   GsNvrQuestion[]
   vrQuestions    GsVrQuestion[]
 
-  @@map("programme")
+  @@map("coreProgramme")
 }
 
 /// Every ISO 3166-1 country, for the country drop-downs (migration 031).
@@ -137,7 +160,7 @@ model Country {
 
   users UserProfile[]
 
-  @@map("country")
+  @@map("coreCountry")
 }
 
 /// One row per login, closed on logout: an audit trail of who was on and when.
@@ -566,12 +589,18 @@ model TestTrackerEnglish {
   @@map("testTrackerEnglish")
 }
 
+/// The master list of school classes - Year 4, Year 5... - that pupils and
+/// teachers are placed in. The table was "Year" until migration 037, then
+/// masterSchoolClass until 039.
 model Year {
   id             String               @id @default(cuid())
   name           String               @unique
   order          Int                  @default(0)
   subjects       Subject[]
   studentDetails UserStudentDetails[]
+  classTeachers  SchoolClassTeacher[]
+
+  @@map("coreSchoolClass")
 }
 
 model Subject {
@@ -660,4 +689,70 @@ model TestTrackerVr {
   @@index([testId], map: "idx_testTrackerVR_testId")
   @@index([studentId], map: "idx_testTrackerVR_studentId")
   @@map("testTrackerVR")
+}
+
+/// A school, created by a Product Director (migration 036). Its School Admin,
+/// teachers and pupils carry its id in userProfile.schoolId.
+model School {
+  id            BigInt       @id @default(autoincrement())
+  name          String
+  address1      String?
+  address2      String?
+  city          String?
+  postcode      String?
+  contactEmail  String?
+  /// The programme every pupil of this school practises.
+  programmeCode String       @default("GRAMMAR")
+  programme     Programme    @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+  /// Pupil seats; null means no limit.
+  maxStudents   Int?
+  isActive      Boolean      @default(true)
+  createdById   BigInt?
+  createdBy     UserProfile? @relation("SchoolCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now()) @db.Timestamptz(3)
+
+  members       UserProfile[]        @relation("SchoolMembers")
+  classTeachers SchoolClassTeacher[]
+
+  @@map("coreSchool")
+}
+
+/// Which teachers take which classes (coreSchoolClass: Year 4, Year 5...)
+/// in which school. A pupil's class is their studentYear. Was
+/// schoolYearTeacher until migration 038, schoolClassTeacher until 041.
+model SchoolClassTeacher {
+  id          BigInt      @id @default(autoincrement())
+  schoolId    BigInt
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  /// coreSchoolClass.id
+  classId     String
+  masterClass Year        @relation(fields: [classId], references: [id], onDelete: Restrict)
+  teacherId   BigInt
+  teacher     UserProfile @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+  /// Set when the teacher is taken off the class; rows are never deleted.
+  removedAt   DateTime?   @db.Timestamptz(3)
+
+  @@unique([teacherId, classId], map: "coreSchoolClassTeacher_teacherId_classId_key")
+  @@index([schoolId, classId], map: "coreSchoolClassTeacher_schoolId_classId_idx")
+  @@map("coreSchoolClassTeacher")
+}
+
+/// One row each time a teacher opens a pupil on a classroom device. Closed
+/// (endedAt set), never deleted, so it doubles as the audit trail.
+model ClassroomSession {
+  id        BigInt      @id @default(autoincrement())
+  studentId BigInt
+  student   UserProfile @relation("ClassroomStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  teacherId BigInt
+  teacher   UserProfile @relation("ClassroomTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  startedAt DateTime    @default(now()) @db.Timestamptz(3)
+  endedAt   DateTime?   @db.Timestamptz(3)
+  /// "exit" | "ended_by_teacher" | "replaced" | "idle" | "school_inactive"
+  endReason String?
+  userAgent String?
+
+  @@index([teacherId, endedAt])
+  @@index([studentId, endedAt])
+  @@map("classroomSession")
 }
