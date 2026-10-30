@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { displayName } from "@/lib/english";
-import { listYears, ownsChild, parentProfile } from "@/lib/parent";
+import { listYears, ownsManagedChild, parentProfile } from "@/lib/parent";
 import { ParentNav } from "../../ParentNav";
 import { EditKidForm } from "./EditKidForm";
 import { listProgrammes } from "@/lib/programme";
@@ -28,7 +28,8 @@ export default async function EditKidPage({
   // A child belonging to someone else is not "forbidden", it simply is not
   // there as far as this parent is concerned.
   if (!Number.isInteger(studentId)) notFound();
-  if (!(await ownsChild(session.userId, studentId))) notFound();
+  // A school pupil is edited by the school, not here.
+  if (!(await ownsManagedChild(session.userId, studentId))) notFound();
 
   const [child, years, profile, programmes] = await Promise.all([
     prisma.userProfile.findUnique({

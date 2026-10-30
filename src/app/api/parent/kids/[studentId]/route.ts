@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { endAllSessions, getSessionOrThrow, hashPassword } from "@/lib/auth";
-import { ownsChild, passwordProblem } from "@/lib/parent";
+import { ownsManagedChild, passwordProblem } from "@/lib/parent";
 import { deleteChild, parseDeleteMode } from "@/lib/child-delete";
 import { validProgrammeCode } from "@/lib/programme";
 
@@ -12,7 +12,7 @@ function text(value: unknown): string | null {
 /**
  * A parent updating one of their children.
  *
- * ownsChild is the whole guard: without it, editing the id in the URL would
+ * ownsManagedChild is the whole guard: without it, editing the id in the URL would
  * let one parent rewrite another parent's child. The login id is deliberately
  * not editable - it is what the child signs in with, and the tracker tables
  * key off the profile, not the name.
@@ -30,7 +30,8 @@ export async function PUT(
     const { studentId: raw } = await params;
     const studentId = Number(raw);
 
-    if (!(await ownsChild(session.userId, studentId))) {
+    // A school pupil is managed by the school: the parent only views them.
+    if (!(await ownsManagedChild(session.userId, studentId))) {
       return NextResponse.json({ error: "Child not found" }, { status: 404 });
     }
 
@@ -136,7 +137,8 @@ export async function DELETE(
     const { studentId: raw } = await params;
     const studentId = Number(raw);
 
-    if (!(await ownsChild(session.userId, studentId))) {
+    // A school pupil is managed by the school: the parent only views them.
+    if (!(await ownsManagedChild(session.userId, studentId))) {
       return NextResponse.json({ error: "Child not found" }, { status: 404 });
     }
 

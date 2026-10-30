@@ -231,6 +231,8 @@ export interface PupilRow {
   isActive: boolean;
   /** The username staff gave the pupil; null when one was made up. */
   username: string | null;
+  /** The parent account linked to the pupil, who can view their progress. */
+  parent: { name: string; profileName: string } | null;
   yearId: string | null;
   yearName: string | null;
   /** Open on a classroom device right now. */
@@ -261,6 +263,7 @@ export async function listPupils(
       studentId: true,
       studentYear: true,
       year: { select: { name: true, order: true } },
+      parent: { select: { fName: true, mName: true, lName: true, profileName: true } },
       student: {
         select: {
           fName: true,
@@ -286,6 +289,7 @@ export async function listPupils(
       lName: r.student.lName ?? "",
       isActive: r.student.isActive,
       username: r.student.profileName.startsWith(GENERATED_PREFIX) ? null : r.student.profileName,
+      parent: r.parent ? { name: displayName(r.parent), profileName: r.parent.profileName } : null,
       yearId: r.studentYear,
       yearName: r.year?.name ?? null,
       inSession: r.student.classroomTurns.length > 0,

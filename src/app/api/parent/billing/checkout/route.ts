@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { ownsChild, parentProfile } from "@/lib/parent";
+import { ownsManagedChild, parentProfile } from "@/lib/parent";
 import {
   appUrl,
   existingCustomerFor,
@@ -26,7 +26,8 @@ export async function POST(request: NextRequest) {
 
   const form = await request.formData();
   const studentId = Number(form.get("studentId"));
-  if (!(await ownsChild(session.userId, studentId))) return back("error");
+  // School pupils are paid for by the school, not the parent.
+  if (!(await ownsManagedChild(session.userId, studentId))) return back("error");
 
   // Already paying: send them to manage it rather than buy a second one.
   if ((await subscriptionFor(studentId)).isPaid) return back("already");

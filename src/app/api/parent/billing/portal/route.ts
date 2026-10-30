@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { ownsChild } from "@/lib/parent";
+import { ownsManagedChild } from "@/lib/parent";
 import { appUrl, stripe, subscriptionFor } from "@/lib/billing";
 
 /**
@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
 
   const form = await request.formData();
   const studentId = Number(form.get("studentId"));
-  if (!(await ownsChild(session.userId, studentId))) return back("error");
+  // School pupils are paid for by the school, not the parent.
+  if (!(await ownsManagedChild(session.userId, studentId))) return back("error");
 
   const { subscriptionId } = await subscriptionFor(studentId);
   if (!subscriptionId || !process.env.STRIPE_SECRET_KEY) return back("error");

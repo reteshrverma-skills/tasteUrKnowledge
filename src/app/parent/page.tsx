@@ -167,6 +167,14 @@ export default async function ParentDashboardPage({
                   {/* Subscription, next to the name it pays for. Plain form
                       posts: the routes answer with a redirect to Stripe. */}
                   {(() => {
+                    // A school pupil is paid for and managed by the school.
+                    if (child.schoolName) {
+                      return (
+                        <span className="chip bg-brand-tint text-brand border-brand/20">
+                          {child.schoolName}
+                        </span>
+                      );
+                    }
                     const sub = progressById.get(child.studentId)?.subscription;
                     return sub?.isPaid ? (
                       <form
@@ -224,12 +232,14 @@ export default async function ParentDashboardPage({
                         </span>
                       ))
                     )}
-                    <Link
-                      href={`/parent/kids/${child.studentId}`}
-                      className="btn-quiet ml-1 px-3 py-1.5 text-xs whitespace-nowrap"
-                    >
-                      Edit
-                    </Link>
+                    {!child.schoolName && (
+                      <Link
+                        href={`/parent/kids/${child.studentId}`}
+                        className="btn-quiet ml-1 px-3 py-1.5 text-xs whitespace-nowrap"
+                      >
+                        Edit
+                      </Link>
+                    )}
                   </span>
                   </div>
 

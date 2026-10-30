@@ -466,6 +466,8 @@ export interface PupilDetails {
   username: string | null;
   yearId: string | null;
   isActive: boolean;
+  /** The parent account linked to view the pupil's progress. */
+  parent: { name: string; profileName: string } | null;
 }
 
 /**
@@ -548,6 +550,7 @@ export function PupilListItem({
         <span className="text-ink">
           {pupil.fName} {pupil.lName}
           {pupil.username && <span className="text-ink-soft"> · {pupil.username}</span>}
+          {pupil.parent && <span className="text-ink-soft"> · parent {pupil.parent.name}</span>}
           {!pupil.isActive && <span className="text-poor"> · inactive</span>}
         </span>
         <span className="flex items-center gap-4 text-ink-soft">
@@ -566,7 +569,88 @@ export function PupilListItem({
           )}
         </span>
       </div>
-      {editing && <EditPupilForm pupil={pupil} years={years} onDone={() => setEditing(false)} />}
+      {editing && (
+        <>
+          <EditPupilForm pupil={pupil} years={years} onDone={() => setEditing(false)} />
+          <ParentLinkForm pupil={pupil} />
+        </>
+      )}
     </li>
+  );
+}
+
+/**
+ * Link a pupil to their parent's account, so the parent can see their
+ * progress - or unlink them. Both the parent's login ID and the email on
+ * that account must match; the parent views the pupil but cannot edit them.
+ */
+function ParentLinkForm({ pupil }: { pupil: PupilDetails }) {
+  const { saving, run, status } = useSubmit();
+  const [parentLoginId, setParentLoginId] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
+
+  const link = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const ok = await run(
+      "/api/school/pupils/parent",
+      { studentId: pupil.studentId, parentLoginId, parentEmail },
+      "Parent linked. They can now see this pupil's progress."
+    );
+    if (ok) {
+      setParentLoginId("");
+      setParentEmail("");
+    }
+  };
+
+  const unlink = async () => {
+    if (!window.confirm(`Unlink ${pupil.parent?.name}? They will stop seeing this pupil's progress.`)) return;
+    await run("/api/school/pupils/parent", { studentId: pupil.studentId, unlink: true }, "Parent unlinked.");
+  };
+
+  return (
+    <div className="mt-5 pt-4 border-t border-line space-y-3">
+      <h4 className="text-sm font-semibold text-ink">Parent</h4>
+      {pupil.parent ? (
+        <div className="flex flex-wrap items-center gap-4 text-sm">
+          <span className="text-ink">
+            {pupil.parent.name} <span className="text-ink-soft">· {pupil.parent.profileName}</span>
+          </span>
+          <button
+            type="button"
+            onClick={unlink}
+            disabled={saving}
+            className="font-medium text-poor hover:underline disabled:opacity-50"
+          >
+            Unlink
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={link} className="space-y-3">
+          <p className="text-xs text-ink-faint">
+            If the pupil&apos;s parent has a SIGQS parent account, link it so they can see this
+            pupil&apos;s progress. They cannot edit the pupil.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field
+              label="Parent's login ID"
+              value={parentLoginId}
+              onChange={(e) => setParentLoginId(e.target.value)}
+              required
+            />
+            <Field
+              label="Email on their account"
+              type="email"
+              value={parentEmail}
+              onChange={(e) => setParentEmail(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" disabled={saving} className="btn-quiet px-5 py-2 text-sm disabled:opacity-50">
+            {saving ? "Linking…" : "Link parent"}
+          </button>
+        </form>
+      )}
+      {status}
+    </div>
   );
 }

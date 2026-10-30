@@ -20,6 +20,12 @@ export interface Child {
   isActive: boolean;
   /** Difficulty levels unlocked for this child. */
   levels: string[];
+  /**
+   * The school, for a pupil a teacher linked to this parent. The parent sees
+   * their progress but cannot edit, delete or subscribe them - the school
+   * manages the pupil.
+   */
+  schoolName: string | null;
 }
 
 /** Children of this parent, oldest profile first so the order never shifts. */
@@ -43,6 +49,7 @@ export async function listChildren(parentId: number): Promise<Child[]> {
           lName: true,
           profileName: true,
           isActive: true,
+          school: { select: { name: true } },
         },
       },
     },
@@ -58,6 +65,7 @@ export async function listChildren(parentId: number): Promise<Child[]> {
     // Shared with the student-side gate, so the chips a parent sees and the
     // levels a child can actually open can never drift apart.
     levels: grantedLevels(row),
+    schoolName: row.student.school?.name ?? null,
   }));
 }
 
@@ -74,6 +82,23 @@ export async function ownsChild(
   if (!Number.isInteger(studentId)) return false;
   const found = await prisma.userStudentDetails.findFirst({
     where: { parentId, studentId },
+    select: { id: true },
+  });
+  return found !== null;
+}
+
+/**
+ * True only if `studentId` is this parent's child AND the parent manages
+ * them - not a school pupil a teacher linked for viewing. Editing, deleting
+ * and billing go through here; viewing progress needs only ownsChild.
+ */
+export async function ownsManagedChild(
+  parentId: number,
+  studentId: number
+): Promise<boolean> {
+  if (!Number.isInteger(studentId)) return false;
+  const found = await prisma.userStudentDetails.findFirst({
+    where: { parentId, studentId, student: { schoolId: null } },
     select: { id: true },
   });
   return found !== null;

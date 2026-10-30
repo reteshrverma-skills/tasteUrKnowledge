@@ -45,7 +45,22 @@ export default async function KidsProfilePage() {
 
         {children.length > 0 && (
           <div className="mb-8 space-y-2">
-            {children.map((child) => (
+            {children.map((child) =>
+              child.schoolName ? (
+                // Managed by the school: shown, but not editable here.
+                <div
+                  key={child.studentId}
+                  className="flex items-center gap-3 bg-white rounded-lg shadow-sm px-4 py-3 border-l-4 border-gray-300"
+                >
+                  <span className="font-semibold text-gray-800">{child.name}</span>
+                  <span className="text-xs text-gray-500">
+                    {child.yearName ?? "no year set"}
+                  </span>
+                  <span className="ml-auto text-xs text-gray-500">
+                    Managed by {child.schoolName}
+                  </span>
+                </div>
+              ) : (
               <Link
                 key={child.studentId}
                 href={`/parent/kids/${child.studentId}`}
@@ -62,7 +77,8 @@ export default async function KidsProfilePage() {
                   Edit →
                 </span>
               </Link>
-            ))}
+              )
+            )}
           </div>
         )}
 
