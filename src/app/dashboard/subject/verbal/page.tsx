@@ -81,8 +81,12 @@ export default async function VerbalPage({
 
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
         <header className="mb-7">
+          {/* The level in the heading, so the student can see which one they chose. */}
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">
             {VR_SUBJECT_FULL}
+            {activeLevel && (
+              <span className="text-ink-soft font-semibold"> ({activeLevel})</span>
+            )}
           </h1>
           <p className="text-ink-soft text-sm mt-1">
             Pick a difficulty, open a topic, choose a subtopic — you get up to{" "}
