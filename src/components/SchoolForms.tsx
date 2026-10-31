@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -326,12 +327,21 @@ export function EditTeacherForm({
   teacher,
   years,
   onDone,
+  doneHref,
 }: {
   teacher: TeacherDetails;
   years: Option[];
-  onDone: () => void;
+  /** Called when the form closes, for a form opened inside a list row. */
+  onDone?: () => void;
+  /** Where to go when the form closes, for a form opened from the URL. */
+  doneHref?: string;
 }) {
   const { saving, run, status } = useSubmit();
+  const router = useRouter();
+  const done = () => {
+    onDone?.();
+    if (doneHref) router.push(doneHref);
+  };
   const [form, setForm] = useState({
     fName: teacher.fName,
     lName: teacher.lName,
@@ -357,7 +367,7 @@ export function EditTeacherForm({
       "Teacher updated.",
       "PATCH"
     );
-    if (ok) onDone();
+    if (ok) done();
   };
 
   return (
@@ -411,7 +421,7 @@ export function EditTeacherForm({
         <button type="submit" disabled={saving} className="btn-primary px-6 py-2.5 disabled:opacity-50">
           {saving ? "Saving…" : "Save changes"}
         </button>
-        <button type="button" onClick={onDone} className="btn-quiet px-6 py-2.5">
+        <button type="button" onClick={done} className="btn-quiet px-6 py-2.5">
           Cancel
         </button>
       </div>
@@ -424,33 +434,45 @@ export function TeacherListItem({
   teacher,
   yearNames,
   years,
+  editHref,
+  selected = false,
 }: {
   teacher: TeacherDetails;
   yearNames: string;
   years: Option[];
+  /** Opens the edit form at this URL instead of inside the row. */
+  editHref?: string;
+  /** The row whose form is open, so it stands out in the list. */
+  selected?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   return (
-    <li className="py-2.5 text-sm">
+    <li className={`py-2.5 text-sm ${selected ? "bg-brand-tint -mx-3 px-3 rounded-lg" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
-        <span className="text-ink">
+        <span className="text-ink min-w-0 break-words">
           {teacher.fName} {teacher.lName}
           {!teacher.isActive && <span className="text-poor"> · inactive</span>}
           <span className="text-ink-soft"> · {yearNames || "no year"}</span>
         </span>
-        <span className="flex items-center gap-4 text-ink-soft">
-          <span>
+        <span className="flex items-center gap-4 text-ink-soft min-w-0">
+          <span className="min-w-0 break-all">
             {teacher.profileName}
             {teacher.email && ` · ${teacher.email}`}
           </span>
-          {!editing && (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="font-medium text-brand hover:underline"
-            >
+          {editHref ? (
+            <Link href={editHref} scroll={false} className="font-medium text-brand hover:underline">
               Edit
-            </button>
+            </Link>
+          ) : (
+            !editing && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="font-medium text-brand hover:underline"
+              >
+                Edit
+              </button>
+            )
           )}
         </span>
       </div>
@@ -478,12 +500,21 @@ export function EditPupilForm({
   pupil,
   years,
   onDone,
+  doneHref,
 }: {
   pupil: PupilDetails;
   years: Option[];
-  onDone: () => void;
+  /** Called when the form closes, for a form opened inside a list row. */
+  onDone?: () => void;
+  /** Where to go when the form closes, for a form opened from the URL. */
+  doneHref?: string;
 }) {
   const { saving, run, status } = useSubmit();
+  const router = useRouter();
+  const done = () => {
+    onDone?.();
+    if (doneHref) router.push(doneHref);
+  };
   const [fName, setFName] = useState(pupil.fName);
   const [lName, setLName] = useState(pupil.lName);
   const [username, setUsername] = useState(pupil.username ?? "");
@@ -498,7 +529,7 @@ export function EditPupilForm({
       "Pupil updated.",
       "PATCH"
     );
-    if (ok) onDone();
+    if (ok) done();
   };
 
   return (
@@ -523,7 +554,7 @@ export function EditPupilForm({
         <button type="submit" disabled={saving} className="btn-primary px-6 py-2.5 disabled:opacity-50">
           {saving ? "Saving…" : "Save changes"}
         </button>
-        <button type="button" onClick={onDone} className="btn-quiet px-6 py-2.5">
+        <button type="button" onClick={done} className="btn-quiet px-6 py-2.5">
           Cancel
         </button>
       </div>
@@ -537,17 +568,23 @@ export function PupilListItem({
   yearName,
   inSession,
   years,
+  editHref,
+  selected = false,
 }: {
   pupil: PupilDetails;
   yearName: string | null;
   inSession: boolean;
   years: Option[];
+  /** Opens the edit form at this URL instead of inside the row. */
+  editHref?: string;
+  /** The row whose form is open, so it stands out in the list. */
+  selected?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   return (
-    <li className="py-2 text-sm">
+    <li className={`py-2 text-sm ${selected ? "bg-brand-tint -mx-3 px-3 rounded-lg" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
-        <span className="text-ink">
+        <span className="text-ink min-w-0 break-words">
           {pupil.fName} {pupil.lName}
           {pupil.username && <span className="text-ink-soft"> · {pupil.username}</span>}
           {pupil.parent && <span className="text-ink-soft"> · parent {pupil.parent.name}</span>}
@@ -558,14 +595,20 @@ export function PupilListItem({
             {yearName}
             {inSession && <span className="text-good"> · practising now</span>}
           </span>
-          {!editing && (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="font-medium text-brand hover:underline"
-            >
+          {editHref ? (
+            <Link href={editHref} scroll={false} className="font-medium text-brand hover:underline">
               Edit
-            </button>
+            </Link>
+          ) : (
+            !editing && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="font-medium text-brand hover:underline"
+              >
+                Edit
+              </button>
+            )
           )}
         </span>
       </div>
@@ -584,7 +627,7 @@ export function PupilListItem({
  * progress - or unlink them. Both the parent's login ID and the email on
  * that account must match; the parent views the pupil but cannot edit them.
  */
-function ParentLinkForm({ pupil }: { pupil: PupilDetails }) {
+export function ParentLinkForm({ pupil }: { pupil: PupilDetails }) {
   const { saving, run, status } = useSubmit();
   const [parentLoginId, setParentLoginId] = useState("");
   const [parentEmail, setParentEmail] = useState("");

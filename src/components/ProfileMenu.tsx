@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HelpMenu } from "@/components/HelpMenu";
 import { LogoutButton } from "@/components/LogoutButton";
 
 export interface ProfileMenuItem {
@@ -9,7 +10,8 @@ export interface ProfileMenuItem {
 
 /**
  * The right-hand end of a top bar: a round initial with "Profile", opening a
- * menu of the account's pages, then Log out - the layout ParentNav uses.
+ * menu of the account's pages, then Help and Log out - the layout ParentNav
+ * uses.
  *
  * <details> rather than client state, so it needs no JavaScript and works in
  * server and client components alike.
@@ -42,6 +44,7 @@ export function ProfileMenu({ initial, items }: { initial: string; items: Profil
         </div>
       </details>
 
+      <HelpMenu />
       <LogoutButton />
     </div>
   );
