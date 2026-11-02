@@ -14,7 +14,8 @@ export function displayName(profile: {
   lName?: string | null;
   profileName?: string | null;
 }): string {
-  const full = [profile.fName, profile.mName, profile.lName]
+  // First and last name only: the middle name is kept on the profile but not shown.
+  const full = [profile.fName, profile.lName]
     .map((part) => part?.trim())
     .filter(Boolean)
     .join(" ");

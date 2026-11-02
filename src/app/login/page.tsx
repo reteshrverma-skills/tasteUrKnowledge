@@ -21,6 +21,12 @@ export default function LoginPage() {
     () => ""
   );
 
+  // The login form is a popup, opened by Log In. An automatic sign-out opens it
+  // straight away, because the notice saying why is inside it. Null means the
+  // visitor has not opened or closed it yet.
+  const [loginOpen, setLoginOpen] = useState<boolean | null>(null);
+  const showLogin = loginOpen ?? Boolean(signOutReason);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -66,59 +72,64 @@ export default function LoginPage() {
               className="h-20 sm:h-28 w-auto"
             />
           </Link>
-          <Link
-            href="/register"
-            className="hidden sm:inline-block text-sm font-semibold text-brand hover:text-brand-hover"
-          >
-            Create an account
-          </Link>
         </div>
       </header>
 
-      {/* Banner: the page title over the logo colours, with a few faint
-          figures from the question bank for texture. */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#0b3a6e] via-[#1565c0] to-[#12a874] text-white">
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 1200 300"
-          preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 h-full w-full opacity-15"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-        >
-          <polygon points="110,40 145,60 145,100 110,120 75,100 75,60" />
-          <circle cx="210" cy="230" r="30" />
-          <polygon points="420,215 445,260 395,260" />
-          <rect x="760" y="50" width="54" height="54" rx="8" transform="rotate(12 787 77)" />
-          <polygon points="1060,45 1090,100 1030,100" />
-          <circle cx="950" cy="225" r="18" />
-          <polygon points="1130,190 1155,205 1155,235 1130,250 1105,235 1105,205" />
-        </svg>
-        <div className="relative max-w-6xl mx-auto px-5 sm:px-8 py-14 sm:py-20 text-center">
-          <h1 className="font-display text-4xl sm:text-5xl font-bold">Sign In</h1>
-          <p className="mt-3 text-sm font-medium text-white/85">
-            11+ practice for Year 4 and 5
-          </p>
-        </div>
-      </section>
+      {/* The banner and the two options, top left, lined up with the logo. */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        {/* One frame around the banner and the two options, so they read as one
+            picture rather than buttons sitting under an image. */}
+        <div className="w-full max-w-[19rem] overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+          <h1 className="sr-only">11+ QS</h1>
+          <Image
+            src="/11plus-qs-banner.png"
+            alt="11+ QS: Maths, English, Verbal Reasoning and Non-Verbal Reasoning"
+            width={1379}
+            height={616}
+            priority
+            className="w-full h-auto"
+          />
 
-      <main className="flex-1 px-5 py-12">
-        <div className="w-full max-w-xl mx-auto">
-          <p className="text-center text-lg text-ink-soft">
-            Don&apos;t have an account yet?{" "}
-            <Link
-              href="/register"
-              className="font-semibold text-[#12a874] hover:underline underline-offset-4"
-            >
-              Sign up
+          <div className="grid grid-cols-2 gap-2 p-2">
+            <button type="button" onClick={() => setLoginOpen(true)} className="btn-primary py-1.5 text-xs">
+              Log In
+            </button>
+            <Link href="/register" className="btn-quiet py-1.5 text-xs text-center">
+              Sign Up
             </Link>
-          </p>
-          <h2 className="text-center font-display text-3xl font-bold text-ink mt-4 mb-8">
-            Sign In
-          </h2>
+          </div>
+        </div>
+      </main>
 
-          <form onSubmit={handleSubmit} className="card p-7 space-y-5">
+      {showLogin && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/50 px-5 py-8"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-title"
+          onClick={(e) => {
+            // A click on the dimmed backdrop closes it; one inside the box does not.
+            if (e.target === e.currentTarget) setLoginOpen(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setLoginOpen(false);
+          }}
+        >
+          <form onSubmit={handleSubmit} className="card p-7 space-y-5 w-full max-w-md">
+            <div className="flex items-center justify-between gap-4">
+              <h2 id="login-title" className="font-display text-xl font-bold text-ink">
+                Log In
+              </h2>
+              <button
+                type="button"
+                onClick={() => setLoginOpen(false)}
+                aria-label="Close"
+                className="text-xl leading-none text-ink-soft hover:text-ink"
+              >
+                ×
+              </button>
+            </div>
+
             <div>
               <label htmlFor="profileName" className="label">
                 Your user ID *
@@ -129,6 +140,7 @@ export default function LoginPage() {
                 value={profileName}
                 onChange={(e) => setProfileName(e.target.value)}
                 required
+                autoFocus
                 autoComplete="username"
                 className="field"
                 placeholder="User ID"
@@ -179,16 +191,12 @@ export default function LoginPage() {
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full py-3"
-            >
-              {loading ? "Signing in…" : "Sign in"}
+            <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+              {loading ? "Logging in…" : "Log in"}
             </button>
           </form>
         </div>
-      </main>
+      )}
     </div>
   );
 }

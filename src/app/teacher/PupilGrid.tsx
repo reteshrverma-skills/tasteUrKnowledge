@@ -1,14 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PupilRow } from "@/lib/school";
 
 /**
- * The teacher's pupils as tap targets, Year by Year. Tapping one swaps this
- * device over to that pupil (a full page load, so nothing of the teacher's
- * screen is left in memory). "End" and "End all turns" sign pupils out on
- * whichever device they are using.
+ * The teacher's pupils as cards, Year by Year, each with two buttons. Test
+ * swaps this device over to that pupil (a full page load, so nothing of the
+ * teacher's screen is left in memory); Result opens their progress. "End" and
+ * "End all turns" sign pupils out on whichever device they are using.
  */
 export function PupilGrid({
   years,
@@ -87,30 +88,45 @@ export function PupilGrid({
             {inYear.length === 0 ? (
               <p className="text-sm text-ink-faint">No pupils in this year yet.</p>
             ) : (
-              <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <ul className="grid grid-cols-[repeat(auto-fill,11rem)] gap-3">
                 {inYear.map((p) => (
-                  <li key={p.studentId} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => open(p)}
-                      disabled={busy !== null}
-                      className="w-full text-left rounded-xl border border-line-strong bg-surface px-4 py-3 hover:border-brand hover:shadow-sm transition disabled:opacity-50"
-                    >
-                      <span className="block font-medium text-ink">{p.name}</span>
-                      <span className={`block text-xs mt-0.5 ${p.inSession ? "text-good" : "text-ink-faint"}`}>
-                        {busy === p.studentId ? "Opening…" : p.inSession ? "Practising now" : "Click to start"}
-                      </span>
-                    </button>
-                    {p.inSession && (
+                  <li
+                    key={p.studentId}
+                    className="min-h-24 flex flex-col justify-between gap-3 rounded-xl border border-line-strong bg-surface px-3.5 py-3"
+                  >
+                    <div>
+                      {/* Wraps rather than cuts off, so a long name is shown in full. */}
+                      <p className="font-medium text-ink leading-snug break-words">{p.name}</p>
+                      {p.inSession && (
+                        <p className="flex items-center justify-between gap-2 text-xs mt-1">
+                          <span className="text-good">Practising now</span>
+                          <button
+                            type="button"
+                            onClick={() => end(p.studentId)}
+                            disabled={busy !== null}
+                            className="font-medium text-ink-soft hover:text-poor disabled:opacity-50"
+                          >
+                            End
+                          </button>
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => end(p.studentId)}
+                        onClick={() => open(p)}
                         disabled={busy !== null}
-                        className="absolute top-2 right-2 text-xs font-medium text-ink-soft hover:text-poor disabled:opacity-50"
+                        className="btn-primary flex-1 py-1.5 text-xs disabled:opacity-50"
                       >
-                        End
+                        {busy === p.studentId ? "Opening…" : "Test"}
                       </button>
-                    )}
+                      <Link
+                        href={`/teacher/pupils/${p.studentId}`}
+                        className="btn-quiet flex-1 py-1.5 text-xs text-center"
+                      >
+                        Result
+                      </Link>
+                    </div>
                   </li>
                 ))}
               </ul>

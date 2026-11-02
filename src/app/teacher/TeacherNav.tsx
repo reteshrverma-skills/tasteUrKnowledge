@@ -15,7 +15,7 @@ export async function TeacherNav({ userId }: { userId: number }) {
 
   return (
     <nav className="bg-surface border-b border-line">
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-3.5 flex justify-between items-center gap-4">
         <Link href="/teacher" className="inline-flex items-center">
           <BrandLogo height={56} />
         </Link>

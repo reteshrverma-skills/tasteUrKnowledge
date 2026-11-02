@@ -21,6 +21,7 @@ import {
   Trend,
 } from "../../../../../parent/kids/[studentId]/progress/[subject]/ProgressBars";
 import { SUBJECT_HEADING, SUBJECT_TONE } from "../../../../../parent/ChildProgress";
+import { TeacherHeader } from "../../../../TeacherHeader";
 import { TeacherNav } from "../../../../TeacherNav";
 import { pupilHref } from "../../../../links";
 
@@ -70,20 +71,22 @@ export default async function TeacherSubjectProgressPage({
     <div className="min-h-screen bg-ground">
       <TeacherNav userId={staff.userId} />
 
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14 space-y-5">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-5">
         <Link
           href={pupilHref(studentId)}
           className="text-sm font-medium text-ink-soft hover:text-brand transition"
         >
           ← Back to {pupilName}
         </Link>
-        <header>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink inline-flex items-center gap-3">
+        <TeacherHeader userId={staff.userId} />
+
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-ink inline-flex items-center gap-3">
             <span className={`w-2.5 h-2.5 rounded-full ${SUBJECT_TONE[subject]}`} />
             {subject}
-          </h1>
+          </h2>
           <p className="text-ink-soft text-sm mt-1">{pupilName}</p>
-        </header>
+        </div>
 
         <section className="card p-5 sm:p-6">
           <h2 className="eyebrow mb-3">Time spent</h2>

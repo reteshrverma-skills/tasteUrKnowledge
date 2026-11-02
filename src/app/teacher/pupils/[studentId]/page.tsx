@@ -5,11 +5,12 @@ import { displayName } from "@/lib/english";
 import { pupilFor, requireSchoolStaff } from "@/lib/school";
 import { timeSpentBySubject } from "@/lib/progress";
 import { ChildProgress } from "../../../parent/ChildProgress";
+import { TeacherHeader } from "../../TeacherHeader";
 import { TeacherNav } from "../../TeacherNav";
 import { pupilSubjectHref } from "../../links";
 
 /**
- * One pupil's performance, opened from Performance on the teacher dashboard:
+ * One pupil's performance, opened from Result on the teacher dashboard:
  * time spent per subject, as a parent sees their child, with Details opening
  * each subject's focus areas, topic scores and latest tests.
  */
@@ -46,10 +47,12 @@ export default async function TeacherPupilPage({
     <div className="min-h-screen bg-ground">
       <TeacherNav userId={staff.userId} />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-5">
+      <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         <Link href="/teacher" className="text-sm font-medium text-ink-soft hover:text-brand transition">
           ← Back to dashboard
         </Link>
+
+        <TeacherHeader userId={staff.userId} />
 
         <section className="card px-5 sm:px-6 py-5">
           <div className="flex items-center gap-4">
@@ -57,7 +60,7 @@ export default async function TeacherPupilPage({
               {name.charAt(0).toUpperCase()}
             </span>
             <div className="min-w-0">
-              <h1 className="font-display font-semibold text-ink text-lg truncate">{name}</h1>
+              <h2 className="font-display font-semibold text-ink text-lg truncate">{name}</h2>
               <p className="text-xs text-ink-faint mt-0.5">{pupil.studentDetails?.year?.name}</p>
             </div>
           </div>

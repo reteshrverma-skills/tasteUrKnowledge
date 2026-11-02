@@ -45,7 +45,11 @@ export default async function SchoolPage({
   const { tab: requested, edit } = await searchParams;
   const tab: Tab = TABS.some((t) => t.key === requested) ? (requested as Tab) : "teachers";
 
-  const [school, teachers, years] = await Promise.all([
+  const [me, school, teachers, years] = await Promise.all([
+    prisma.userProfile.findUnique({
+      where: { id: staff.userId },
+      select: { fName: true, mName: true, lName: true },
+    }),
     prisma.school.findUnique({
       where: { id: staff.schoolId },
       select: { name: true, maxStudents: true },
@@ -108,7 +112,8 @@ export default async function SchoolPage({
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
         <div className="w-full px-4 sm:px-6 lg:px-10 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <span className="justify-self-start text-sm font-medium text-ink-soft">School Admin</span>
+          {/* Empty first column, which keeps the logo centred. */}
+          <span />
           <BrandLogo height={56} />
           <div className="justify-self-end flex items-center gap-4">
             <HelpMenu />
@@ -120,6 +125,7 @@ export default async function SchoolPage({
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         <header>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">{school?.name}</h1>
+          <p className="font-bold text-ink mt-1">{me ? displayName(me) : ""} (School Admin)</p>
           <p className="text-ink-soft mt-1">
             {teachers.length} teachers · {pupilCount}
             {school?.maxStudents != null && ` of ${school.maxStudents}`} pupils

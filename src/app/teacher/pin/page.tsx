@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSchoolStaff } from "@/lib/school";
 import { SetPinForm } from "@/components/SchoolForms";
+import { TeacherHeader } from "../TeacherHeader";
 import { TeacherNav } from "../TeacherNav";
 
 /** Teacher: set the 4-digit PIN that ends a pupil's turn on a classroom device. */
@@ -19,12 +20,13 @@ export default async function TeacherPinPage() {
     <div className="min-h-screen bg-ground">
       <TeacherNav userId={staff.userId} />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-5">
+      <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         <Link href="/teacher" className="text-sm font-medium text-ink-soft hover:text-brand transition">
           ← Back to dashboard
         </Link>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">Your PIN</h1>
+        <TeacherHeader userId={staff.userId} />
         <section className="card p-6 sm:p-8">
+          <h2 className="font-display text-lg font-semibold text-ink mb-4">Your PIN</h2>
           <SetPinForm hasPin={Boolean(me?.pinHash)} />
         </section>
       </main>
