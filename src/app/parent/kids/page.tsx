@@ -47,7 +47,7 @@ export default async function KidsProfilePage() {
           <div className="mb-8 space-y-2">
             {children.map((child) =>
               child.schoolName ? (
-                // Managed by the school: shown, but not editable here.
+                // Managed by the school: only the home login is the parent's to set.
                 <div
                   key={child.studentId}
                   className="flex items-center gap-3 bg-white rounded-lg shadow-sm px-4 py-3 border-l-4 border-gray-300"
@@ -59,6 +59,12 @@ export default async function KidsProfilePage() {
                   <span className="ml-auto text-xs text-gray-500">
                     Managed by {child.schoolName}
                   </span>
+                  <Link
+                    href={`/parent/kids/${child.studentId}/home-login`}
+                    className="text-xs font-bold text-indigo-600"
+                  >
+                    Home login →
+                  </Link>
                 </div>
               ) : (
               <Link

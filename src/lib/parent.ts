@@ -22,8 +22,8 @@ export interface Child {
   levels: string[];
   /**
    * The school, for a pupil a teacher linked to this parent. The parent sees
-   * their progress but cannot edit, delete or subscribe them - the school
-   * manages the pupil.
+   * their progress and can set their home password, but cannot edit, delete or
+   * subscribe them - the school manages the pupil.
    */
   schoolName: string | null;
 }
@@ -89,8 +89,9 @@ export async function ownsChild(
 
 /**
  * True only if `studentId` is this parent's child AND the parent manages
- * them - not a school pupil a teacher linked for viewing. Editing, deleting
- * and billing go through here; viewing progress needs only ownsChild.
+ * them - not a school pupil a teacher linked. Editing, deleting and billing go
+ * through here; viewing progress and setting a pupil's home password need only
+ * ownsChild.
  */
 export async function ownsManagedChild(
   parentId: number,

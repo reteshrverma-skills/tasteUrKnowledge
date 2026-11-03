@@ -98,6 +98,11 @@ export async function POST(request: NextRequest) {
     let sid: string | undefined;
     if (!user.allowMultipleSessions) {
       await closeOpenSessions(Number(user.id), "replaced");
+      // A pupil logging in at home ends any turn they have open in class.
+      await prisma.classroomSession.updateMany({
+        where: { studentId: user.id, endedAt: null },
+        data: { endedAt: new Date(), endReason: "replaced" },
+      });
       sid = await startSingleSession(Number(user.id));
     }
 

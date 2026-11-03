@@ -113,12 +113,6 @@ export async function allowedLevels(
   const studentId = await resolveStudentId(session);
   if (studentId === null) return [];
 
-  // An unpaid child has no levels at all, which closes every subject through
-  // the one gate they already share.
-  if (paymentsEnforced() && !(await subscriptionFor(studentId)).isPaid) {
-    return [];
-  }
-
   const details = await prisma.userStudentDetails.findUnique({
     where: { studentId },
     // One column per rung in ENTITLEMENT_LEVELS. A rung missing from this
@@ -130,9 +124,21 @@ export async function allowedLevels(
       navigator: true,
       challenger: true,
       master: true,
+      student: { select: { schoolId: true } },
     },
   });
   if (!details) return [];
+
+  // An unpaid child has no levels at all, which closes every subject through
+  // the one gate they already share. A school pupil has no subscription of
+  // their own, so they are exempt, in class and at home.
+  if (
+    details.student.schoolId === null &&
+    paymentsEnforced() &&
+    !(await subscriptionFor(studentId)).isPaid
+  ) {
+    return [];
+  }
 
   return grantedLevels(details);
 }

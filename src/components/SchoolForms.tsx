@@ -249,7 +249,9 @@ export function AddPupilForm({ years }: { years: Option[] }) {
         />
         <Select label="Year" options={years} value={yearId} onChange={setYearId} />
       </div>
-      <p className="text-xs text-ink-faint">Pupils have no password. Their teacher opens them for practice.</p>
+      <p className="text-xs text-ink-faint">
+        Pupils need no password in class: their teacher opens them. A linked parent can set one for home.
+      </p>
       {status}
       <button type="submit" disabled={saving} className="btn-primary px-6 py-2.5 disabled:opacity-50">
         {saving ? "Adding…" : "Add pupil"}
@@ -624,8 +626,8 @@ export function PupilListItem({
 
 /**
  * Link a pupil to their parent's account, so the parent can see their
- * progress - or unlink them. Both the parent's login ID and the email on
- * that account must match; the parent views the pupil but cannot edit them.
+ * progress and set a home password - or unlink them. Both the parent's login
+ * ID and the email on that account must match; the parent cannot edit the pupil.
  */
 export function ParentLinkForm({ pupil }: { pupil: PupilDetails }) {
   const { saving, run, status } = useSubmit();
@@ -646,7 +648,7 @@ export function ParentLinkForm({ pupil }: { pupil: PupilDetails }) {
   };
 
   const unlink = async () => {
-    if (!window.confirm(`Unlink ${pupil.parent?.name}? They will stop seeing this pupil's progress.`)) return;
+    if (!window.confirm(`Unlink ${pupil.parent?.name}? They will stop seeing this pupil's progress, and the pupil's home password will be removed.`)) return;
     await run("/api/school/pupils/parent", { studentId: pupil.studentId, unlink: true }, "Parent unlinked.");
   };
 
@@ -671,7 +673,8 @@ export function ParentLinkForm({ pupil }: { pupil: PupilDetails }) {
         <form onSubmit={link} className="space-y-3">
           <p className="text-xs text-ink-faint">
             If the pupil&apos;s parent has a SIGQS parent account, link it so they can see this
-            pupil&apos;s progress. They cannot edit the pupil.
+            pupil&apos;s progress and set a password for practising at home. They cannot edit the
+            pupil.
           </p>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field

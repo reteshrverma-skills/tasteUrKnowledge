@@ -232,14 +232,16 @@ export default async function ParentDashboardPage({
                         </span>
                       ))
                     )}
-                    {!child.schoolName && (
-                      <Link
-                        href={`/parent/kids/${child.studentId}`}
-                        className="btn-quiet ml-1 px-3 py-1.5 text-xs whitespace-nowrap"
-                      >
-                        Edit
-                      </Link>
-                    )}
+                    <Link
+                      href={
+                        child.schoolName
+                          ? `/parent/kids/${child.studentId}/home-login`
+                          : `/parent/kids/${child.studentId}`
+                      }
+                      className="btn-quiet ml-1 px-3 py-1.5 text-xs whitespace-nowrap"
+                    >
+                      {child.schoolName ? "Home login" : "Edit"}
+                    </Link>
                   </span>
                   </div>
 

@@ -359,8 +359,9 @@ export async function requireFreeSeat(schoolId: bigint, maxStudents?: number | n
 
 /**
  * Creates a pupil in a Year, with the username staff chose or a made-up one.
- * The password stays null, so the pupil can never sign in themselves - only
- * be opened by their teacher. Throws "Seats" when the school is full.
+ * The password starts null, so the pupil can only be opened by their teacher
+ * until a linked parent sets one for home. Throws "Seats" when the school is
+ * full.
  */
 export async function createPupil(
   staff: SchoolStaff,

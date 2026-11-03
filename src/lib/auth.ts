@@ -99,7 +99,7 @@ export async function hashPassword(password: string): Promise<string> {
   return bcryptjs.hash(password, 10);
 }
 
-/** False for an account with no password (a school pupil): it never signs in. */
+/** False for an account with no password (a school pupil with none set yet). */
 export async function verifyPassword(
   password: string,
   hash: string | null

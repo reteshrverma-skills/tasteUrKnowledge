@@ -34,8 +34,8 @@ model UserProfile {
   lName            String?
   /// Login user id
   profileName      String    @unique
-  /// bcrypt hash of the login password. Null for school pupils, who are
-  /// opened by their teacher and can never sign in themselves (migration 036).
+  /// bcrypt hash of the login password. Null for a school pupil until a linked
+  /// parent sets one for home; their teacher opens them in class (migration 036).
   profilePassword  String?
   userType         UserType  @default(STUDENT)
   /// Legacy one-to-one link, kept only so older data is not lost. The live
@@ -748,7 +748,8 @@ model ClassroomSession {
   teacher   UserProfile @relation("ClassroomTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
   startedAt DateTime    @default(now()) @db.Timestamptz(3)
   endedAt   DateTime?   @db.Timestamptz(3)
-  /// "exit" | "ended_by_teacher" | "replaced" | "idle" | "school_inactive"
+  /// "exit" | "ended_by_teacher" | "replaced" | "idle" | "school_inactive" |
+  /// "password_changed"
   endReason String?
   userAgent String?
 

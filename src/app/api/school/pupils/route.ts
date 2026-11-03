@@ -16,8 +16,9 @@ import {
 
 /**
  * School Admin or teacher: add a pupil to a Year - name, Year and an optional
- * username. The pupil has no password and is opened by their teacher. A
- * teacher can add pupils only to Years they take.
+ * username. The pupil starts with no password and is opened by their teacher;
+ * a linked parent can set one for home. A teacher can add pupils only to Years
+ * they take.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -58,8 +59,8 @@ export async function POST(request: NextRequest) {
 /**
  * School Admin or teacher: edit a pupil - name, username, Year and whether
  * they are active. A teacher can edit only pupils in Years they take, but
- * may move them to any Year. Clearing the username gives the
- * pupil a made-up one; the password stays null throughout.
+ * may move them to any Year. Clearing the username gives the pupil a made-up
+ * one; the password is not touched here.
  *
  * Switching a pupil off ends any turn they have open; switching one back on
  * needs a free seat.

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { endAllSessions } from "@/lib/auth";
 import { normaliseProfileName } from "@/lib/parent";
 import { hit, tooManyRequests } from "@/lib/rate-limit";
 import { guardStatus, idFrom, pupilFor, requireSchoolStaff, text } from "@/lib/school";
@@ -15,8 +16,11 @@ const WINDOW_MINUTES = 15;
  *
  * The parent's login ID AND the email on that account must both match: a
  * typo in one must never hand a child's results to a stranger. The parent
- * only views a school pupil; editing, deleting and billing stay with the
- * school (ownsManagedChild).
+ * views a school pupil and may set their home password; editing, deleting and
+ * billing stay with the school (ownsManagedChild).
+ *
+ * Unlinking clears that password, or the old parent could still log in as the
+ * child. A pupil with a parent must be unlinked before linking another.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -29,11 +33,29 @@ export async function POST(request: NextRequest) {
     }
 
     if (body.unlink === true) {
-      await prisma.userStudentDetails.update({
-        where: { studentId },
-        data: { parentId: null },
+      await prisma.userProfile.update({
+        where: { id: studentId },
+        data: { profilePassword: null, studentDetails: { update: { parentId: null } } },
       });
+      // One session per pupil: an open classroom turn means no home session to
+      // end, and the lesson carries on.
+      const inClass = await prisma.classroomSession.findFirst({
+        where: { studentId, endedAt: null },
+        select: { id: true },
+      });
+      if (!inClass) await endAllSessions(Number(studentId));
       return NextResponse.json({ success: true }, { status: 200 });
+    }
+
+    const current = await prisma.userStudentDetails.findUnique({
+      where: { studentId },
+      select: { parentId: true },
+    });
+    if (current?.parentId) {
+      return NextResponse.json(
+        { error: "This pupil already has a parent linked. Unlink them first." },
+        { status: 400 }
+      );
     }
 
     const wait = hit(`link-parent:${staff.userId}`, MAX_TRIES, WINDOW_MINUTES);
