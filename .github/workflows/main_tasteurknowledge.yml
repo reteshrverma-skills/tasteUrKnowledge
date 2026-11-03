@@ -35,6 +35,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # A failing access-rule test stops the deploy. No database is involved:
+      # the tests run against an in-memory one.
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
         env:
