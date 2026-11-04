@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getSession, hashPassword, verifyPassword } from "@/lib/auth";
 import { ownsChild } from "@/lib/parent";
 import { POST as linkRoute } from "@/app/api/school/pupils/parent/route";
-import { POST as setHomePassword } from "@/app/api/parent/kids/[studentId]/password/route";
+import { POST as setHomePassword } from "@/app/api/parent/children/[studentId]/password/route";
 import { POST as login } from "@/app/api/auth/login/route";
 import { db, insert } from "../support/fake-prisma";
 import { jar } from "../support/fake-headers";
@@ -156,7 +156,7 @@ describe("unlinking a parent from a pupil", () => {
 describe("a parent setting a pupil's home password", () => {
   const set = (studentId: number | string, password = "home-password", confirmPassword = password) =>
     setHomePassword(
-      jsonRequest(`/api/parent/kids/${studentId}/password`, { password, confirmPassword }),
+      jsonRequest(`/api/parent/children/${studentId}/password`, { password, confirmPassword }),
       paramsFor(studentId)
     );
 

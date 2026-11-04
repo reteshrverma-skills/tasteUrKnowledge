@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { listChildren, ownsChild, ownsManagedChild } from "@/lib/parent";
-import { DELETE as deleteKid, PUT as updateKid } from "@/app/api/parent/kids/[studentId]/route";
+import { DELETE as deleteChildRoute, PUT as updateChildRoute } from "@/app/api/parent/children/[studentId]/route";
 import { ID, account, jsonRequest, paramsFor, signInAs } from "../support/world";
 import { db } from "../support/fake-prisma";
 
@@ -54,7 +54,7 @@ describe("ownsManagedChild", () => {
 describe("a parent editing a child", () => {
   const body = { fName: "Changed", lName: "Name", studentYear: "y6" };
   const put = (studentId: number) =>
-    updateKid(jsonRequest(`/api/parent/kids/${studentId}`, body, "PUT"), paramsFor(studentId));
+    updateChildRoute(jsonRequest(`/api/parent/children/${studentId}`, body, "PUT"), paramsFor(studentId));
 
   it("works for their own home child", async () => {
     signInAs(ID.parent);
@@ -93,8 +93,8 @@ describe("a parent deleting a child", () => {
   ])("is refused for %s", async (_who, studentId, confirm) => {
     signInAs(ID.parent);
     const before = db.userProfile.length;
-    const response = await deleteKid(
-      jsonRequest(`/api/parent/kids/${studentId}`, { mode: "account", confirm }, "DELETE"),
+    const response = await deleteChildRoute(
+      jsonRequest(`/api/parent/children/${studentId}`, { mode: "account", confirm }, "DELETE"),
       paramsFor(studentId)
     );
     expect(response.status).toBe(404);

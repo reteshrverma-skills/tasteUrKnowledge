@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
   // Don't advertise the framework to scanners.
   poweredByHeader: false,
 
+  // The parent's children pages used to live under /parent/kids; keep old
+  // bookmarks and links in past emails working.
+  redirects() {
+    return [
+      {
+        source: "/parent/kids/:path*",
+        destination: "/parent/children/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
   // Security headers on every response.
   //
   // The Content-Security-Policy only lets the page load scripts, styles,
