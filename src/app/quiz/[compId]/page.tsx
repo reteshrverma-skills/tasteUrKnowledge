@@ -7,6 +7,7 @@ import { confirmSubmit } from "@/lib/quiz-confirm";
 import { difficultyStyle } from "@/lib/level-style";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { QuizSchoolLogo } from "@/components/QuizSchoolLogo";
 
 interface Question {
   id: number;
@@ -435,9 +436,12 @@ export default function QuizPage() {
         {/* Story - scrolls within its own pane */}
         <section className="card flex flex-col lg:min-h-0 overflow-hidden">
           <header className="px-5 py-3 border-b border-line shrink-0 flex items-center justify-between gap-2">
-            <h2 className="font-display font-semibold text-ink truncate">
-              {comp.label}
-            </h2>
+            <div className="flex items-center gap-2 min-w-0">
+              <QuizSchoolLogo />
+              <h2 className="font-display font-semibold text-ink truncate">
+                {comp.label}
+              </h2>
+            </div>
             {comp.difficultyLevel && (
               <span
                 className={`chip shrink-0 ${difficultyStyle(

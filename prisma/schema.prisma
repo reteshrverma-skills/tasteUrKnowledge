@@ -707,6 +707,10 @@ model School {
   /// Pupil seats; null means no limit.
   maxStudents   Int?
   isActive      Boolean      @default(true)
+  /// The logo the School Admin added; all three are null when it has none.
+  logoData      Bytes?
+  logoType      String?
+  logoUpdatedAt DateTime?    @db.Timestamptz(3)
   createdById   BigInt?
   createdBy     UserProfile? @relation("SchoolCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt     DateTime     @default(now()) @db.Timestamptz(3)

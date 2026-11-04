@@ -18,6 +18,7 @@ import {
 } from "@/lib/maths";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { PupilSchoolHeader } from "@/components/SchoolHeader";
 
 /**
  * Maths practice picker: choose a difficulty at the top, then open a topic to
@@ -80,6 +81,7 @@ export default async function MathsPage({
       </nav>
 
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <PupilSchoolHeader className="mb-8" />
         <header className="mb-7">
           {/* The level in the heading, so the student can see which one they chose. */}
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">

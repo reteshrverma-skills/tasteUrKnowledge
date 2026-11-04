@@ -19,6 +19,7 @@ import {
 } from "@/lib/nvr";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { PupilSchoolHeader } from "@/components/SchoolHeader";
 
 /**
  * Non-Verbal Reasoning picker: difficulty at the top, then a collapsible
@@ -81,6 +82,7 @@ export default async function NonVerbalPage({
       </nav>
 
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <PupilSchoolHeader className="mb-8" />
         <header className="mb-7">
           {/* The level in the heading, so the student can see which one they chose. */}
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">

@@ -4,6 +4,7 @@ import { FlagUnclear } from "./FlagUnclear";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { PupilSchoolHeader } from "@/components/SchoolHeader";
 
 export const OPTION_LABELS = ["A", "B", "C", "D", "E"] as const;
 
@@ -93,6 +94,7 @@ export function TestReview({
       </nav>
 
       <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10">
+        <PupilSchoolHeader className="mb-8" />
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-ink">{title}</h1>

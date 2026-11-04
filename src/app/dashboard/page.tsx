@@ -7,6 +7,8 @@ import { NVR_SUBJECT_NAME } from "@/lib/nvr";
 import { isVrSubject } from "@/lib/vr";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { SchoolHeader } from "@/components/SchoolHeader";
+import { pupilSchoolFor } from "@/lib/school-logo";
 import {
   focusPracticeHref,
   openFocusTopics,
@@ -57,7 +59,7 @@ export default async function DashboardPage() {
   const programme = programmeOf(session);
   const isAdmin = session?.userType === "ADMIN";
 
-  // Six independent reads, so they go to the database together rather than
+  // Independent reads, so they go to the database together rather than
   // one after another.
   const [
     profile,
@@ -67,6 +69,7 @@ export default async function DashboardPage() {
     nvrCount,
     vrCount,
     focusTopics,
+    pupilSchool,
   ] = await Promise.all([
       session
         ? prisma.userProfile.findUnique({
@@ -105,6 +108,7 @@ export default async function DashboardPage() {
       session?.userType === "STUDENT"
         ? openFocusTopics(session.userId)
         : Promise.resolve([] as FocusTopic[]),
+      pupilSchoolFor(session),
     ]);
 
   const studentName = profile ? displayName(profile) : "Student";
@@ -157,19 +161,27 @@ export default async function DashboardPage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
-        <div className="mb-9 flex items-center gap-4">
-          <span className="w-12 h-12 rounded-full bg-brand text-white grid place-items-center font-display text-lg font-semibold shrink-0">
-            {studentName.charAt(0).toUpperCase()}
-          </span>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-ink">
-              Hello, {studentName}
-            </h1>
-            <p className="text-ink-soft text-sm mt-0.5">
-              Pick a subject to start practising
-            </p>
+        {pupilSchool ? (
+          <SchoolHeader
+            {...pupilSchool}
+            line="Pick a subject to start practising"
+            className="mb-9"
+          />
+        ) : (
+          <div className="mb-9 flex items-center gap-4">
+            <span className="w-12 h-12 rounded-full bg-brand text-white grid place-items-center font-display text-lg font-semibold shrink-0">
+              {studentName.charAt(0).toUpperCase()}
+            </span>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+                Hello, {studentName}
+              </h1>
+              <p className="text-ink-soft text-sm mt-0.5">
+                Pick a subject to start practising
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {focusTopics.length > 0 && (
           <section className="card p-5 sm:p-6 mb-6 border-l-4 border-l-brand">

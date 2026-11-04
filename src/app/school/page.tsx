@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { displayName } from "@/lib/english";
 import { listPupils, listYears, requireSchoolStaff } from "@/lib/school";
+import { logoUrlFor } from "@/lib/school-logo";
 import { BrandLogo } from "@/components/BrandLogo";
 import { HelpMenu } from "@/components/HelpMenu";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -14,6 +15,7 @@ import {
   EditTeacherForm,
   ParentLinkForm,
   PupilListItem,
+  SchoolLogoEditor,
   TeacherListItem,
 } from "@/components/SchoolForms";
 
@@ -52,7 +54,7 @@ export default async function SchoolPage({
     }),
     prisma.school.findUnique({
       where: { id: staff.schoolId },
-      select: { name: true, maxStudents: true },
+      select: { name: true, maxStudents: true, logoUpdatedAt: true },
     }),
     prisma.userProfile.findMany({
       where: { schoolId: staff.schoolId, userType: "TEACHER" },
@@ -123,14 +125,17 @@ export default async function SchoolPage({
       </nav>
 
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
-        <header>
+        <SchoolLogoEditor
+          logoUrl={school ? logoUrlFor(staff.schoolId, school.logoUpdatedAt) : null}
+          schoolName={school?.name ?? ""}
+        >
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">{school?.name}</h1>
           <p className="font-bold text-ink mt-1">{me ? displayName(me) : ""} (School Admin)</p>
           <p className="text-ink-soft mt-1">
             {teachers.length} teachers · {pupilCount}
             {school?.maxStudents != null && ` of ${school.maxStudents}`} pupils
           </p>
-        </header>
+        </SchoolLogoEditor>
 
         {/* The tabs sit over the right-hand (form) column, on the same grid as
             the panels below; the line under them runs the full width. */}

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SCHOOL_LOGO_HEADER_CLASS, SchoolLogoImage } from "@/components/SchoolLogo";
 
 /**
  * The small forms on the School Admin (/school) and teacher (/teacher)
@@ -66,6 +67,98 @@ function useSubmit() {
     </>
   );
   return { saving, run, status };
+}
+
+/**
+ * The top of the School Admin's page: the logo left of the school's details,
+ * or a box to add one, with the buttons to change or remove it on the right.
+ */
+export function SchoolLogoEditor({
+  logoUrl,
+  schoolName,
+  children,
+}: {
+  logoUrl: string | null;
+  schoolName: string;
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const inputId = useId();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const send = async (init: RequestInit) => {
+    setError("");
+    setSaving(true);
+    try {
+      const response = await fetch("/api/school/logo", init);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Something went wrong");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Cleared so choosing the same file again still fires this.
+    event.target.value = "";
+    if (!file) return;
+    const body = new FormData();
+    body.append("logo", file);
+    send({ method: "POST", body });
+  };
+
+  return (
+    <header className="flex flex-wrap items-center gap-4">
+      <input
+        id={inputId}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={onFile}
+        disabled={saving}
+        className="sr-only peer"
+      />
+      <label
+        htmlFor={inputId}
+        title={logoUrl ? "Change logo" : "Add logo"}
+        className="cursor-pointer shrink-0 rounded-lg peer-focus-visible:ring-2 peer-focus-visible:ring-brand"
+      >
+        {logoUrl ? (
+          <SchoolLogoImage url={logoUrl} schoolName={schoolName} className={SCHOOL_LOGO_HEADER_CLASS} />
+        ) : (
+          <span
+            className={`${SCHOOL_LOGO_HEADER_CLASS} aspect-square grid place-items-center rounded-lg border-2 border-dashed border-line-strong text-center text-xs font-medium text-ink-soft hover:border-brand hover:text-brand transition`}
+          >
+            Add logo
+          </span>
+        )}
+      </label>
+      <div className="min-w-0 flex-1">{children}</div>
+      <div className="flex flex-col items-end gap-1 text-sm">
+        <div className="flex items-center gap-3">
+          <label htmlFor={inputId} className="cursor-pointer font-medium text-brand hover:underline">
+            {saving ? "Saving..." : logoUrl ? "Change logo" : "Add logo"}
+          </label>
+          {logoUrl && (
+            <button
+              type="button"
+              onClick={() => send({ method: "DELETE" })}
+              disabled={saving}
+              className="font-medium text-ink-soft hover:text-poor transition"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        <span className="text-xs text-ink-faint">PNG, JPG or WebP, up to 1 MB</span>
+        {error && <p className="text-sm text-poor" role="alert">{error}</p>}
+      </div>
+    </header>
+  );
 }
 
 function Field({

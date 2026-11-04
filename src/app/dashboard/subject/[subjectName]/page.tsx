@@ -25,6 +25,7 @@ import {
 } from "@/lib/student";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { PupilSchoolHeader } from "@/components/SchoolHeader";
 
 /**
  * One subject's comprehensions, banded by difficulty. Each card carries the
@@ -141,6 +142,7 @@ export default async function SubjectPage({
       </nav>
 
       <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <PupilSchoolHeader className="mb-8" />
         <header className="mb-8">
           {/* The level in the heading, so the student can see which one they chose. */}
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">
