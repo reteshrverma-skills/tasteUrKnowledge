@@ -1,35 +1,28 @@
 import { getSession } from "@/lib/auth";
 import { pupilSchoolFor } from "@/lib/school-logo";
-import { SCHOOL_LOGO_HEADER_CLASS, SchoolLogoImage } from "@/components/SchoolLogo";
+import { PERSON_NAME_CLASS, SCHOOL_NAME_CLASS } from "@/components/SchoolLogo";
 
 /**
- * The top of a teacher's or a school pupil's page: the school's logo, if it
- * has one, left of its name, then the person's name in bold, and an optional
- * line about the page.
+ * The top of a teacher's or a school pupil's page: the person's name and an
+ * optional line about the page. The school's name is in the top bar, so it only
+ * shows here on a phone, where the bar has no room for it.
  */
 export function SchoolHeader({
   schoolName,
-  logoUrl,
   person,
   line,
   className = "",
 }: {
   schoolName: string;
-  logoUrl: string | null;
   person: string;
   line?: string;
   className?: string;
 }) {
   return (
-    <header className={`flex items-center gap-4 ${className}`}>
-      {logoUrl && (
-        <SchoolLogoImage url={logoUrl} schoolName={schoolName} className={SCHOOL_LOGO_HEADER_CLASS} />
-      )}
-      <div className="min-w-0">
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">{schoolName}</h1>
-        <p className="font-bold text-ink mt-1">{person}</p>
-        {line && <p className="text-ink-soft mt-1">{line}</p>}
-      </div>
+    <header className={className}>
+      <p className={`${SCHOOL_NAME_CLASS} text-2xl mb-1 sm:hidden`}>{schoolName}</p>
+      <h1 className={PERSON_NAME_CLASS}>{person}</h1>
+      {line && <p className="text-ink-soft mt-1">{line}</p>}
     </header>
   );
 }

@@ -128,12 +128,6 @@ export default async function SubjectPage({
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-ink-soft hover:text-brand transition"
-          >
-            ← Subjects
-          </Link>
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
             <BrandLogo height={56} />
           </span>
@@ -141,9 +135,15 @@ export default async function SubjectPage({
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
-        <PupilSchoolHeader className="mb-8" />
-        <header className="mb-8">
+      <div className="max-w-4xl mx-auto px-5 sm:px-8 pt-4 pb-10 sm:pb-14">
+        <Link
+          href="/dashboard"
+          className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
+        >
+          ← Subjects
+        </Link>
+        <PupilSchoolHeader className="mb-3" />
+        <header className="mb-8 text-center">
           {/* The level in the heading, so the student can see which one they chose. */}
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">
             {name}

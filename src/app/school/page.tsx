@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { displayName } from "@/lib/english";
 import { listPupils, listYears, requireSchoolStaff } from "@/lib/school";
 import { logoUrlFor } from "@/lib/school-logo";
+import { PERSON_NAME_CLASS, SCHOOL_NAME_CLASS } from "@/components/SchoolLogo";
 import { BrandLogo } from "@/components/BrandLogo";
 import { HelpMenu } from "@/components/HelpMenu";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -127,10 +128,9 @@ export default async function SchoolPage({
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         <SchoolLogoEditor
           logoUrl={school ? logoUrlFor(staff.schoolId, school.logoUpdatedAt) : null}
-          schoolName={school?.name ?? ""}
         >
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">{school?.name}</h1>
-          <p className="font-bold text-ink mt-1">{me ? displayName(me) : ""} (School Admin)</p>
+          <p className={`${SCHOOL_NAME_CLASS} text-2xl mb-1 sm:hidden`}>{school?.name}</p>
+          <h1 className={PERSON_NAME_CLASS}>{me ? displayName(me) : ""} (School Admin)</h1>
           <p className="text-ink-soft mt-1">
             {teachers.length} teachers · {pupilCount}
             {school?.maxStudents != null && ` of ${school.maxStudents}`} pupils

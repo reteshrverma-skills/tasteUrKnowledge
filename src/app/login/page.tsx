@@ -4,6 +4,85 @@ import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { HowItWorksSection } from "./HowItWorksSection";
+
+const SUBJECTS = [
+  {
+    name: "Mathematics",
+    tile: "bg-explorer-tint text-explorer",
+    icon: (
+      <>
+        <rect x="5" y="3" width="14" height="18" rx="2" />
+        <path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" />
+      </>
+    ),
+  },
+  {
+    name: "English",
+    tile: "bg-starter-tint text-starter",
+    icon: <path d="M12 6.5C10 5 7 4.5 3 4.5v14c4 0 7 .5 9 2 2-1.5 5-2 9-2v-14c-4 0-7 .5-9 2Zm0 0v14" />,
+  },
+  {
+    name: "Verbal Reasoning",
+    tile: "bg-challenger-tint text-challenger",
+    icon: (
+      <path d="M12 5a3 3 0 0 0-5.5-1.6A3 3 0 0 0 4 8a3.5 3.5 0 0 0 .5 6A3.5 3.5 0 0 0 9 19.5 3 3 0 0 0 12 18m0-13a3 3 0 0 1 5.5-1.6A3 3 0 0 1 20 8a3.5 3.5 0 0 1-.5 6 3.5 3.5 0 0 1-4.5 5.5A3 3 0 0 1 12 18m0-13v13" />
+    ),
+  },
+  {
+    name: "Non-Verbal Reasoning",
+    tile: "bg-warm-tint text-warm",
+    icon: (
+      <>
+        <path d="m12 3 3.5 6h-7L12 3Z" />
+        <circle cx="7" cy="17" r="3.5" />
+        <rect x="14" y="13.5" width="7" height="7" rx="1.5" />
+      </>
+    ),
+  },
+];
+
+/** A box over the dimmed page; a click on the dimmed part closes it. */
+function Popup({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/50 px-5 py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
+    >
+      <div className="card p-7 space-y-5 w-full max-w-xl">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="font-sans text-xl font-semibold text-login-navy">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            autoFocus
+            aria-label="Close"
+            className="text-xl leading-none text-ink-soft hover:text-ink"
+          >
+            ×
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,21 +90,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Sent here by the inactivity sign-out. The server snapshot is false, so the
-  // server and browser agree on the first paint and the notice appears after.
-  // Sent here by an automatic sign-out: "idle" (no activity) or
-  // "elsewhere" (the account signed in on another device).
+  const [aboutOpen, setAboutOpen] = useState(false);
+  // Sent here by an automatic sign-out: "idle" (no activity) or "elsewhere"
+  // (the account signed in on another device). The server snapshot is empty,
+  // so the server and browser agree on the first paint and the notice appears
+  // after.
   const signOutReason = useSyncExternalStore(
     () => () => {},
     () => new URLSearchParams(window.location.search).get("reason") ?? "",
     () => ""
   );
-
-  // The login form is a popup, opened by Log In. An automatic sign-out opens it
-  // straight away, because the notice saying why is inside it. Null means the
-  // visitor has not opened or closed it yet.
-  const [loginOpen, setLoginOpen] = useState<boolean | null>(null);
-  const showLogin = loginOpen ?? Boolean(signOutReason);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,10 +132,13 @@ export default function LoginPage() {
     }
   };
 
+  const fieldClass =
+    "w-full rounded-lg border border-login-border bg-white px-3.5 py-2.5 text-[15px] text-login-body placeholder:text-ink-faint focus:outline-none focus:border-login-teal focus:ring-1 focus:ring-login-teal";
+
   return (
-    <div className="min-h-screen bg-ground flex flex-col">
-      <header className="bg-surface border-b border-line">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3 flex items-center justify-between gap-4">
+    <div className="min-h-screen bg-white flex flex-col">
+      <header className="border-b border-login-border">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <Link href="/login" className="flex items-center">
             <Image
               src="/sigqs-logo.png"
@@ -69,70 +146,58 @@ export default function LoginPage() {
               width={1810}
               height={546}
               priority
-              className="h-20 sm:h-28 w-auto"
+              className="h-10 sm:h-14 w-auto"
             />
           </Link>
+
+          <nav className="flex items-center gap-3 sm:gap-5 text-sm font-medium text-login-body">
+            <a href="#how-it-works" className="hover:text-login-teal transition">
+              How it works
+            </a>
+            <button type="button" onClick={() => setAboutOpen(true)} className="hover:text-login-teal transition">
+              About
+            </button>
+            <Link
+              href="/register"
+              className="rounded-full bg-brand-tint px-3.5 py-1.5 font-semibold text-login-teal hover:bg-login-border transition"
+            >
+              Sign Up
+            </Link>
+          </nav>
         </div>
       </header>
 
-      {/* The banner and the two options, top left, lined up with the logo. */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        {/* One frame around the banner and the two options, so they read as one
-            picture rather than buttons sitting under an image. */}
-        <div className="w-full max-w-[19rem] overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
-          <h1 className="sr-only">11+ QS</h1>
-          <Image
-            src="/11plus-qs-banner.png"
-            alt="11+ QS: Maths, English, Verbal Reasoning and Non-Verbal Reasoning"
-            width={1379}
-            height={616}
-            priority
-            className="w-full h-auto"
-          />
+      {/* Fills the first screen on a desktop, with How SIGQS Works below it. */}
+      <main className="flex items-center lg:min-h-[calc(100vh-73px)]">
+        {/* On a phone these run in the order written: introduction, login form,
+            subjects. On a desktop the form moves to its own column on the right. */}
+        <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-8 py-8 grid gap-x-10 gap-y-7 lg:grid-cols-[55fr_45fr]">
+          <section className="lg:col-start-1 lg:row-start-1">
+            <p className="inline-block rounded-full bg-explorer-tint px-3 py-1 text-xs font-semibold tracking-wide text-login-teal">
+              11+ GRAMMAR SCHOOL PREPARATION
+            </p>
+            <h1 className="font-sans mt-4 text-3xl lg:text-[40px] lg:leading-[1.2] font-semibold text-login-navy">
+              Build confidence. Achieve your potential.
+            </h1>
+            <span className="block mt-4 h-1 w-12 rounded-full bg-login-gold" aria-hidden="true" />
+            <p className="mt-4 text-base text-login-body">
+              Structured practice and intelligent assessment to help every student progress with
+              confidence.
+            </p>
+          </section>
 
-          <div className="grid grid-cols-2 gap-2 p-2">
-            <button type="button" onClick={() => setLoginOpen(true)} className="btn-primary py-1.5 text-xs">
-              Log In
-            </button>
-            <Link href="/register" className="btn-quiet py-1.5 text-xs text-center">
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </main>
-
-      {showLogin && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/50 px-5 py-8"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="login-title"
-          onClick={(e) => {
-            // A click on the dimmed backdrop closes it; one inside the box does not.
-            if (e.target === e.currentTarget) setLoginOpen(false);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setLoginOpen(false);
-          }}
-        >
-          <form onSubmit={handleSubmit} className="card p-7 space-y-5 w-full max-w-md">
-            <div className="flex items-center justify-between gap-4">
-              <h2 id="login-title" className="font-display text-xl font-bold text-ink">
-                Log In
-              </h2>
-              <button
-                type="button"
-                onClick={() => setLoginOpen(false)}
-                aria-label="Close"
-                className="text-xl leading-none text-ink-soft hover:text-ink"
-              >
-                ×
-              </button>
+          <form
+            onSubmit={handleSubmit}
+            className="w-full max-w-[400px] mx-auto lg:mx-0 lg:justify-self-end lg:self-center lg:col-start-2 lg:row-start-1 lg:row-span-2 rounded-2xl bg-login-card p-6 sm:p-7 space-y-4"
+          >
+            <div className="text-center">
+              <h2 className="font-sans text-[27px] font-semibold text-login-navy">Welcome back!</h2>
+              <p className="mt-1 text-sm text-login-body">Sign in to continue your learning journey.</p>
             </div>
 
             <div>
-              <label htmlFor="profileName" className="label">
-                Your user ID *
+              <label htmlFor="profileName" className="block mb-1.5 text-sm font-medium text-login-body">
+                User ID
               </label>
               <input
                 id="profileName"
@@ -140,17 +205,21 @@ export default function LoginPage() {
                 value={profileName}
                 onChange={(e) => setProfileName(e.target.value)}
                 required
-                autoFocus
                 autoComplete="username"
-                className="field"
-                placeholder="User ID"
+                className={fieldClass}
+                placeholder="Enter your user ID"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="label">
-                Your password *
-              </label>
+              <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                <label htmlFor="password" className="text-sm font-medium text-login-body">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-sm text-login-teal hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"
@@ -158,17 +227,9 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="field"
-                placeholder="Password"
+                className={fieldClass}
+                placeholder="Enter your password"
               />
-              <div className="mt-1.5 text-right">
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-medium text-brand hover:text-brand-hover"
-                >
-                  Forgotten?
-                </Link>
-              </div>
             </div>
 
             {(signOutReason === "idle" || signOutReason === "elsewhere") && !error && (
@@ -191,11 +252,75 @@ export default function LoginPage() {
               </p>
             )}
 
-            <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-              {loading ? "Logging in…" : "Log in"}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-login-cta py-3 text-[15px] font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition"
+            >
+              {loading ? "Logging in…" : "Log In"}
             </button>
+
+            <p className="text-center text-sm text-login-body">New to SIGQS?</p>
+            <Link
+              href="/register"
+              className="block w-full rounded-lg border border-login-teal bg-white py-2.5 text-center text-[15px] font-semibold text-login-teal hover:bg-brand-tint transition"
+            >
+              Create an Account
+            </Link>
+            <p className="text-center text-xs text-login-body">Secure access for parents and students</p>
           </form>
+
+          <section className="lg:col-start-1 lg:row-start-2">
+            <h2 className="font-sans text-lg font-semibold text-login-body">Everything you need to practise</h2>
+            <ul className="mt-3 grid grid-cols-2 gap-3">
+              {SUBJECTS.map((subject) => (
+                <li key={subject.name} className={`rounded-xl p-3.5 ${subject.tile}`}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-7 h-7"
+                    aria-hidden="true"
+                  >
+                    {subject.icon}
+                  </svg>
+                  <p className="mt-2 text-[15px] font-medium text-login-body">{subject.name}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 flex items-center gap-2.5 text-sm text-login-body">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5 text-login-teal shrink-0"
+                aria-hidden="true"
+              >
+                <path d="M4 20v-4M10 20v-8M16 20v-6M22 20V9M3 11l6-5 5 3 7-6" />
+              </svg>
+              Practise • Improve • Track progress
+            </p>
+          </section>
         </div>
+      </main>
+
+      <HowItWorksSection />
+
+      {aboutOpen && (
+        <Popup title="About SIGQS" onClose={() => setAboutOpen(false)}>
+          <p className="text-[15px] text-login-body leading-relaxed">
+            SIGQS offers structured 11+ practice in Maths, English, Verbal Reasoning and Non-Verbal
+            Reasoning, to help children prepare for Grammar School entrance exams. Children practise
+            at their own difficulty level, and parents can follow their progress from their own
+            dashboard.
+          </p>
+        </Popup>
       )}
     </div>
   );

@@ -462,21 +462,18 @@ function Shell({
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        {/* Equal side columns keep the logo dead centre. */}
-        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-3.5 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <Link
-            href={backHref}
-            className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand transition"
-          >
-            ← Non-Verbal
-          </Link>
+        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
           <BrandLogo height={56} />
-          <div className="justify-self-end">
-            <LogoutButton />
-          </div>
+          <LogoutButton />
         </div>
       </nav>
       <div className="max-w-2xl mx-auto px-5 sm:px-8 pt-4">
+        <Link
+          href={backHref}
+          className="inline-block mb-2 text-sm font-medium text-ink-soft hover:text-brand transition"
+        >
+          ← Non-Verbal
+        </Link>
         <RoundHeading level={level} title={title} isTopicTest={isTopicTest} />
       </div>
       <div className="max-w-2xl mx-auto px-5 sm:px-8 py-6">{children}</div>

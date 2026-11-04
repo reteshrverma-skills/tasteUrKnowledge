@@ -80,12 +80,6 @@ export function TestReview({
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
-          <Link
-            href={backHref}
-            className="text-sm font-medium text-ink-soft hover:text-brand transition"
-          >
-            ← {backLabel}
-          </Link>
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
             <BrandLogo height={56} />
           </span>
@@ -93,8 +87,14 @@ export function TestReview({
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10">
-        <PupilSchoolHeader className="mb-8" />
+      <div className="max-w-3xl mx-auto px-5 sm:px-8 pt-4 pb-10">
+        <Link
+          href={backHref}
+          className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
+        >
+          ← {backLabel}
+        </Link>
+        <PupilSchoolHeader className="mb-3" />
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-ink">{title}</h1>

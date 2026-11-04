@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
-import { LOGO_MAX_BYTES, logoTypeOf, pupilSchoolFor } from "@/lib/school-logo";
+import { LOGO_MAX_BYTES, logoTypeOf, pupilSchoolFor, schoolBrandingFor } from "@/lib/school-logo";
 import { DELETE as removeLogo, GET as getLogo, POST as uploadLogo } from "@/app/api/school/logo/route";
 import { db } from "../support/fake-prisma";
 import { ID, signInAs, signOut } from "../support/world";
@@ -20,6 +20,11 @@ function upload(bytes: number[] | Buffer, statedType = "image/png") {
   form.append("logo", new File([new Uint8Array(bytes)], "logo.png", { type: statedType }));
   return uploadLogo(new NextRequest("http://test.local/api/school/logo", { method: "POST", body: form }));
 }
+
+const topLogoFor = async (id: number) => {
+  signInAs(id);
+  return schoolBrandingFor(await getSession());
+};
 
 const headerFor = async (id: number) => {
   signInAs(id);
@@ -131,17 +136,44 @@ describe("seeing a logo", () => {
     expect((await getLogo()).status).toBe(401);
   });
 
-  it("heads a pupil's page with their own school, logo and name", async () => {
+  it.each([
+    ["its School Admin", ID.oakAdmin],
+    ["its teacher", ID.oakTeacher],
+    ["its pupil", ID.oakPupil],
+  ])("puts the school's logo in the top bar for %s", async (_who, id) => {
+    await withLogos();
+    const top = await topLogoFor(id);
+    expect(top?.name).toBe("Oakwood");
+    expect(top?.logoUrl).toContain("/api/school/logo");
+  });
+
+  it("puts each account's own school in its top bar", async () => {
+    await withLogos();
+    expect((await topLogoFor(ID.birchPupil))?.name).toBe("Birchwood");
+  });
+
+  it("names a school with no logo, which keeps the SIGQS logo", async () => {
+    expect(await topLogoFor(ID.oakPupil)).toMatchObject({ name: "Oakwood", logoUrl: null });
+  });
+
+  it("adds nothing to the top bar for anyone not in a school", async () => {
+    await withLogos();
+    expect(await topLogoFor(ID.parent)).toBeNull();
+    expect(await topLogoFor(ID.homeChild)).toBeNull();
+    expect(await topLogoFor(ID.admin)).toBeNull();
+    expect(await schoolBrandingFor(null)).toBeNull();
+  });
+
+  it("heads a pupil's page with their own school and name", async () => {
     await withLogos();
     const header = await headerFor(ID.oakPupil);
     expect(header?.schoolName).toBe("Oakwood");
-    expect(header?.logoUrl).toContain("/api/school/logo");
     expect(header?.person).toBeTruthy();
     expect((await headerFor(ID.birchPupil))?.schoolName).toBe("Birchwood");
   });
 
   it("still names the school when it has no logo", async () => {
-    expect(await headerFor(ID.oakPupil)).toMatchObject({ schoolName: "Oakwood", logoUrl: null });
+    expect((await headerFor(ID.oakPupil))?.schoolName).toBe("Oakwood");
   });
 
   it.each([
@@ -160,10 +192,10 @@ describe("seeing a logo", () => {
   it("changes the address with each upload, so a new logo shows at once", async () => {
     signInAs(ID.oakAdmin);
     await upload(PNG);
-    const first = (await headerFor(ID.oakPupil))!.logoUrl;
+    const first = (await topLogoFor(ID.oakPupil))!.logoUrl;
 
     school(OAK).logoUpdatedAt = new Date(school(OAK).logoUpdatedAt.getTime() + 1000);
-    expect((await headerFor(ID.oakPupil))!.logoUrl).not.toBe(first);
+    expect((await topLogoFor(ID.oakPupil))!.logoUrl).not.toBe(first);
   });
 });
 
@@ -177,7 +209,7 @@ describe("removing a logo", () => {
     expect(school(OAK)).toMatchObject({ logoData: null, logoType: null, logoUpdatedAt: null });
     expect(db.school).toHaveLength(schools);
     expect((await getLogo()).status).toBe(404);
-    expect((await headerFor(ID.oakPupil))?.logoUrl).toBeNull();
+    expect((await topLogoFor(ID.oakPupil))?.logoUrl).toBeNull();
   });
 
   it("is for the School Admin only", async () => {

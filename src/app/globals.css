@@ -54,6 +54,15 @@
   --color-poor: #b23b3b;
   --color-poor-tint: #fae9e9;
 
+  /* The login page; navy also carries school and user names */
+  --color-login-navy: #073b75;
+  --color-login-teal: #087e8b;
+  --color-login-cta: #075b78;
+  --color-login-gold: #e8b84a;
+  --color-login-card: #f4f7fa;
+  --color-login-border: #dce4ec;
+  --color-login-body: #334155;
+
   --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }

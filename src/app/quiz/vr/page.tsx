@@ -284,21 +284,18 @@ function VrQuiz() {
   const nav = (
     <>
       <nav className="bg-surface border-b border-line shrink-0">
-        {/* Equal side columns keep the logo dead centre. */}
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <Link
-            href={backHref}
-            className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand transition"
-          >
-            ← Verbal Reasoning
-          </Link>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-3">
           <BrandLogo height={56} />
-          <div className="justify-self-end">
-            <LogoutButton />
-          </div>
+          <LogoutButton />
         </div>
       </nav>
       <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-4 shrink-0">
+        <Link
+          href={backHref}
+          className="inline-block mb-2 text-sm font-medium text-ink-soft hover:text-brand transition"
+        >
+          ← Verbal Reasoning
+        </Link>
         <RoundHeading level={level} title={roundLabel} isTopicTest={isTopicTest} />
       </div>
     </>

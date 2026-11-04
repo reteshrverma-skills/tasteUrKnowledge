@@ -30,9 +30,24 @@ export function logoUrlFor(schoolId: bigint, logoUpdatedAt: Date | null): string
   return logoUpdatedAt ? `/api/school/logo?v=${schoolId}-${logoUpdatedAt.getTime()}` : null;
 }
 
+export interface SchoolBrandingValue {
+  name: string;
+  logoUrl: string | null;
+}
+
+/** For the top of this account's pages: their own school's name, and its logo if it has one. */
+export async function schoolBrandingFor(session: Session | null): Promise<SchoolBrandingValue | null> {
+  if (!session) return null;
+  const row = await prisma.userProfile.findUnique({
+    where: { id: session.userId },
+    select: { school: { select: { id: true, name: true, logoUpdatedAt: true } } },
+  });
+  const school = row?.school;
+  return school ? { name: school.name, logoUrl: logoUrlFor(school.id, school.logoUpdatedAt) } : null;
+}
+
 export interface PupilSchool {
   schoolName: string;
-  logoUrl: string | null;
   person: string;
 }
 
@@ -45,13 +60,12 @@ export async function pupilSchoolFor(session: Session | null): Promise<PupilScho
       fName: true,
       lName: true,
       profileName: true,
-      school: { select: { id: true, name: true, logoUpdatedAt: true } },
+      school: { select: { name: true } },
     },
   });
   if (!row?.school) return null;
   return {
     schoolName: row.school.name,
-    logoUrl: logoUrlFor(row.school.id, row.school.logoUpdatedAt),
     person: displayName(row),
   };
 }

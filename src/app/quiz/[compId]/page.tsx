@@ -7,7 +7,6 @@ import { confirmSubmit } from "@/lib/quiz-confirm";
 import { difficultyStyle } from "@/lib/level-style";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
-import { QuizSchoolLogo } from "@/components/QuizSchoolLogo";
 
 interface Question {
   id: number;
@@ -327,12 +326,6 @@ export default function QuizPage() {
       <div className="min-h-screen bg-ground">
         <nav className="bg-surface border-b border-line">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <Link
-              href={backHref}
-              className="text-sm font-medium text-ink-soft hover:text-brand transition"
-            >
-              ← {backLabel}
-            </Link>
             <h1 className="font-display text-base font-bold text-brand inline-flex items-center gap-2">
               <BrandLogo height={56} />
             </h1>
@@ -341,6 +334,12 @@ export default function QuizPage() {
         </nav>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Link
+            href={backHref}
+            className="inline-block mb-4 text-sm font-medium text-ink-soft hover:text-brand transition"
+          >
+            ← {backLabel}
+          </Link>
           <div className="card p-6 mb-8">
             <div className="text-center mb-6">
               <h2 className="font-display text-2xl font-bold text-ink">Quiz Results</h2>
@@ -415,33 +414,29 @@ export default function QuizPage() {
     <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-ground">
       {/* Navigation */}
       <nav className="bg-surface border-b border-line shrink-0">
-        {/* Equal side columns keep the logo dead centre whatever the
-            back link says. */}
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <Link
-            href={backHref}
-            className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand transition"
-          >
-            ← {backLabel}
-          </Link>
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-3">
           <BrandLogo height={56} />
-          <div className="justify-self-end">
-            <LogoutButton />
-          </div>
+          <LogoutButton />
         </div>
       </nav>
+
+      <div className="w-full max-w-[1600px] mx-auto px-4 pt-2 shrink-0">
+        <Link
+          href={backHref}
+          className="text-sm font-medium text-ink-soft hover:text-brand transition"
+        >
+          ← {backLabel}
+        </Link>
+      </div>
 
       {/* Two panes */}
       <div className="flex-1 lg:min-h-0 w-full max-w-[1600px] mx-auto px-3 sm:px-4 py-3 grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 lg:gap-4">
         {/* Story - scrolls within its own pane */}
         <section className="card flex flex-col lg:min-h-0 overflow-hidden">
           <header className="px-5 py-3 border-b border-line shrink-0 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <QuizSchoolLogo />
-              <h2 className="font-display font-semibold text-ink truncate">
-                {comp.label}
-              </h2>
-            </div>
+            <h2 className="font-display font-semibold text-ink truncate">
+              {comp.label}
+            </h2>
             {comp.difficultyLevel && (
               <span
                 className={`chip shrink-0 ${difficultyStyle(

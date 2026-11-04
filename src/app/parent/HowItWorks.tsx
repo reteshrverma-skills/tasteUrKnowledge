@@ -1,4 +1,4 @@
-const STEPS = [
+export const STEPS = [
   {
     title: "Parent Registration",
     text: "Parents create an account on SIGQS and set up a separate profile for each child.",

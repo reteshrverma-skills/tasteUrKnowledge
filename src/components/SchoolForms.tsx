@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SCHOOL_LOGO_HEADER_CLASS, SchoolLogoImage } from "@/components/SchoolLogo";
 
 /**
  * The small forms on the School Admin (/school) and teacher (/teacher)
@@ -70,16 +69,15 @@ function useSubmit() {
 }
 
 /**
- * The top of the School Admin's page: the logo left of the school's details,
- * or a box to add one, with the buttons to change or remove it on the right.
+ * The top of the School Admin's page: the school's details, with the buttons to
+ * add, change or remove its logo on the right. The logo itself shows in the top
+ * bar.
  */
 export function SchoolLogoEditor({
   logoUrl,
-  schoolName,
   children,
 }: {
   logoUrl: string | null;
-  schoolName: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -114,33 +112,21 @@ export function SchoolLogoEditor({
 
   return (
     <header className="flex flex-wrap items-center gap-4">
-      <input
-        id={inputId}
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        onChange={onFile}
-        disabled={saving}
-        className="sr-only peer"
-      />
-      <label
-        htmlFor={inputId}
-        title={logoUrl ? "Change logo" : "Add logo"}
-        className="cursor-pointer shrink-0 rounded-lg peer-focus-visible:ring-2 peer-focus-visible:ring-brand"
-      >
-        {logoUrl ? (
-          <SchoolLogoImage url={logoUrl} schoolName={schoolName} className={SCHOOL_LOGO_HEADER_CLASS} />
-        ) : (
-          <span
-            className={`${SCHOOL_LOGO_HEADER_CLASS} aspect-square grid place-items-center rounded-lg border-2 border-dashed border-line-strong text-center text-xs font-medium text-ink-soft hover:border-brand hover:text-brand transition`}
-          >
-            Add logo
-          </span>
-        )}
-      </label>
       <div className="min-w-0 flex-1">{children}</div>
       <div className="flex flex-col items-end gap-1 text-sm">
         <div className="flex items-center gap-3">
-          <label htmlFor={inputId} className="cursor-pointer font-medium text-brand hover:underline">
+          <input
+            id={inputId}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={onFile}
+            disabled={saving}
+            className="sr-only peer"
+          />
+          <label
+            htmlFor={inputId}
+            className="cursor-pointer font-medium text-brand hover:underline rounded peer-focus-visible:ring-2 peer-focus-visible:ring-brand"
+          >
             {saving ? "Saving..." : logoUrl ? "Change logo" : "Add logo"}
           </label>
           {logoUrl && (
