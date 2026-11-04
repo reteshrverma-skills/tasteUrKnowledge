@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { difficultyStyle } from "@/lib/level-style";
-import { LevelIcon } from "@/app/dashboard/subject/LevelIcon";
+import { LevelLabel } from "@/app/dashboard/subject/LevelIcon";
 import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 interface Question {
@@ -564,7 +564,7 @@ export default function EnglishAdminPage() {
 
         {/* Same difficulty selector as the student English page */}
         <div>
-          <h2 className="eyebrow mb-2.5">Difficulty level</h2>
+          <h2 className="eyebrow mb-2.5">Stage</h2>
           <div className="flex flex-wrap gap-2">
             {LEVELS.map((l) => {
               const isActive = l === level;
@@ -580,8 +580,7 @@ export default function EnglishAdminPage() {
                       : `${difficultyStyle(l)} hover:brightness-[0.97]`
                   }`}
                 >
-                  <LevelIcon level={l} />
-                  {l}
+                  <LevelLabel level={l} />
                 </button>
               );
             })}

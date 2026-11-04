@@ -51,7 +51,7 @@ export default async function AdminPage() {
               href: "/admin/nvr",
               title: "Non-Verbal Reasoning",
               blurb:
-                "Browse questions by difficulty level and topic, with their database IDs",
+                "Browse questions by stage and topic, with their database IDs",
               bar: "bg-navigator",
               wide: true,
             },

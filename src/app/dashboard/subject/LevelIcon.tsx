@@ -1,3 +1,5 @@
+import { LEVEL_STAGES } from "@/lib/level-style";
+
 /**
  * One icon per rung of the difficulty ladder: a sprout to start, a compass to
  * explore, a map to navigate, a trophy to challenge, a brain to master.
@@ -75,5 +77,25 @@ export function LevelIcon({
     >
       {paths}
     </svg>
+  );
+}
+
+/**
+ * A level button's contents: its icon, its name, and its stage below the name.
+ *
+ * The text has a fixed width, wide enough for "Challenger", so every level
+ * button comes out the same size.
+ */
+export function LevelLabel({ level }: { level: string }) {
+  const stage = LEVEL_STAGES[level.toLowerCase()];
+
+  return (
+    <>
+      <LevelIcon level={level} />
+      <span className="flex w-[4.75rem] flex-col text-center leading-tight">
+        {level}
+        {stage && <span className="text-[0.6875rem] font-medium">{stage}</span>}
+      </span>
+    </>
   );
 }

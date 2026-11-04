@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { programmeOf } from "@/lib/programme";
 import Link from "next/link";
-import { LevelIcon } from "../LevelIcon";
+import { LevelLabel } from "../LevelIcon";
 import { redirect } from "next/navigation";
 import {
   COMP_NEWEST_FIRST,
@@ -164,7 +164,7 @@ export default async function SubjectPage({
             </p>
             <p className="text-ink-soft text-sm mt-1.5 max-w-sm mx-auto">
               {lockedCount > 0
-                ? "Ask your teacher to unlock a difficulty level for you."
+                ? "Ask your teacher to unlock a stage for you."
                 : "Check back once your teacher has added some."}
             </p>
             <Link href="/dashboard" className="btn-primary inline-block mt-6 px-5 py-2.5">
@@ -175,7 +175,7 @@ export default async function SubjectPage({
           <>
             {/* Same difficulty selector as Maths and Non-Verbal */}
             <div className="mb-7">
-              <h2 className="eyebrow mb-2.5">Difficulty level</h2>
+              <h2 className="eyebrow mb-2.5">Stage</h2>
               <div className="flex flex-wrap gap-2">
                 {levels.map((level) => {
                   const isActive = level === activeLevel;
@@ -192,8 +192,7 @@ export default async function SubjectPage({
                           : `${difficultyStyle(level)} hover:brightness-[0.97]`
                       }`}
                     >
-                      <LevelIcon level={level} />
-                      {level}
+                      <LevelLabel level={level} />
                     </Link>
                   );
                 })}

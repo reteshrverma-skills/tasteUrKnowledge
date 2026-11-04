@@ -150,16 +150,23 @@ export default function LoginPage() {
             />
           </Link>
 
-          <nav className="flex items-center gap-3 sm:gap-5 text-sm font-medium text-login-body">
-            <a href="#how-it-works" className="hover:text-login-teal transition">
-              How it works
+          <nav className="flex items-center gap-1.5 sm:gap-3 text-sm font-semibold text-login-teal">
+            <a
+              href="#sigqs-pathway"
+              className="whitespace-nowrap rounded-full bg-brand-tint px-2.5 sm:px-3.5 py-1.5 hover:bg-login-border transition"
+            >
+              SIGQS Pathway
             </a>
-            <button type="button" onClick={() => setAboutOpen(true)} className="hover:text-login-teal transition">
+            <button
+              type="button"
+              onClick={() => setAboutOpen(true)}
+              className="whitespace-nowrap rounded-full bg-brand-tint px-2.5 sm:px-3.5 py-1.5 hover:bg-login-border transition"
+            >
               About
             </button>
             <Link
               href="/register"
-              className="rounded-full bg-brand-tint px-3.5 py-1.5 font-semibold text-login-teal hover:bg-login-border transition"
+              className="whitespace-nowrap rounded-full bg-brand-tint px-2.5 sm:px-3.5 py-1.5 hover:bg-login-border transition"
             >
               Sign Up
             </Link>
@@ -167,7 +174,7 @@ export default function LoginPage() {
         </div>
       </header>
 
-      {/* Fills the first screen on a desktop, with How SIGQS Works below it. */}
+      {/* Fills the first screen on a desktop, with the SIGQS Pathway below it. */}
       <main className="flex items-center lg:min-h-[calc(100vh-73px)]">
         {/* On a phone these run in the order written: introduction, login form,
             subjects. On a desktop the form moves to its own column on the right. */}
@@ -317,7 +324,7 @@ export default function LoginPage() {
           <p className="text-[15px] text-login-body leading-relaxed">
             SIGQS offers structured 11+ practice in Maths, English, Verbal Reasoning and Non-Verbal
             Reasoning, to help children prepare for Grammar School entrance exams. Children practise
-            at their own difficulty level, and parents can follow their progress from their own
+            at their own stage, and parents can follow their progress from their own
             dashboard.
           </p>
         </Popup>

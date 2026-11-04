@@ -1,4 +1,34 @@
 import { STEPS } from "@/app/parent/HowItWorks";
+import { LevelLabel } from "@/app/dashboard/subject/LevelIcon";
+import { difficultyStyle } from "@/lib/level-style";
+
+const LEVELS = [
+  {
+    level: "Starter",
+    tag: "Building foundations",
+    text: "Develop essential concepts and build confidence through structured practice.",
+  },
+  {
+    level: "Explorer",
+    tag: "Developing skills",
+    text: "Strengthen core concepts, improve accuracy and explore different question types.",
+  },
+  {
+    level: "Navigator",
+    tag: "Applying knowledge",
+    text: "Apply concepts to challenging questions, develop reasoning and improve problem-solving skills.",
+  },
+  {
+    level: "Challenger",
+    tag: "Advanced preparation",
+    text: "Tackle complex questions, improve speed and accuracy, and build exam-ready confidence.",
+  },
+  {
+    level: "Master",
+    tag: "Ready for the challenge",
+    text: "Demonstrate strong subject knowledge, consistent performance and confidence in tackling grammar school entrance exam-style questions.",
+  },
+];
 
 /** Drawn rather than photographed, so they stay sharp and hold no real child's details. */
 function Picture({ children }: { children: React.ReactNode }) {
@@ -88,13 +118,15 @@ const PICTURES = [
   </Picture>,
 ];
 
-/** The four steps of using SIGQS, with a picture for each, below the login form. */
+/** The SIGQS Pathway, below the login form: the four steps of using SIGQS, then the five levels a pupil climbs. */
 export function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="border-t border-login-border bg-white">
+    <section id="sigqs-pathway" className="border-t border-login-border bg-white">
       <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-10 lg:py-12">
-        <h2 className="font-sans text-center text-[27px] font-semibold text-login-navy">How SIGQS Works</h2>
-        <ol className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <h2 className="font-sans text-center text-[27px] font-semibold text-login-navy">SIGQS Pathway</h2>
+
+        <h3 className="mt-7 font-sans text-xl font-semibold text-login-navy">Login Journey</h3>
+        <ol className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
             <li key={step.title} className="rounded-2xl border border-login-border p-4">
               {PICTURES[index]}
@@ -102,9 +134,25 @@ export function HowItWorksSection() {
                 <span className="w-7 h-7 rounded-full bg-login-cta text-white grid place-items-center text-sm font-semibold shrink-0">
                   {index + 1}
                 </span>
-                <h3 className="font-sans text-base font-semibold text-login-navy">{step.title}</h3>
+                <h4 className="font-sans text-base font-semibold text-login-navy">{step.title}</h4>
               </div>
               <p className="mt-2 text-sm leading-relaxed text-login-body">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+
+        <h3 className="mt-10 font-sans text-xl font-semibold text-login-navy">Pupil&apos;s Learning Journey</h3>
+        <ol className="mt-4 rounded-2xl border border-login-border divide-y divide-login-border">
+          {LEVELS.map((level, index) => (
+            <li key={level.level} className="p-4 sm:px-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-login-navy">{index + 1}.</span>
+                <h4 className={`chip chip-lg border font-sans ${difficultyStyle(level.level)}`}>
+                  <LevelLabel level={level.level} />
+                </h4>
+                <span className={`chip border ${difficultyStyle(level.level)}`}>{level.tag}</span>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-login-body">{level.text}</p>
             </li>
           ))}
         </ol>

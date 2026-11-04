@@ -34,6 +34,15 @@ export function difficultyStyle(level: string): string {
   }
 }
 
+/** Who each rung is aimed at, shown with its name on the level buttons. */
+export const LEVEL_STAGES: Record<string, string> = {
+  starter: "Year 3",
+  explorer: "Years 3 & 4",
+  navigator: "Years 4 & 5",
+  challenger: "Year 5",
+  master: "Exam Ready",
+};
+
 /**
  * Green / amber / red band for a score chip.
  *

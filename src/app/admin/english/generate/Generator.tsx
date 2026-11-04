@@ -203,7 +203,7 @@ export function Generator({
               </select>
             </label>
             <label className="block">
-              <span className="eyebrow">Difficulty level</span>
+              <span className="eyebrow">Stage</span>
               <select
                 value={level}
                 onChange={(e) => {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LevelIcon } from "../LevelIcon";
+import { LevelLabel } from "../LevelIcon";
 import { getSession } from "@/lib/auth";
 import { programmeOf } from "@/lib/programme";
 import { scoreStyle, type TestScore } from "@/lib/student";
@@ -102,14 +102,14 @@ export default async function MathsPage({
               No levels are open to you yet
             </p>
             <p className="text-ink-soft text-sm mt-1.5">
-              Ask your teacher to unlock a difficulty level for you.
+              Ask your teacher to unlock a stage for you.
             </p>
           </div>
         ) : (
           <>
             {/* Difficulty selector */}
             <div className="mb-7">
-              <h2 className="eyebrow mb-2.5">Difficulty level</h2>
+              <h2 className="eyebrow mb-2.5">Stage</h2>
               <div className="flex flex-wrap gap-2">
                 {levels.map((level) => {
                   const isActive = level === activeLevel;
@@ -126,8 +126,7 @@ export default async function MathsPage({
                           : `${mathsLevelStyle(level)} hover:brightness-[0.97]`
                       }`}
                     >
-                      <LevelIcon level={level} />
-                      {level}
+                      <LevelLabel level={level} />
                     </Link>
                   );
                 })}
