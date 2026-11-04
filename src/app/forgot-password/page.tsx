@@ -114,7 +114,7 @@ export default function ForgotPasswordPage() {
           {/* Children have no email of their own; their parent holds the account. */}
           <p className="text-xs text-gray-500">
             Children&apos;s logins are managed by their parent — a parent can
-            change a child&apos;s password under Profile → Kids Profile.
+            change a child&apos;s password under Profile → Children Profile.
           </p>
         </div>
       </div>

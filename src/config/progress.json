@@ -15,20 +15,43 @@
   "trendDays": 7,
   "englishSkillFamilies": [
     {
-      "name": "Finding information",
-      "topics": ["retrieval", "direct retrieval"]
+      "name": "Retrieval & Evidence",
+      "topics": ["direct retrieval", "retrieval", "evidence"]
     },
     {
-      "name": "Vocabulary",
-      "topics": ["basic vocabulary", "synonyms", "antonyms"]
+      "name": "Inference & Interpretation",
+      "topics": [
+        "simple inference",
+        "subtle inference",
+        "deeper inference",
+        "implicit meaning",
+        "ambiguity",
+        "multiple interpretations"
+      ]
     },
     {
-      "name": "Order of events",
-      "topics": ["sequencing", "simple sequencing"]
+      "name": "Vocabulary & Word Meaning",
+      "topics": ["basic vocabulary", "vocabulary", "synonym", "synonyms", "antonyms"]
     },
     {
-      "name": "Deeper understanding",
-      "topics": ["viewpoint", "author's purpose", "motivation", "multi-step reasoning"]
+      "name": "Structure & Sequencing",
+      "topics": ["structure", "simple sequencing", "sequencing"]
+    },
+    {
+      "name": "Author, Language & Character Understanding",
+      "topics": [
+        "author's purpose",
+        "viewpoint",
+        "language effect",
+        "language effects",
+        "writer's technique",
+        "character feelings",
+        "motivation"
+      ]
+    },
+    {
+      "name": "Reasoning & Relationships",
+      "topics": ["multi-step reasoning", "cause/effect", "comparison"]
     }
   ]
 }

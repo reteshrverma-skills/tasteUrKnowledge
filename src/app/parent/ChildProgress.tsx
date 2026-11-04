@@ -20,7 +20,7 @@ export const SUBJECT_HEADING: Record<ProgressSubject, string> = {
 
 /** The per-subject details page for this child, on the parent's side. */
 function parentDetailsHref(studentId: number, subject: ProgressSubject) {
-  return `/parent/kids/${studentId}/progress/${slugForSubject(subject)}`;
+  return `/parent/children/${studentId}/progress/${slugForSubject(subject)}`;
 }
 
 function DetailsLink({ href }: { href: string }) {

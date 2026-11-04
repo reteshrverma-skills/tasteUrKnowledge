@@ -80,7 +80,7 @@ export function ScoreBar({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,13rem)_1fr_auto] items-center gap-x-4 gap-y-1">
       <div className="min-w-0">
-        <p className={`truncate ${strong ? "font-semibold text-ink" : "text-ink"}`}>
+        <p className={strong ? "font-semibold text-ink" : "truncate text-ink"}>
           {label}
         </p>
         <Trend previous={previous} current={percentage} />

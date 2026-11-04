@@ -40,7 +40,7 @@ export interface CountryOption {
  * Creating a child gives them their own login: the child signs in as
  * themselves to practise, and the parent manages the account from here.
  */
-export function AddKidForm({
+export function AddChildForm({
   years,
   countries,
   defaultCountry,
@@ -76,7 +76,7 @@ export function AddKidForm({
     setSaving(true);
 
     try {
-      const response = await fetch("/api/parent/kids", {
+      const response = await fetch("/api/parent/children", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

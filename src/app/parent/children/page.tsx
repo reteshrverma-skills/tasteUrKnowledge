@@ -4,12 +4,12 @@ import { getSession } from "@/lib/auth";
 import { displayName } from "@/lib/english";
 import { listChildren, listYears, parentProfile } from "@/lib/parent";
 import { ParentNav } from "../ParentNav";
-import { AddKidForm } from "./AddKidForm";
+import { AddChildForm } from "./AddChildForm";
 import { DEFAULT_COUNTRY_CODE, listCountries } from "@/lib/countries";
 import { listProgrammes } from "@/lib/programme";
 
-/** Kids Profile: every child on the account, and the form to add another. */
-export default async function KidsProfilePage() {
+/** Children Profile: every child on the account, and the form to add another. */
+export default async function ChildrenProfilePage() {
   const session = await getSession();
   if (!session || session.userType !== "PARENT") redirect("/login");
 
@@ -37,7 +37,7 @@ export default async function KidsProfilePage() {
         </Link>
 
         <div className="mt-4 mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">Kids Profile</h2>
+          <h2 className="text-3xl font-bold text-gray-800">Children Profile</h2>
           <p className="text-gray-600 mt-1">
             Each child gets their own login and practises as themselves.
           </p>
@@ -60,7 +60,7 @@ export default async function KidsProfilePage() {
                     Managed by {child.schoolName}
                   </span>
                   <Link
-                    href={`/parent/kids/${child.studentId}/home-login`}
+                    href={`/parent/children/${child.studentId}/home-login`}
                     className="text-xs font-bold text-indigo-600"
                   >
                     Home login →
@@ -69,7 +69,7 @@ export default async function KidsProfilePage() {
               ) : (
               <Link
                 key={child.studentId}
-                href={`/parent/kids/${child.studentId}`}
+                href={`/parent/children/${child.studentId}`}
                 className="flex items-center gap-3 bg-white rounded-lg shadow-sm hover:shadow-md transition px-4 py-3 border-l-4 border-indigo-500"
               >
                 <span className="font-semibold text-gray-800">
@@ -97,7 +97,7 @@ export default async function KidsProfilePage() {
               ? "No school years have been set up yet, so a child cannot be given one."
               : "Your child will sign in with the login id you choose here."}
           </p>
-          <AddKidForm
+          <AddChildForm
             years={years}
             countries={countries}
             defaultCountry={defaultCountry}

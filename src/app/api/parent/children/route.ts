@@ -15,7 +15,7 @@ function text(value: unknown): string | null {
  *
  * The child gets a STUDENT profile of their own - they log in and practise as
  * themselves - and a userStudentDetails row carrying parentId, which is what
- * makes them appear on this parent's Kids Profile and nobody else's.
+ * makes them appear on this parent's Children Profile and nobody else's.
  *
  * Starter is unlocked on creation. Without at least one level a new child sees
  * an empty dashboard in every subject, which reads as the app being broken;

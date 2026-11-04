@@ -19,7 +19,7 @@ import {
   BarLegend,
   FamilyBars,
   Trend,
-} from "../../../../../parent/kids/[studentId]/progress/[subject]/ProgressBars";
+} from "../../../../../parent/children/[studentId]/progress/[subject]/ProgressBars";
 import { SUBJECT_HEADING, SUBJECT_TONE } from "../../../../../parent/ChildProgress";
 import { TeacherHeader } from "../../../../TeacherHeader";
 import { TeacherNav } from "../../../../TeacherNav";

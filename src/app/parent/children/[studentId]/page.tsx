@@ -5,16 +5,16 @@ import { getSession } from "@/lib/auth";
 import { displayName } from "@/lib/english";
 import { listYears, ownsManagedChild, parentProfile } from "@/lib/parent";
 import { ParentNav } from "../../ParentNav";
-import { EditKidForm } from "./EditKidForm";
+import { EditChildForm } from "./EditChildForm";
 import { listProgrammes } from "@/lib/programme";
-import { DeleteKid } from "./DeleteKid";
+import { DeleteChild } from "./DeleteChild";
 
 // Deleting a child's profile is hidden from parents for now. The API route and
-// DeleteKid component are intact; set this to true to bring the option back.
+// DeleteChild component are intact; set this to true to bring the option back.
 const SHOW_DELETE_PROFILE = false;
 
 /** One child's profile, editable by the parent who owns it. */
-export default async function EditKidPage({
+export default async function EditChildPage({
   params,
 }: {
   params: Promise<{ studentId: string }>;
@@ -57,10 +57,10 @@ export default async function EditKidPage({
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <Link
-          href="/parent/kids"
+          href="/parent/children"
           className="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
         >
-          ← Back to Kids Profile
+          ← Back to Children Profile
         </Link>
 
         <div className="mt-4 mb-6">
@@ -77,7 +77,7 @@ export default async function EditKidPage({
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-          <EditKidForm
+          <EditChildForm
             studentId={studentId}
             years={years}
             programmes={programmes}
@@ -93,7 +93,7 @@ export default async function EditKidPage({
         </div>
 
         {SHOW_DELETE_PROFILE && (
-          <DeleteKid studentId={studentId} profileName={child.profileName} />
+          <DeleteChild studentId={studentId} profileName={child.profileName} />
         )}
       </div>
     </div>

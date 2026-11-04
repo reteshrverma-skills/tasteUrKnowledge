@@ -3,7 +3,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 
 /**
  * The bar every parent screen shares: Profile on the left of Logout, as a
- * menu with My Profile and Kids Profile inside it.
+ * menu with My Profile and Children Profile inside it.
  *
  * <details> rather than client state, the same as the Maths topic frames:
  * the menu opens and closes with no JavaScript, so these pages stay server
@@ -12,7 +12,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 export function ParentNav({ parentName }: { parentName: string }) {
   return (
     <nav className="bg-surface border-b border-line">
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-3.5 flex justify-between items-center gap-4">
         <Link
           href="/parent"
           className="font-display text-lg font-bold text-brand inline-flex items-center gap-2"
@@ -45,11 +45,11 @@ export function ParentNav({ parentName }: { parentName: string }) {
                 </span>
               </Link>
               <Link
-                href="/parent/kids"
+                href="/parent/children"
                 className="block px-4 py-2.5 hover:bg-brand-tint transition border-t border-line"
               >
                 <span className="block text-sm font-semibold text-ink">
-                  Kids Profile
+                  Children Profile
                 </span>
                 <span className="block text-xs text-ink-faint">
                   Add and update your children

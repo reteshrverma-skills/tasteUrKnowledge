@@ -67,7 +67,7 @@ const NO_LEVELS: EntitlementFlags = {
  *   Year 5 and above : everything
  *
  * The harder rungs open as the child moves up, so a parent does not have to
- * grant them by hand. A parent can still adjust any of these from Kids Profile
+ * grant them by hand. A parent can still adjust any of these from Children Profile
  * afterwards. An unreadable or missing year falls back to Starter only, which
  * is the safe floor rather than opening everything.
  */

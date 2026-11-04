@@ -25,7 +25,7 @@ const OPTIONS: { mode: Mode; title: string; detail: string }[] = [
  * child's login id - the same check the server makes - so one stray click
  * cannot delete anything.
  */
-export function DeleteKid({
+export function DeleteChild({
   studentId,
   profileName,
 }: {
@@ -47,7 +47,7 @@ export function DeleteKid({
     setDeleting(true);
 
     try {
-      const response = await fetch(`/api/parent/kids/${studentId}`, {
+      const response = await fetch(`/api/parent/children/${studentId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode, confirm: confirm.trim() }),
@@ -56,7 +56,7 @@ export function DeleteKid({
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error || "Could not delete the profile");
       }
-      router.push("/parent/kids");
+      router.push("/parent/children");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete the profile");

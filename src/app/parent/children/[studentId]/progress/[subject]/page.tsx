@@ -29,9 +29,10 @@ function formatDay(date: Date | null) {
 
 /**
  * One child's progress in one subject, opened from a Details button on the
- * parent dashboard: time spent, what to focus on next, every topic's score as
- * a bar (English grouped into the skill families in src/config/progress.json)
- * and their latest tests.
+ * parent dashboard. Left half: time spent, what to focus on next and their
+ * tests by stage, with every latest test behind Full details. Right half:
+ * every topic's score as a bar (English grouped into the skill families in
+ * src/config/progress.json).
  */
 export default async function SubjectProgressPage({
   params,
@@ -69,7 +70,7 @@ export default async function SubjectProgressPage({
     <div className="min-h-screen bg-ground">
       <ParentNav parentName={profile ? displayName(profile) : "Parent"} />
 
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14 space-y-5">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-8 sm:py-10 space-y-5">
         <Link
           href="/parent"
           className="text-sm font-medium text-ink-soft hover:text-brand transition"
@@ -87,6 +88,9 @@ export default async function SubjectProgressPage({
           <p className="text-ink-soft text-sm mt-1">{childName}</p>
         </header>
 
+        <div className="grid lg:grid-cols-2 gap-5 items-start">
+          {/* Left half: time, what to focus on, tests */}
+          <div className="space-y-5 min-w-0">
         {/* Time spent */}
         <section className="card p-5 sm:p-6">
           <h2 className="eyebrow mb-3">Time spent</h2>
@@ -162,38 +166,8 @@ export default async function SubjectProgressPage({
           )}
         </section>
 
-        {/* Every topic, as bars, weakest first */}
-        <section className="card p-5 sm:p-6">
-          <h2 className="font-display text-base font-semibold text-ink">
-            {SUBJECT_HEADING[subject]}
-          </h2>
-          {subject === "English" && detail.areas.length > 0 && (
-            <p className="text-xs text-ink-faint mt-1">
-              Grouped into skill families. Open a family to see the question
-              types inside it.
-            </p>
-          )}
-
-          {detail.areas.length === 0 ? (
-            <p className="text-sm text-ink-faint mt-4">
-              No {subject} questions answered yet.
-            </p>
-          ) : (
-            <>
-              <BarLegend />
-              <div className="mt-5">
-                {subject === "English" ? (
-                  <FamilyBars families={englishFamilies(detail.areas)} />
-                ) : (
-                  <AreaBars areas={detail.areas} />
-                )}
-              </div>
-            </>
-          )}
-        </section>
-
-        {/* Latest tests */}
-        <section className="card p-5 sm:p-6">
+        {/* Latest tests: how each stage went, with every test behind a button. */}
+        <section className="card p-5 sm:p-6 relative">
           <h2 className="font-display text-base font-semibold text-ink">
             Latest tests
           </h2>
@@ -201,45 +175,120 @@ export default async function SubjectProgressPage({
           {detail.tests.length === 0 ? (
             <p className="text-sm text-ink-faint mt-4">No tests taken yet.</p>
           ) : (
-            <table className="w-full text-sm mt-4">
-              <thead>
-                <tr className="eyebrow">
-                  <th className="text-left pb-1.5 font-semibold">Date</th>
-                  <th className="text-left pb-1.5 font-semibold">Test</th>
-                  <th className="text-left pb-1.5 font-semibold hidden sm:table-cell">
-                    Level
-                  </th>
-                  <th className="text-right pb-1.5 font-semibold">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detail.tests.map((test) => (
-                  <tr key={test.id} className="border-t border-line">
-                    <td className="py-2 pr-3 text-ink-soft whitespace-nowrap tabular">
-                      {formatDay(test.startedAt)}
-                    </td>
-                    <td className="py-2 pr-3 text-ink">{test.label}</td>
-                    <td className="py-2 pr-3 hidden sm:table-cell">
-                      {test.level && (
-                        <span className={`chip ${difficultyStyle(test.level)}`}>
-                          {test.level}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 text-right whitespace-nowrap">
-                      <span className="text-xs text-ink-faint tabular mr-2">
-                        {test.correct}/{test.total}
-                      </span>
-                      <span className={`chip ${scoreStyle(test.percentage)}`}>
-                        {test.percentage}%
-                      </span>
-                    </td>
+            <>
+              <table className="w-full text-sm mt-4">
+                <thead>
+                  <tr className="eyebrow">
+                    <th className="text-left pb-1.5 font-semibold">Stage</th>
+                    <th className="text-right pb-1.5 font-semibold">Tests</th>
+                    <th className="text-right pb-1.5 font-semibold">Score</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {detail.stages.map((row) => (
+                    <tr key={row.stage} className="border-t border-line">
+                      <td className="py-2 pr-3">
+                        <span className={`chip ${difficultyStyle(row.stage)}`}>
+                          {row.stage}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-3 text-right tabular text-ink-soft">
+                        {row.tests}
+                      </td>
+                      <td className="py-2 text-right whitespace-nowrap">
+                        <span className="text-xs text-ink-faint tabular mr-2">
+                          {row.correct}/{row.total}
+                        </span>
+                        <span className={`chip ${scoreStyle(row.percentage)}`}>
+                          {row.percentage}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* The button sits at the top of the frame; the list opens below
+                  the stages. A native toggle, so the dates stay server-rendered. */}
+              <details className="group">
+                <summary className="btn-quiet absolute top-4 right-5 sm:right-6 cursor-pointer list-none px-3 py-1.5 text-xs whitespace-nowrap [&::-webkit-details-marker]:hidden">
+                  <span className="group-open:hidden">Full details</span>
+                  <span className="hidden group-open:inline">Hide details</span>
+                </summary>
+
+                <table className="w-full text-sm mt-5">
+                  <thead>
+                    <tr className="eyebrow">
+                      <th className="text-left pb-1.5 font-semibold">Date</th>
+                      <th className="text-left pb-1.5 font-semibold">Test</th>
+                      <th className="text-left pb-1.5 font-semibold hidden sm:table-cell">
+                        Level
+                      </th>
+                      <th className="text-right pb-1.5 font-semibold">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detail.tests.map((test) => (
+                      <tr key={test.id} className="border-t border-line">
+                        <td className="py-2 pr-3 text-ink-soft whitespace-nowrap tabular">
+                          {formatDay(test.startedAt)}
+                        </td>
+                        <td className="py-2 pr-3 text-ink">{test.label}</td>
+                        <td className="py-2 pr-3 hidden sm:table-cell">
+                          {test.level && (
+                            <span className={`chip ${difficultyStyle(test.level)}`}>
+                              {test.level}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 text-right whitespace-nowrap">
+                          <span className="text-xs text-ink-faint tabular mr-2">
+                            {test.correct}/{test.total}
+                          </span>
+                          <span className={`chip ${scoreStyle(test.percentage)}`}>
+                            {test.percentage}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </details>
+            </>
           )}
         </section>
+          </div>
+
+          {/* Right half: every topic, as bars, weakest first */}
+          <section className="card p-5 sm:p-6 min-w-0">
+            <h2 className="font-display text-base font-semibold text-ink">
+              {SUBJECT_HEADING[subject]}
+            </h2>
+            {subject === "English" && detail.areas.length > 0 && (
+              <p className="text-xs text-ink-faint mt-1">
+                Grouped into skill families. Open a family to see the question
+                types inside it.
+              </p>
+            )}
+
+            {detail.areas.length === 0 ? (
+              <p className="text-sm text-ink-faint mt-4">
+                No {subject} questions answered yet.
+              </p>
+            ) : (
+              <>
+                <BarLegend />
+                <div className="mt-5">
+                  {subject === "English" ? (
+                    <FamilyBars families={englishFamilies(detail.areas)} />
+                  ) : (
+                    <AreaBars areas={detail.areas} />
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

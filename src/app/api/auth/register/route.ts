@@ -15,7 +15,7 @@ import security from "@/config/security.json";
  * Signing up creates a PARENT account, and only a PARENT account.
  *
  * Children are not registered here and no student user id is asked for: a
- * parent signs up for themselves, then creates each child from Kids Profile,
+ * parent signs up for themselves, then creates each child from Children Profile,
  * which is what links the two (userStudentDetails.parentId). Student accounts
  * therefore always have a parent, and admins are seeded or made in the admin
  * panel.

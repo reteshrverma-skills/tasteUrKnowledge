@@ -14,7 +14,7 @@ import billingConfig from "@/config/billing.json";
 /**
  * Where a parent lands after logging in.
  *
- * A parent's job here is their children, so the page is the Kids list: who
+ * A parent's job here is their children, so the page is the Children list: who
  * they are, what year they are in and what is unlocked, with the way to add
  * another right there. Their own details sit behind Profile in the bar above.
  */
@@ -104,7 +104,7 @@ export default async function ParentDashboardPage({
     <div className="min-h-screen bg-ground">
       <ParentNav parentName={parentName} />
 
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
         <header className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">
             Welcome, {parentName}
@@ -135,13 +135,14 @@ export default async function ParentDashboardPage({
               Create a profile for your child and they will be able to log in
               and start practising.
             </p>
-            <Link href="/parent/kids" className="btn-primary inline-block mt-6 px-5 py-2.5">
+            <Link href="/parent/children" className="btn-primary inline-block mt-6 px-5 py-2.5">
               Add a child
             </Link>
           </div>
         ) : (
           <>
-            <div className="space-y-4">
+            {/* One child takes the full width; two or more sit side by side. */}
+            <div className={`grid gap-4 ${children.length > 1 ? "lg:grid-cols-2" : ""}`}>
               {children.map((child) => (
                 <div key={child.studentId} className="card px-5 sm:px-6 py-5">
                   <div className="flex items-center gap-4 flex-wrap">
@@ -235,8 +236,8 @@ export default async function ParentDashboardPage({
                     <Link
                       href={
                         child.schoolName
-                          ? `/parent/kids/${child.studentId}/home-login`
-                          : `/parent/kids/${child.studentId}`
+                          ? `/parent/children/${child.studentId}/home-login`
+                          : `/parent/children/${child.studentId}`
                       }
                       className="btn-quiet ml-1 px-3 py-1.5 text-xs whitespace-nowrap"
                     >
@@ -254,7 +255,7 @@ export default async function ParentDashboardPage({
             </div>
 
             <Link
-              href="/parent/kids"
+              href="/parent/children"
               className="btn-quiet inline-block mt-5 px-4 py-2.5 text-sm"
             >
               + Add another child

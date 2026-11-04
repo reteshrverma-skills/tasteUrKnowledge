@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { DIFFICULTY_ORDER } from "@/lib/student";
 import {
   ENGLISH_FAMILY_ORDER,
   FOCUS_COUNT,
@@ -484,10 +485,10 @@ interface TestRow {
   correct: unknown;
 }
 
-async function recentTestRows(
+/** Every round in one subject, newest first. */
+async function testRows(
   studentId: number,
-  subject: ProgressSubject,
-  take: number
+  subject: ProgressSubject
 ): Promise<TestRow[]> {
   switch (subject) {
     case "English":
@@ -502,8 +503,7 @@ async function recentTestRows(
           LEFT JOIN "testTrackerEnglish" q ON q."testId" = m."id"
          WHERE m."studentId" = ${studentId}
          GROUP BY m."id", c."label"
-         ORDER BY m."testStartTime" DESC
-         LIMIT ${take}`;
+         ORDER BY m."testStartTime" DESC`;
     case "Maths":
       return prisma.$queryRaw<TestRow[]>`
         SELECT m."id", m."testStartTime" AS started,
@@ -515,8 +515,7 @@ async function recentTestRows(
           LEFT JOIN "testTrackerMath" q ON q."testId" = m."id"
          WHERE m."studentId" = ${studentId}
          GROUP BY m."id"
-         ORDER BY m."testStartTime" DESC
-         LIMIT ${take}`;
+         ORDER BY m."testStartTime" DESC`;
     case "Verbal Reasoning":
       return prisma.$queryRaw<TestRow[]>`
         SELECT m."id", m."testStartTime" AT TIME ZONE 'UTC' AS started,
@@ -528,8 +527,7 @@ async function recentTestRows(
           LEFT JOIN "testTrackerVR" q ON q."testId" = m."id"
          WHERE m."studentId" = ${studentId}
          GROUP BY m."id"
-         ORDER BY m."testStartTime" DESC
-         LIMIT ${take}`;
+         ORDER BY m."testStartTime" DESC`;
     case "Non-Verbal":
       return prisma.$queryRaw<TestRow[]>`
         SELECT m."id", m."testStartTime" AS started,
@@ -541,40 +539,88 @@ async function recentTestRows(
           LEFT JOIN "testTrackerNvr" q ON q."testId" = m."id"
          WHERE m."studentId" = ${studentId}
          GROUP BY m."id"
-         ORDER BY m."testStartTime" DESC
-         LIMIT ${take}`;
+         ORDER BY m."testStartTime" DESC`;
   }
 }
 
-/** Every topic score and the latest tests in one subject. */
+export interface StageSummary {
+  /** A rung of the ladder, or OTHER_STAGE for a round with no known level. */
+  stage: string;
+  tests: number;
+  correct: number;
+  total: number;
+  percentage: number;
+}
+
+/** Where a round whose level is empty or off the ladder is counted. */
+export const OTHER_STAGE = "Other";
+
+/**
+ * How the child did at each stage they have tried, in ladder order. The score
+ * is across every answer at that stage, so a short round does not count the
+ * same as a long one.
+ */
+export function stageSummaries(tests: RecentTest[]): StageSummary[] {
+  const byStage = new Map<string, StageSummary>();
+
+  for (const test of tests) {
+    const wanted = test.level?.trim().toLowerCase();
+    const stage =
+      DIFFICULTY_ORDER.find((level) => level.toLowerCase() === wanted) ?? OTHER_STAGE;
+    const summary = byStage.get(stage) ?? {
+      stage,
+      tests: 0,
+      correct: 0,
+      total: 0,
+      percentage: 0,
+    };
+    summary.tests += 1;
+    summary.correct += test.correct;
+    summary.total += test.total;
+    summary.percentage = Math.round((summary.correct / summary.total) * 100);
+    byStage.set(stage, summary);
+  }
+
+  return [...DIFFICULTY_ORDER, OTHER_STAGE]
+    .map((stage) => byStage.get(stage))
+    .filter((summary): summary is StageSummary => summary !== undefined);
+}
+
+/**
+ * Every topic score, the latest tests and the per-stage summary in one subject.
+ * The summary covers every round, not only the `take` latest listed.
+ */
 export async function subjectDetail(
   studentId: number,
   subject: ProgressSubject,
   take = 20
-): Promise<{ areas: SkillArea[]; tests: RecentTest[] }> {
+): Promise<{ areas: SkillArea[]; tests: RecentTest[]; stages: StageSummary[] }> {
   const trendFrom = new Date(Date.now() - TREND_DAYS * 24 * 60 * 60 * 1000);
-  const [rows, testRows] = await Promise.all([
+  const [rows, rounds] = await Promise.all([
     scoreRows(studentId, subject, trendFrom),
-    recentTestRows(studentId, subject, take),
+    testRows(studentId, subject),
   ]);
+
+  const tests = rounds
+    // A round with no answers recorded says nothing about the child.
+    .filter((t) => num(t.total) > 0)
+    .map((t) => {
+      const total = num(t.total);
+      const correct = num(t.correct);
+      return {
+        id: num(t.id),
+        startedAt: t.started,
+        label: t.label?.trim() || subject,
+        level: t.level,
+        correct,
+        total,
+        percentage: Math.round((correct / total) * 100),
+      };
+    });
 
   return {
     areas: toAreas(rows),
-    tests: testRows
-      // A round with no answers recorded says nothing about the child.
-      .filter((t) => num(t.total) > 0)
-      .map((t) => {
-        const total = num(t.total);
-        const correct = num(t.correct);
-        return {
-          id: num(t.id),
-          startedAt: t.started,
-          label: t.label?.trim() || subject,
-          level: t.level,
-          correct,
-          total,
-          percentage: Math.round((correct / total) * 100),
-        };
-      }),
+    tests: tests.slice(0, take),
+    stages: stageSummaries(tests),
   };
 }

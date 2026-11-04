@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ProgrammeOption, YearOption } from "../AddKidForm";
+import type { ProgrammeOption, YearOption } from "../AddChildForm";
 
 const inputClass =
   "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
 
-export interface EditKidInitial {
+export interface EditChildInitial {
   fName: string;
   mName: string;
   lName: string;
@@ -16,14 +16,14 @@ export interface EditKidInitial {
   isActive: boolean;
 }
 
-export function EditKidForm({
+export function EditChildForm({
   studentId,
   initial,
   years,
   programmes,
 }: {
   studentId: number;
-  initial: EditKidInitial;
+  initial: EditChildInitial;
   years: YearOption[];
   /** Every programme; those without content yet show as "coming soon". */
   programmes: ProgrammeOption[];
@@ -56,7 +56,7 @@ export function EditKidForm({
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/parent/kids/${studentId}`, {
+      const response = await fetch(`/api/parent/children/${studentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
