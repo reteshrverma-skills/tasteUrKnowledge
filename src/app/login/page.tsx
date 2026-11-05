@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { BrandLogo } from "@/components/BrandLogo";
 import { HowItWorksSection } from "./HowItWorksSection";
 
 const SUBJECTS = [
@@ -138,16 +138,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="border-b border-login-border">
-        <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-          <Link href="/login" className="flex items-center">
-            <Image
-              src="/sigqs-logo.png"
-              alt="SIGQS - Intelligent practice. Measurable progress."
-              width={1810}
-              height={546}
-              priority
-              className="h-14 w-auto shrink-0"
-            />
+        <div className="w-full px-4 sm:px-6 lg:px-10 py-3.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          <Link href="/login" className="inline-flex items-center">
+            <BrandLogo height={56} />
           </Link>
 
           <nav className="flex items-center gap-1.5 sm:gap-3 text-sm font-semibold text-login-teal">
@@ -166,7 +159,7 @@ export default function LoginPage() {
             </button>
             <Link
               href="/register"
-              className="whitespace-nowrap rounded-full bg-brand-tint px-2.5 sm:px-3.5 py-1.5 hover:bg-login-border transition"
+              className="whitespace-nowrap rounded-full bg-login-teal text-white px-2.5 sm:px-3.5 py-1.5 hover:opacity-90 transition"
             >
               Sign Up
             </Link>
