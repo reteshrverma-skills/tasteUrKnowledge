@@ -31,6 +31,7 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/terms",
+  "/pathway",
 ];
 
 const ACTIVITY_EVENTS = [

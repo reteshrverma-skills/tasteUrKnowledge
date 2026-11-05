@@ -31,13 +31,13 @@ function Figure({
 export function StatsPanel({ stats }: { stats: AdminStats }) {
   const { accounts, inactive, studentLogins, practiceMinutes } = stats;
   return (
-    <section className="card p-6 mb-8" aria-labelledby="stats-heading">
+    <section className="card p-6" aria-labelledby="stats-heading">
       <h3 id="stats-heading" className="font-display text-xl font-semibold text-ink">
         Users at a glance
       </h3>
 
       <p className="eyebrow mt-5 mb-2.5">Accounts</p>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Figure value={accounts.students} label="Students" />
         <Figure value={accounts.parents} label="Parents" />
         <Figure value={accounts.admins} label="Admins" />
@@ -61,7 +61,7 @@ export function StatsPanel({ stats }: { stats: AdminStats }) {
       </p>
 
       <p className="eyebrow mt-6 mb-2.5">Practice time, all students</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <Figure value={practiceMinutes.today} label="Today" unit="min" strong />
         <Figure value={practiceMinutes.week} label="This week" unit="min" />
         <Figure value={practiceMinutes.month} label="This month" unit="min" />

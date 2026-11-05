@@ -1,0 +1,7 @@
+Done and verified. The Change Parent Password link now sits next to Student Dashboard in the admin header, and its page lets an admin pick a parent and set a new password.
+
+Files
+
+api/admin/parent-password/route.ts — GET lists parents, POST changes one's password
+admin/parent-password/page.tsx + ParentPasswordForm.tsx — the screen
+admin/page.tsx — the nav link (and removed two pre-existing unused imports while there)

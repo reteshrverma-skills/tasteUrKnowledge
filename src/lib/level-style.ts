@@ -11,7 +11,7 @@
  */
 
 /**
- * Colour per rung, in ladder order: green, blue, teal, violet, rose.
+ * Colour per rung, in ladder order: green, blue, purple, orange, gold.
  *
  * These are the app's only strong hues, so a level is recognisable by colour
  * alone and everything around it can stay neutral. Maths and English share the

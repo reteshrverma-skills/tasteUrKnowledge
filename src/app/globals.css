@@ -33,18 +33,19 @@
   --color-warm: #b45f16;
   --color-warm-tint: #fbf0e4;
 
-  /* The difficulty ladder, in ladder order. These are the only strong hues in
-     the app, so a level is recognisable by colour alone. */
-  --color-starter: #2f7d5c;
-  --color-starter-tint: #e4f2ea;
-  --color-explorer: #2563a8;
-  --color-explorer-tint: #e6eff8;
-  --color-navigator: #0d8a82;
-  --color-navigator-tint: #e0f2f0;
-  --color-challenger: #6b4aa8;
-  --color-challenger-tint: #eee9f7;
-  --color-master: #a8365a;
-  --color-master-tint: #f9e8ed;
+  /* The difficulty ladder, in ladder order, matching the Learning Journey
+     artwork: green, blue, purple, orange, gold. Each is darkened just enough
+     to read as text on its own tint (WCAG AA, 4.5:1). */
+  --color-starter: #2e7d1f;
+  --color-starter-tint: #eaf6e3;
+  --color-explorer: #1468b8;
+  --color-explorer-tint: #e3f1fc;
+  --color-navigator: #7a3dbd;
+  --color-navigator-tint: #f2eafb;
+  --color-challenger: #b84a0c;
+  --color-challenger-tint: #fdeee3;
+  --color-master: #a16207;
+  --color-master-tint: #fdf5d8;
 
   /* Score bands, shared by every chip that shows a percentage */
   --color-good: #2f7d5c;

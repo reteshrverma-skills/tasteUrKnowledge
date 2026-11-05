@@ -114,11 +114,9 @@ export default async function SchoolPage({
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        <div className="w-full px-4 sm:px-6 lg:px-10 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          {/* Empty first column, which keeps the logo centred. */}
-          <span />
+        <div className="w-full px-4 sm:px-6 lg:px-10 py-3 flex items-center justify-between gap-4">
           <BrandLogo height={56} />
-          <div className="justify-self-end flex items-center gap-4">
+          <div className="flex items-center gap-4 shrink-0">
             <HelpMenu />
             <LogoutButton />
           </div>

@@ -1,33 +1,12 @@
+import Image from "next/image";
 import { STEPS } from "@/app/parent/HowItWorks";
-import { LevelLabel } from "@/app/dashboard/subject/LevelIcon";
-import { difficultyStyle } from "@/lib/level-style";
 
 const LEVELS = [
-  {
-    level: "Starter",
-    tag: "Building foundations",
-    text: "Develop essential concepts and build confidence through structured practice.",
-  },
-  {
-    level: "Explorer",
-    tag: "Developing skills",
-    text: "Strengthen core concepts, improve accuracy and explore different question types.",
-  },
-  {
-    level: "Navigator",
-    tag: "Applying knowledge",
-    text: "Apply concepts to challenging questions, develop reasoning and improve problem-solving skills.",
-  },
-  {
-    level: "Challenger",
-    tag: "Advanced preparation",
-    text: "Tackle complex questions, improve speed and accuracy, and build exam-ready confidence.",
-  },
-  {
-    level: "Master",
-    tag: "Ready for the challenge",
-    text: "Demonstrate strong subject knowledge, consistent performance and confidence in tackling grammar school entrance exam-style questions.",
-  },
+  { level: "Starter", tag: "Build the basics" },
+  { level: "Explorer", tag: "Discover more" },
+  { level: "Navigator", tag: "Find your way" },
+  { level: "Challenger", tag: "Take on challenges" },
+  { level: "Master", tag: "Lead with excellence" },
 ];
 
 /** Drawn rather than photographed, so they stay sharp and hold no real child's details. */
@@ -118,15 +97,12 @@ const PICTURES = [
   </Picture>,
 ];
 
-/** The SIGQS Pathway, below the login form: the four steps of using SIGQS, then the five levels a pupil climbs. */
-export function HowItWorksSection() {
+/** The four steps of using SIGQS, from a parent signing up to the parent dashboard. */
+export function LoginJourney() {
   return (
-    <section id="sigqs-pathway" className="border-t border-login-border bg-white">
-      <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-10 lg:py-12">
-        <h2 className="font-sans text-center text-[27px] font-semibold text-login-navy">SIGQS Pathway</h2>
-
-        <h3 className="mt-7 font-sans text-xl font-semibold text-login-navy">Login Journey</h3>
-        <ol className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <section>
+      <h1 className="font-sans text-[27px] font-semibold text-login-navy">Login Journey</h1>
+      <ol className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
             <li key={step.title} className="rounded-2xl border border-login-border p-4">
               {PICTURES[index]}
@@ -140,23 +116,23 @@ export function HowItWorksSection() {
             </li>
           ))}
         </ol>
+    </section>
+  );
+}
 
-        <h3 className="mt-10 font-sans text-xl font-semibold text-login-navy">Pupil&apos;s Learning Journey</h3>
-        <ol className="mt-4 rounded-2xl border border-login-border divide-y divide-login-border">
-          {LEVELS.map((level, index) => (
-            <li key={level.level} className="p-4 sm:px-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-login-navy">{index + 1}.</span>
-                <h4 className={`chip chip-lg border font-sans ${difficultyStyle(level.level)}`}>
-                  <LevelLabel level={level.level} />
-                </h4>
-                <span className={`chip border ${difficultyStyle(level.level)}`}>{level.tag}</span>
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-login-body">{level.text}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
+/** The five levels a pupil climbs, Starter to Master. */
+export function ChildrensJourney() {
+  return (
+    <section>
+      <h1 className="font-sans text-[27px] font-semibold text-login-navy">Children&apos;s Learning Journey</h1>
+      <Image
+        src="/learning-journey.png"
+        alt={LEVELS.map((l) => `${l.level}: ${l.tag}.`).join(" ")}
+        width={1672}
+        height={941}
+        sizes="(min-width: 1200px) 1136px, 100vw"
+        className="mt-6 w-full h-auto rounded-2xl border border-login-border"
+      />
     </section>
   );
 }

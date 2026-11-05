@@ -113,7 +113,7 @@ export function CountryStatsTable({ rows }: { rows: CountryStats[] }) {
   const [open, setOpen] = useState<CountryStats | null>(null);
 
   return (
-    <section className="card p-6 mt-8" aria-labelledby="country-heading">
+    <section className="card p-6" aria-labelledby="country-heading">
       <h3 id="country-heading" className="font-display text-xl font-semibold text-ink">
         By country
       </h3>
@@ -122,7 +122,7 @@ export function CountryStatsTable({ rows }: { rows: CountryStats[] }) {
       {rows.length === 0 ? (
         <p className="text-sm text-ink-faint mt-4">No accounts yet.</p>
       ) : (
-        <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {rows.map((r) => (
             <li key={r.code ?? "none"}>
               <button

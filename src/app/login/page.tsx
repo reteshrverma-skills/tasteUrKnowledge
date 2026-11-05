@@ -3,8 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BrandLogo } from "@/components/BrandLogo";
-import { HowItWorksSection } from "./HowItWorksSection";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const SUBJECTS = [
   {
@@ -42,55 +41,12 @@ const SUBJECTS = [
   },
 ];
 
-/** A box over the dimmed page; a click on the dimmed part closes it. */
-function Popup({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/50 px-5 py-8"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
-      }}
-    >
-      <div className="card p-7 space-y-5 w-full max-w-xl">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="font-sans text-xl font-semibold text-login-navy">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            autoFocus
-            aria-label="Close"
-            className="text-xl leading-none text-ink-soft hover:text-ink"
-          >
-            ×
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [profileName, setProfileName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
   // Sent here by an automatic sign-out: "idle" (no activity) or "elsewhere"
   // (the account signed in on another device). The server snapshot is empty,
   // so the server and browser agree on the first paint and the notice appears
@@ -137,37 +93,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="border-b border-login-border">
-        <div className="w-full px-4 sm:px-6 lg:px-10 py-3.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-          <Link href="/login" className="inline-flex items-center">
-            <BrandLogo height={56} />
-          </Link>
+      <SiteHeader />
 
-          <nav className="flex items-center gap-1.5 sm:gap-3 text-sm font-semibold text-login-teal">
-            <a
-              href="#sigqs-pathway"
-              className="whitespace-nowrap rounded-full bg-brand-tint px-2.5 sm:px-3.5 py-1.5 hover:bg-login-border transition"
-            >
-              SIGQS Pathway
-            </a>
-            <button
-              type="button"
-              onClick={() => setAboutOpen(true)}
-              className="whitespace-nowrap rounded-full bg-brand-tint px-2.5 sm:px-3.5 py-1.5 hover:bg-login-border transition"
-            >
-              About
-            </button>
-            <Link
-              href="/register"
-              className="whitespace-nowrap rounded-full bg-login-teal text-white px-2.5 sm:px-3.5 py-1.5 hover:opacity-90 transition"
-            >
-              Sign Up
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      {/* Fills the first screen on a desktop, with the SIGQS Pathway below it. */}
+      {/* Fills the first screen on a desktop. */}
       <main className="flex items-center lg:min-h-[calc(100vh-73px)]">
         {/* On a phone these run in the order written: introduction, login form,
             subjects. On a desktop the form moves to its own column on the right. */}
@@ -310,18 +238,6 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <HowItWorksSection />
-
-      {aboutOpen && (
-        <Popup title="About SIGQS" onClose={() => setAboutOpen(false)}>
-          <p className="text-[15px] text-login-body leading-relaxed">
-            SIGQS offers structured 11+ practice in Maths, English, Verbal Reasoning and Non-Verbal
-            Reasoning, to help children prepare for Grammar School entrance exams. Children practise
-            at their own stage, and parents can follow their progress from their own
-            dashboard.
-          </p>
-        </Popup>
-      )}
     </div>
   );
 }

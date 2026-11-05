@@ -267,3 +267,97 @@ export async function countryStats(): Promise<CountryStats[]> {
       a.name.localeCompare(b.name)
     );
 }
+
+/* ------------------------------------------------------------------ */
+/* New registrations by month                                          */
+/* ------------------------------------------------------------------ */
+
+export interface MonthCount {
+  /** "2026-11" */
+  key: string;
+  /** "Nov" */
+  label: string;
+  /** "Nov 2026" */
+  fullLabel: string;
+  count: number;
+}
+
+export interface MonthlyRegistrations {
+  students: MonthCount[];
+  parents: MonthCount[];
+  schools: MonthCount[];
+}
+
+/** The last `count` UK calendar months, oldest first, ending with this one, all at zero. */
+export function recentMonths(now = new Date(), count = 12): MonthCount[] {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", { timeZone: TZ, year: "numeric", month: "numeric" })
+      .formatToParts(now)
+      .map((p) => [p.type, p.value])
+  );
+  const year = Number(parts.year);
+  const month = Number(parts.month);
+
+  return Array.from({ length: count }, (_, i) => {
+    // Date.UTC rolls a month of 0 or less back into the previous year.
+    const date = new Date(Date.UTC(year, month - 1 - (count - 1 - i), 1));
+    // Three letters each: en-GB's "Sept" crowds its neighbours on a phone.
+    const label = date.toLocaleDateString("en-GB", { timeZone: "UTC", month: "short" }).slice(0, 3);
+    return {
+      key: `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`,
+      label,
+      fullLabel: `${label} ${date.getUTCFullYear()}`,
+      count: 0,
+    };
+  });
+}
+
+/** Counts laid over the months, so a month with no rows still appears, at zero. */
+export function fillMonths(
+  months: MonthCount[],
+  rows: { month: string; count: unknown }[]
+): MonthCount[] {
+  const counts = new Map(rows.map((r) => [r.month, Number(r.count) || 0]));
+  return months.map((m) => ({ ...m, count: counts.get(m.key) ?? 0 }));
+}
+
+interface AccountMonthRow {
+  userType: string;
+  month: string;
+  count: unknown;
+}
+
+/**
+ * Student accounts, parent accounts and schools created in each of the last
+ * 12 UK calendar months. Inactive ones are included, as in the totals above.
+ * userProfile.createDate has no zone and is written as UTC; coreSchool.createdAt
+ * has one.
+ */
+export async function monthlyRegistrations(now = new Date()): Promise<MonthlyRegistrations> {
+  const months = recentMonths(now);
+  const [firstYear, firstMonth] = months[0].key.split("-").map(Number);
+  const from = ukMidnight(firstYear, firstMonth, 1);
+
+  const [accounts, schools] = await Promise.all([
+    prisma.$queryRaw<AccountMonthRow[]>`
+      SELECT u."userType"::text AS "userType",
+             to_char(u."createDate" AT TIME ZONE 'UTC' AT TIME ZONE ${TZ}, 'YYYY-MM') AS month,
+             COUNT(*) AS count
+        FROM "userProfile" u
+       WHERE u."userType" IN ('STUDENT', 'PARENT')
+         AND u."createDate" AT TIME ZONE 'UTC' >= ${from}
+       GROUP BY 1, 2`,
+    prisma.$queryRaw<{ month: string; count: unknown }[]>`
+      SELECT to_char(s."createdAt" AT TIME ZONE ${TZ}, 'YYYY-MM') AS month,
+             COUNT(*) AS count
+        FROM "coreSchool" s
+       WHERE s."createdAt" >= ${from}
+       GROUP BY 1`,
+  ]);
+
+  return {
+    students: fillMonths(months, accounts.filter((r) => r.userType === "STUDENT")),
+    parents: fillMonths(months, accounts.filter((r) => r.userType === "PARENT")),
+    schools: fillMonths(months, schools),
+  };
+}

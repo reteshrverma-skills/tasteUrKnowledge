@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const inputClass =
@@ -18,49 +19,47 @@ export interface SchoolDetails {
   isActive: boolean;
 }
 
-/** One school in the Product Director's list, with an Edit button that opens its form. */
+/** One school in the Product Director's list. Edit opens its form in the right frame. */
 export function SchoolListItem({
   school,
   pupilCount,
   admins,
+  editHref,
+  selected = false,
 }: {
   school: SchoolDetails;
   pupilCount: number;
   admins: string;
+  editHref: string;
+  /** The row whose form is open, so it stands out in the list. */
+  selected?: boolean;
 }) {
-  const [editing, setEditing] = useState(false);
   return (
-    <li className="py-3 text-sm">
+    <li className={`py-2.5 text-sm ${selected ? "bg-brand-tint -mx-3 px-3 rounded-lg" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
-        <span className="text-ink font-medium">
+        <span className="text-ink font-medium min-w-0 break-words">
           {school.name}
           {school.city && <span className="text-ink-soft font-normal"> · {school.city}</span>}
           {!school.isActive && <span className="text-poor font-normal"> · inactive</span>}
         </span>
-        <span className="flex items-center gap-4 text-ink-soft">
-          <span>
+        <span className="flex items-center gap-4 text-ink-soft min-w-0">
+          <span className="min-w-0 break-words">
             {pupilCount}
             {school.maxStudents !== null && ` / ${school.maxStudents}`} pupils · {admins || "no admin"}
           </span>
-          {!editing && (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="font-medium text-brand hover:underline"
-            >
-              Edit
-            </button>
-          )}
+          <Link href={editHref} scroll={false} className="font-medium text-brand hover:underline">
+            Edit
+          </Link>
         </span>
       </div>
-      {editing && <EditSchoolForm school={school} onDone={() => setEditing(false)} />}
     </li>
   );
 }
 
-/** The school's details, edited in place. The School Admin's login is not edited here. */
-function EditSchoolForm({ school, onDone }: { school: SchoolDetails; onDone: () => void }) {
+/** The school's details, edited in the right frame. The School Admin's login is not edited here. */
+export function EditSchoolForm({ school, doneHref }: { school: SchoolDetails; doneHref: string }) {
   const router = useRouter();
+  const onDone = () => router.push(doneHref);
   const [form, setForm] = useState({
     schoolName: school.name,
     address1: school.address1,

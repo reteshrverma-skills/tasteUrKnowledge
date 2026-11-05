@@ -81,7 +81,6 @@ export function CreateSchoolForm() {
   return (
     <form onSubmit={submit} className="space-y-6">
       <fieldset className="space-y-4">
-        <legend className="text-sm font-semibold text-ink-soft uppercase tracking-wide mb-2">School</legend>
         {input("schoolName", "School name", { required: true })}
         <div className="grid sm:grid-cols-2 gap-4">
           {input("address1", "Address line 1")}
