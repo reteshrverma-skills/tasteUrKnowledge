@@ -146,7 +146,7 @@ export default function LoginPage() {
               width={1810}
               height={546}
               priority
-              className="h-10 sm:h-14 w-auto"
+              className="h-14 w-auto shrink-0"
             />
           </Link>
 
