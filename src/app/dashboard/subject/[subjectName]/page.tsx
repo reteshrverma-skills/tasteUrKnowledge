@@ -267,7 +267,7 @@ export default async function SubjectPage({
                                 level
                               )}`}
                             >
-                              Start test
+                              Start practice
                             </span>
                           </span>
                         </div>

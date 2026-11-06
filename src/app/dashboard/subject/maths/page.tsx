@@ -192,7 +192,7 @@ export default async function MathsPage({
                           )}&level=${encodeURIComponent(activeLevel)}`}
                           className="btn-primary px-3 py-1.5 text-xs whitespace-nowrap"
                         >
-                          Create test · {QUESTIONS_PER_TOPIC_TEST} Q
+                          Mixed practice · {QUESTIONS_PER_TOPIC_TEST} Q
                         </Link>
                       </span>
                     </summary>
@@ -243,7 +243,7 @@ export default async function MathsPage({
                                 aria-hidden="true"
                                 className={`btn-primary shrink-0 px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
                               >
-                                Start test
+                                Start practice
                               </span>
                             </div>
                           );
