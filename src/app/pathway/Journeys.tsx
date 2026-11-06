@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { STEPS } from "@/app/parent/HowItWorks";
+import { LevelIcon } from "@/app/dashboard/subject/LevelIcon";
+import { LEVEL_STAGES } from "@/lib/level-style";
 
 const LEVELS = [
   { level: "Starter", tag: "Build the basics" },
@@ -34,7 +36,7 @@ const PICTURES = [
     <path d="M92 70h24" className="stroke-login-gold" strokeWidth="3" strokeLinecap="round" />
     {[26, 78].map((y, i) => (
       <g key={y}>
-        <rect x="126" y={y} width="92" height="40" rx="8" className="fill-white stroke-login-border" />
+        <rect x="126" y={y} width="92" height="20" rx="8" className="fill-white stroke-login-border" />
         <Person x={146} y={y + 14} scale={0.45} className={i ? "fill-challenger" : "fill-login-teal"} />
         <rect x="164" y={y + 12} width="42" height="6" rx="3" className="fill-login-navy" />
         <rect x="164" y={y + 24} width="28" height="5" rx="2.5" className="fill-login-border" />
@@ -125,14 +127,106 @@ export function ChildrensJourney() {
   return (
     <section>
       <h1 className="font-sans text-[27px] font-semibold text-login-navy">Children&apos;s Learning Journey</h1>
-      <Image
-        src="/learning-journey.png"
-        alt={LEVELS.map((l) => `${l.level}: ${l.tag}.`).join(" ")}
-        width={1672}
-        height={941}
-        sizes="(min-width: 1200px) 1136px, 100vw"
-        className="mt-6 w-full h-auto rounded-2xl border border-login-border"
-      />
+      {/* Full width, but short so the stage panels fit on one screen: the
+          picture is squashed to 80% height, and its own caption line (the
+          bottom 126px of 941) falls outside the frame. */}
+      <div className="mt-4 w-full aspect-[1672/652] overflow-hidden rounded-2xl border border-login-border">
+        <Image
+          src="/learning-journey.png"
+          alt={LEVELS.map((l) => `${l.level}: ${l.tag}.`).join(" ")}
+          width={1672}
+          height={900}
+          sizes="(min-width: 1200px) 1136px, 100vw"
+          className="w-full h-[115.5%] max-w-none object-fill"
+        />
+      </div>
+
+      {/* One vertical panel per stage, in ladder order. */}
+      <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {STAGE_DETAILS.map((stage) => (
+          <li
+            key={stage.level}
+            className={`flex flex-col rounded-2xl border border-login-border border-t-4 ${stage.border} p-4`}
+          >
+            <div className={`w-10 h-10 rounded-xl grid place-items-center ${stage.tint}`}>
+              <LevelIcon level={stage.level} className="w-5 h-5" />
+            </div>
+            <h2 className={`mt-3 font-sans text-lg font-semibold ${stage.text}`}>{stage.level}</h2>
+            <p className="text-xs font-semibold uppercase tracking-wide text-login-body">
+              {LEVEL_STAGES[stage.level.toLowerCase()]}
+            </p>
+            <p className="mt-1 text-sm font-medium text-login-navy">{stage.tag}</p>
+            <p className="mt-3 text-sm leading-relaxed text-login-body">{stage.summary}</p>
+            <ul className="mt-3 space-y-1.5 text-sm text-login-body">
+              {stage.focus.map((point) => (
+                <li key={point} className="flex gap-2">
+                  <span className={`mt-[0.45rem] w-1.5 h-1.5 rounded-full shrink-0 ${stage.dot}`} aria-hidden="true" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
+
+/** What each stage covers. Class names are written out in full so Tailwind sees them. */
+const STAGE_DETAILS = [
+  {
+    level: "Starter",
+    tag: "Build the basics",
+    border: "border-t-starter",
+    tint: "bg-starter-tint text-starter",
+    text: "text-starter",
+    dot: "bg-starter",
+    summary:
+      "A gentle first step. Short rounds of simple questions build confidence and a regular practice habit.",
+    focus: ["Number facts and times tables", "Short, simple reading passages", "First word and shape patterns"],
+  },
+  {
+    level: "Explorer",
+    tag: "Discover more",
+    border: "border-t-explorer",
+    tint: "bg-explorer-tint text-explorer",
+    text: "text-explorer",
+    dot: "bg-explorer",
+    summary:
+      "More topics open up and questions start to need two steps, so children learn to read carefully before answering.",
+    focus: ["Two-step word problems", "Longer passages and vocabulary", "Introducing codes and sequences"],
+  },
+  {
+    level: "Navigator",
+    tag: "Find your way",
+    border: "border-t-navigator",
+    tint: "bg-navigator-tint text-navigator",
+    text: "text-navigator",
+    dot: "bg-navigator",
+    summary:
+      "Children connect ideas across topics and start choosing their own method, with mixed practice to keep everything fresh.",
+    focus: ["Fractions, decimals and percentages", "Inference in comprehension", "Mixed practice across topics"],
+  },
+  {
+    level: "Challenger",
+    tag: "Take on challenges",
+    border: "border-t-challenger",
+    tint: "bg-challenger-tint text-challenger",
+    text: "text-challenger",
+    dot: "bg-challenger",
+    summary:
+      "Exam-style questions at full difficulty. The focus moves to accuracy, problem solving and learning from mistakes.",
+    focus: ["Multi-step problem solving", "Harder vocabulary and reasoning", "Reviewing wrong answers"],
+  },
+  {
+    level: "Master",
+    tag: "Lead with excellence",
+    border: "border-t-master",
+    tint: "bg-master-tint text-master",
+    text: "text-master",
+    dot: "bg-master",
+    summary:
+      "Exam ready. Children work at full 11+ standard, stretch themselves with the hardest questions and polish weak spots.",
+    focus: ["Full exam-standard questions", "Stretch questions for top marks", "Targeting remaining weak areas"],
+  },
+];
