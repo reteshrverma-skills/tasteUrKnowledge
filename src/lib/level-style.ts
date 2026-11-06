@@ -34,6 +34,27 @@ export function difficultyStyle(level: string): string {
   }
 }
 
+/**
+ * Solid fill for a test button, in the selected rung's colour. Pair with
+ * `btn-primary` for shape; utilities override its brand background.
+ */
+export function levelButtonStyle(level: string): string {
+  switch (level.toLowerCase()) {
+    case "starter":
+      return "bg-starter text-white hover:brightness-110";
+    case "explorer":
+      return "bg-explorer text-white hover:brightness-110";
+    case "navigator":
+      return "bg-navigator text-white hover:brightness-110";
+    case "challenger":
+      return "bg-challenger text-white hover:brightness-110";
+    case "master":
+      return "bg-master text-white hover:brightness-110";
+    default:
+      return "";
+  }
+}
+
 /** Who each rung is aimed at, shown with its name on the level buttons. */
 export const LEVEL_STAGES: Record<string, string> = {
   starter: "Year 3",

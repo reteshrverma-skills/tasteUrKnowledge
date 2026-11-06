@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { levelButtonStyle } from "@/lib/level-style";
 import { getSession } from "@/lib/auth";
 import { programmeOf } from "@/lib/programme";
 import Link from "next/link";
@@ -127,7 +128,7 @@ export default async function SubjectPage({
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+        <div className="w-full px-5 sm:px-8 lg:px-12 py-3.5 flex justify-between items-center gap-4">
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
             <BrandLogo height={56} />
           </span>
@@ -135,7 +136,7 @@ export default async function SubjectPage({
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-5 sm:px-8 pt-4 pb-10 sm:pb-14">
+      <div className="w-full px-5 sm:px-8 lg:px-12 pt-4 pb-10 sm:pb-14">
         <Link
           href="/dashboard"
           className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
@@ -242,12 +243,7 @@ export default async function SubjectPage({
 
                           {/* Last three attempts, newest first, right aligned */}
                           <span className="ml-auto flex items-center gap-1.5 shrink-0">
-                            {recent.length === 0 ? (
-                              <span className="text-xs text-ink-faint">
-                                Not attempted
-                              </span>
-                            ) : (
-                              recent.map((attempt) => (
+                            {recent.map((attempt) => (
                                 <Link
                                   key={attempt.testId}
                                   href={`/dashboard/subject/${encodeURIComponent(
@@ -262,13 +258,16 @@ export default async function SubjectPage({
                                 >
                                   {attempt.percentage}%
                                 </Link>
-                              ))
-                            )}
+                              ))}
+                            {/* Looks like a button; the click lands on the
+                                stretched quiz link underneath. */}
                             <span
                               aria-hidden="true"
-                              className="text-ink-faint transition-transform group-hover:translate-x-0.5"
+                              className={`btn-primary px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(
+                                level
+                              )}`}
                             >
-                              →
+                              Start test
                             </span>
                           </span>
                         </div>

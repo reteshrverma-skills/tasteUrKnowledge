@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { levelButtonStyle } from "@/lib/level-style";
 import { LevelLabel } from "../LevelIcon";
 import { getSession } from "@/lib/auth";
 import { programmeOf } from "@/lib/programme";
@@ -66,7 +67,7 @@ export default async function MathsPage({
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+        <div className="w-full px-5 sm:px-8 lg:px-12 py-3.5 flex justify-between items-center gap-4">
           <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
             <BrandLogo height={56} />
           </span>
@@ -74,7 +75,7 @@ export default async function MathsPage({
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-4 pb-10 sm:pb-14">
+      <div className="w-full px-5 sm:px-8 lg:px-12 pt-4 pb-10 sm:pb-14">
         <Link
           href="/dashboard"
           className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
@@ -197,7 +198,7 @@ export default async function MathsPage({
                     </summary>
 
                     <div className="px-4 pb-4 pt-1 border-t border-line">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 mt-3">
                         {group.subTopics.map(({ subTopic }) => {
                           const recent =
                             attempts.get(cellKey(group.topic, subTopic, activeLevel)) ?? [];
@@ -222,24 +223,27 @@ export default async function MathsPage({
 
                               {/* Last 3 scores, newest first */}
                               <span className="relative z-10 ml-auto shrink-0 flex items-center gap-1">
-                                {recent.length === 0 ? (
-                                  <span className="text-[11px] text-ink-faint">
-                                    —
-                                  </span>
-                                ) : (
-                                  recent.map(({ testId, percentage }) => (
-                                    <Link
-                                      key={testId}
-                                      href={`/dashboard/subject/maths/review/${testId}`}
-                                      title="Review this test"
-                                      className={`chip ${scoreStyle(
-                                        percentage
-                                      )} hover:brightness-95 transition`}
-                                    >
-                                      {percentage}%
-                                    </Link>
-                                  ))
-                                )}
+                                {recent.map(({ testId, percentage }) => (
+                                  <Link
+                                    key={testId}
+                                    href={`/dashboard/subject/maths/review/${testId}`}
+                                    title="Review this test"
+                                    className={`chip ${scoreStyle(
+                                      percentage
+                                    )} hover:brightness-95 transition`}
+                                  >
+                                    {percentage}%
+                                  </Link>
+                                ))}
+                              </span>
+
+                              {/* Looks like a button; the click lands on the
+                                  stretched subtopic link underneath. */}
+                              <span
+                                aria-hidden="true"
+                                className={`btn-primary shrink-0 px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
+                              >
+                                Start test
                               </span>
                             </div>
                           );
