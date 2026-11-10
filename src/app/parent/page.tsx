@@ -1,3 +1,4 @@
+import { PERSON_NAME_CLASS } from "@/components/SchoolLogo";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
@@ -106,7 +107,7 @@ export default async function ParentDashboardPage({
 
       <div className="w-full px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
         <header className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+          <h1 className={PERSON_NAME_CLASS}>
             Welcome, {parentName}
           </h1>
           <p className="text-ink-soft text-sm mt-1">

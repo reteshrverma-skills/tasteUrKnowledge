@@ -25,7 +25,10 @@ export function SchoolLogoImage({
 }
 
 /** The school's name and the person's name under it, the same on every page. */
-export const SCHOOL_NAME_CLASS = "font-sans font-semibold text-login-navy";
+export const SCHOOL_NAME_CLASS = "font-display font-bold text-ink";
 
-/** The person's name, the same size as the school's wherever that is showing. */
-export const PERSON_NAME_CLASS = `${SCHOOL_NAME_CLASS} text-2xl sm:text-xl lg:text-3xl`;
+/**
+ * The logged-in person's name, the same on every page: the parent home's
+ * "Welcome, ..." style (display face, bold, dark ink).
+ */
+export const PERSON_NAME_CLASS = "font-display font-bold text-ink text-2xl sm:text-3xl";

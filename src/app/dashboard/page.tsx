@@ -1,3 +1,4 @@
+import { PERSON_NAME_CLASS } from "@/components/SchoolLogo";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { programmeOf } from "@/lib/programme";
@@ -173,7 +174,7 @@ export default async function DashboardPage() {
               {studentName.charAt(0).toUpperCase()}
             </span>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+              <h1 className={PERSON_NAME_CLASS}>
                 Hello, {studentName}
               </h1>
               <p className="text-ink-soft text-sm mt-0.5">
