@@ -135,7 +135,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-ground">
       <nav className="bg-surface border-b border-line">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
+        <div className="w-full px-5 sm:px-8 lg:px-12 py-3.5 flex justify-between items-center gap-4">
           <span className="flex items-center gap-2 font-display text-lg font-bold text-brand">
             <BrandLogo height={56} />
           </span>
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+      <div className="w-full px-5 sm:px-8 lg:px-12 py-10 sm:py-14">
         {pupilSchool ? (
           <SchoolHeader
             {...pupilSchool}
