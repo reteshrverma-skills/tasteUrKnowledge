@@ -5,6 +5,7 @@ import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
 import { PupilSchoolHeader } from "@/components/SchoolHeader";
+import { QuotedText } from "@/components/QuotedText";
 
 export const OPTION_LABELS = ["A", "B", "C", "D", "E"] as const;
 
@@ -143,7 +144,7 @@ export function TestReview({
             >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <p className="font-semibold text-ink">
-                  <span className="text-brand">Q{idx + 1}:</span> {row.quest}
+                  <span className="text-brand">Q{idx + 1}:</span> <QuotedText text={row.quest} />
                 </p>
                 <span
                   className={`text-xs font-semibold shrink-0 ${

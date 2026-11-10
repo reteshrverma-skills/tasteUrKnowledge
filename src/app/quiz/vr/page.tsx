@@ -8,6 +8,7 @@ import { scoreStyle } from "@/lib/level-style";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogo } from "@/components/BrandLogo";
 import { RoundHeading } from "@/components/RoundHeading";
+import { QuotedText } from "@/components/QuotedText";
 
 interface Question {
   id: number;
@@ -328,7 +329,7 @@ function VrQuiz() {
               }`}
             >
               <p className="font-semibold text-ink mb-2">
-                <span className="text-brand">Q{idx + 1}:</span> {answer.quest}
+                <span className="text-brand">Q{idx + 1}:</span> <QuotedText text={answer.quest} />
               </p>
               <p className="text-sm text-ink-soft">
                 Your answer: <strong>{answer.chosenOption || "Not answered"}</strong>
@@ -407,7 +408,7 @@ function VrQuiz() {
             <div className="px-5 py-6 min-h-[55vh] flex flex-col">
               <div className="my-auto w-full">
                 <h3 className="font-display text-[17px] font-semibold text-ink mb-4 leading-snug">
-                  {currentQuestion.quest}
+                  <QuotedText text={currentQuestion.quest} />
                 </h3>
 
                 <div className="space-y-2">
