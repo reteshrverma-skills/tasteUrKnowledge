@@ -23,8 +23,8 @@ export default async function VrTestReviewPage({
   return (
     <TestReview
       backHref={`/dashboard/subject/verbal${
-        test.difficultyLevel
-          ? `?level=${encodeURIComponent(test.difficultyLevel)}`
+        test.stage
+          ? `?level=${encodeURIComponent(test.stage)}`
           : ""
       }`}
       backLabel="Verbal Reasoning"
@@ -34,7 +34,7 @@ export default async function VrTestReviewPage({
       retryHref={`/quiz/vr?${new URLSearchParams({
         ...(test.topic ? { topic: test.topic } : {}),
         ...(test.subTopic ? { subTopic: test.subTopic } : {}),
-        level: test.difficultyLevel ?? "",
+        level: test.stage ?? "",
       })}`}
       flagSubject="vr"
       questions={test.questions

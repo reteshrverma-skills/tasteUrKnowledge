@@ -31,7 +31,7 @@ export const mathsQuestionPublicSelect = {
   optionC: true,
   optionD: true,
   optionE: true,
-  difficultyLevel: true,
+  stage: true,
   // Raw SVG: callers must pass it through sanitiseFigure before it reaches
   // the browser.
   imageSvg: true,
@@ -61,7 +61,7 @@ export async function subTopicsForLevel(
     by: ["subTopic"],
     where: {
       programmeCode: programme,
-      difficultyLevel: { equals: level, mode: "insensitive" },
+      stage: { equals: level, mode: "insensitive" },
     },
     _count: { _all: true },
   });
@@ -85,7 +85,7 @@ export const topicsForLevel = cachedUntilFlush(
       by: ["topic", "subTopic"],
       where: {
         programmeCode: programme,
-        difficultyLevel: { equals: level, mode: "insensitive" },
+        stage: { equals: level, mode: "insensitive" },
       },
       _count: { _all: true },
     });
@@ -114,12 +114,12 @@ export const availableMathsLevels = cachedUntilFlush(
   "maths-levels",
   async (programme: string): Promise<string[]> => {
     const rows = await prisma.gsMathsQuestion.groupBy({
-      by: ["difficultyLevel"],
+      by: ["stage"],
       where: { programmeCode: programme },
       _count: { _all: true },
     });
 
-    return sortDifficulties(rows.map((row) => row.difficultyLevel));
+    return sortDifficulties(rows.map((row) => row.stage));
   }
 );
 
@@ -144,7 +144,7 @@ export async function randomQuestionIds(
     where: {
       programmeCode: programme,
       subTopic: { equals: subTopic, mode: "insensitive" },
-      difficultyLevel: { equals: level, mode: "insensitive" },
+      stage: { equals: level, mode: "insensitive" },
       ...(topic ? { topic: { equals: topic, mode: "insensitive" } } : {}),
     },
     select: { id: true },
@@ -175,7 +175,7 @@ export async function randomQuestionIdsForTopic(
     where: {
       programmeCode: programme,
       topic: { equals: topic, mode: "insensitive" },
-      difficultyLevel: { equals: level, mode: "insensitive" },
+      stage: { equals: level, mode: "insensitive" },
     },
     select: { id: true },
   });
@@ -221,7 +221,7 @@ export async function recentMathsAttempts(
       id: true,
       topic: true,
       subTopic: true,
-      difficultyLevel: true,
+      stage: true,
       questions: {
         select: { isAnsRight: true, question: { select: { topic: true } } },
       },
@@ -231,7 +231,7 @@ export async function recentMathsAttempts(
   const byKey = new Map<string, TestScore[]>();
 
   for (const test of tests) {
-    if (test.questions.length === 0 || !test.difficultyLevel) continue;
+    if (test.questions.length === 0 || !test.stage) continue;
 
     // Subtopic rounds saved before the topic was recorded fall back to the
     // topic of their questions.
@@ -239,10 +239,10 @@ export async function recentMathsAttempts(
 
     const key = test.subTopic
       ? topic
-        ? cellKey(topic, test.subTopic, test.difficultyLevel)
+        ? cellKey(topic, test.subTopic, test.stage)
         : null
       : test.topic
-      ? topicKey(test.topic, test.difficultyLevel)
+      ? topicKey(test.topic, test.stage)
       : null;
     if (!key) continue;
 
@@ -274,7 +274,7 @@ export async function mathsTestReview(testId: number, studentId: number) {
       testStartTime: true,
       topic: true,
       subTopic: true,
-      difficultyLevel: true,
+      stage: true,
       completionReason: true,
       questions: {
         orderBy: [{ questionOrder: "asc" }, { id: "asc" }],

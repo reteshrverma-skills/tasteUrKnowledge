@@ -40,7 +40,7 @@ export async function POST(
       select: {
         label: true,
         yearName: true,
-        difficultyLevel: true,
+        stage: true,
         approvedByAdmin: true,
         programmeCode: true,
       },
@@ -62,7 +62,7 @@ export async function POST(
       );
     }
 
-    if (!canAccessLevel(await allowedLevels(session), comp.difficultyLevel)) {
+    if (!canAccessLevel(await allowedLevels(session), comp.stage)) {
       return NextResponse.json(
         { error: "Comprehension not found" },
         { status: 404 }
@@ -159,7 +159,7 @@ export async function POST(
           // Snapshotted now, so re-tagging the comprehension later cannot move
           // this result into a different bucket.
           topic: comp.label,
-          difficultyLevel: comp.difficultyLevel,
+          stage: comp.stage,
           yearName: comp.yearName,
           passageReadSeconds: clampSeconds(
             passageReadSeconds,

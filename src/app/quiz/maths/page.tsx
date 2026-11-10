@@ -20,7 +20,7 @@ interface Question {
   optionC: string | null;
   optionD: string | null;
   optionE: string | null;
-  difficultyLevel: string | null;
+  stage: string | null;
   /** A diagram, already sanitised by the questions route. */
   imageSvg: string | null;
 }

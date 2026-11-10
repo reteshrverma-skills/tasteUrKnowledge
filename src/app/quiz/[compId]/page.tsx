@@ -26,7 +26,7 @@ interface Comp {
   compStory: string | null;
   yearName: string | null;
   subjectName: string | null;
-  difficultyLevel: string | null;
+  stage: string | null;
   questions: Question[];
 }
 
@@ -294,8 +294,8 @@ export default function QuizPage() {
   const backLabel = comp.subjectName || "Dashboard";
   const backHref = comp.subjectName
     ? `/dashboard/subject/${encodeURIComponent(comp.subjectName)}${
-        comp.difficultyLevel
-          ? `?level=${encodeURIComponent(comp.difficultyLevel)}`
+        comp.stage
+          ? `?level=${encodeURIComponent(comp.stage)}`
           : ""
       }`
     : "/dashboard";
@@ -437,13 +437,13 @@ export default function QuizPage() {
             <h2 className="font-display font-semibold text-ink truncate">
               {comp.label}
             </h2>
-            {comp.difficultyLevel && (
+            {comp.stage && (
               <span
                 className={`chip shrink-0 ${difficultyStyle(
-                  comp.difficultyLevel
+                  comp.stage
                 )}`}
               >
-                {comp.difficultyLevel}
+                {comp.stage}
               </span>
             )}
           </header>

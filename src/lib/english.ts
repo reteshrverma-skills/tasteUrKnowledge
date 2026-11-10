@@ -204,7 +204,7 @@ export async function englishTestReview(testId: number, studentId: number) {
       id: true,
       testStartTime: true,
       topic: true,
-      difficultyLevel: true,
+      stage: true,
       completionReason: true,
       gsEngCompId: true,
       comp: { select: { label: true, compStory: true, subjectName: true } },

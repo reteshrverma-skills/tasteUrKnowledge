@@ -78,7 +78,7 @@ export default async function SubjectPage({
       select: {
         id: true,
         label: true,
-        difficultyLevel: true,
+        stage: true,
         _count: { select: { questions: true } },
       },
       orderBy: [...COMP_NEWEST_FIRST],
@@ -89,8 +89,8 @@ export default async function SubjectPage({
   // been granted.
   const comps = allComps.filter(
     (comp) =>
-      canonicalLevel(comp.difficultyLevel) &&
-      canAccessLevel(access, comp.difficultyLevel)
+      canonicalLevel(comp.stage) &&
+      canAccessLevel(access, comp.stage)
   );
 
   const lockedCount = allComps.length - comps.length;
@@ -105,7 +105,7 @@ export default async function SubjectPage({
   // Band by difficulty.
   const byDifficulty = new Map<string, typeof comps>();
   for (const comp of comps) {
-    const level = canonicalLevel(comp.difficultyLevel)!;
+    const level = canonicalLevel(comp.stage)!;
     const bucket = byDifficulty.get(level);
     if (bucket) {
       bucket.push(comp);

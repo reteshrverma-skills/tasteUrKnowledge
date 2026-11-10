@@ -261,7 +261,7 @@ async function main() {
           label,
           yearName: subject.year.name,
           subjectName: subject.name,
-          difficultyLevel: "Medium",
+          stage: "Medium",
           questions: {
             create: questionsForDay.map((q) => ({
               quest: q.text,

@@ -30,7 +30,7 @@ export default async function GenerateComprehensionPage() {
       select: {
         id: true,
         label: true,
-        difficultyLevel: true,
+        stage: true,
         yearName: true,
         approvedByAdmin: true,
         _count: { select: { questions: true } },
@@ -45,7 +45,7 @@ export default async function GenerateComprehensionPage() {
       comps={comps.map((c) => ({
         id: Number(c.id),
         title: c.label?.trim() || "Untitled",
-        level: c.difficultyLevel,
+        level: c.stage,
         yearName: c.yearName,
         approved: Boolean(c.approvedByAdmin),
         questionCount: c._count.questions,

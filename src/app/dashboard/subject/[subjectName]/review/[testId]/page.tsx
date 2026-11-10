@@ -27,8 +27,8 @@ export default async function CompTestReviewPage({
   return (
     <TestReview
       backHref={`/dashboard/subject/${encodeURIComponent(name)}${
-        test.difficultyLevel
-          ? `?level=${encodeURIComponent(test.difficultyLevel)}`
+        test.stage
+          ? `?level=${encodeURIComponent(test.stage)}`
           : ""
       }`}
       backLabel={name}

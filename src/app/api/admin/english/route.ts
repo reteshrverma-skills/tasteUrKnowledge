@@ -63,11 +63,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { yearId, title, story, difficultyLevel, questions } = body as {
+    const { yearId, title, story, stage, questions } = body as {
       yearId?: string;
       title?: string;
       story?: string;
-      difficultyLevel?: string;
+      stage?: string;
       questions?: QuestionInput[];
     };
 
@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const level = difficultyLevel?.trim()
-      ? canonicalLevel(difficultyLevel)
+    const level = stage?.trim()
+      ? canonicalLevel(stage)
       : undefined;
     if (level === null) {
       return NextResponse.json(
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
         compStory: story.trim(),
         yearName: year.name,
         subjectName: ENGLISH_SUBJECT_NAME,
-        difficultyLevel: level ?? null,
+        stage: level ?? null,
         // Hidden from students until an admin approves it.
         approvedByAdmin: false,
         createdDate: new Date(),

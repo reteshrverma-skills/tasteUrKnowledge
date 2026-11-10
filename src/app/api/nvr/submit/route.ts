@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
           testStartTime: parseStartedAt(startedAt),
           topic: topic?.trim() || null,
           subTopic: subTopic?.trim() || null,
-          difficultyLevel: level?.trim() || null,
+          stage: level?.trim() || null,
           completionReason: parseCompletionReason(completionReason),
           questions: {
             create: graded.map((g) => ({

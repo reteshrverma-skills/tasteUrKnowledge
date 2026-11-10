@@ -24,8 +24,8 @@ export default async function NvrTestReviewPage({
   return (
     <TestReview
       backHref={`/dashboard/subject/non-verbal${
-        test.difficultyLevel
-          ? `?level=${encodeURIComponent(test.difficultyLevel)}`
+        test.stage
+          ? `?level=${encodeURIComponent(test.stage)}`
           : ""
       }`}
       backLabel="Non-Verbal"
@@ -35,7 +35,7 @@ export default async function NvrTestReviewPage({
       retryHref={`/quiz/nvr?${new URLSearchParams({
         ...(test.topic ? { topic: test.topic } : {}),
         ...(test.subTopic ? { subTopic: test.subTopic } : {}),
-        level: test.difficultyLevel ?? "",
+        level: test.stage ?? "",
       })}`}
       figures
       flagSubject="nvr"

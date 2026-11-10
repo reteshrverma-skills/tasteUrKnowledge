@@ -265,7 +265,7 @@ model UserPaymentDetails {
 model GsEnglishComp {
   id                  BigInt    @id @default(autoincrement())
   compStory           String?
-  difficultyLevel     String?
+  stage     String?
   yearName            String?
   subjectName         String?
   label               String?
@@ -283,7 +283,7 @@ model GsEnglishComp {
   programmeCode String    @default("GRAMMAR")
   programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
 
-  @@index([programmeCode, subjectName, difficultyLevel], map: "gsEnglishComp_programme_subject_level_idx")
+  @@index([programmeCode, subjectName, stage], map: "gsEnglishComp_programme_subject_level_idx")
   @@map("gsEnglishComp")
 }
 
@@ -311,7 +311,7 @@ model GsEnglishQuestion {
   @@map("gsEnglishQuestions")
 }
 
-/// Standalone Maths MCQs, picked by subTopic + difficultyLevel.
+/// Standalone Maths MCQs, picked by subTopic + stage.
 /// Unlike English these are not tied to a year or a comprehension.
 model GsMathsQuestion {
   id              BigInt  @id @default(autoincrement())
@@ -324,7 +324,7 @@ model GsMathsQuestion {
   optionD         String?
   optionE         String?
   ansChoice       String?
-  difficultyLevel String?
+  stage String?
   explanation     String?
   /// Optional diagram as inline SVG, shown above the options (migration
   /// 033). Executable markup is refused by the database and stripped again
@@ -341,10 +341,10 @@ model GsMathsQuestion {
   programmeCode String    @default("GRAMMAR")
   programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
 
-  @@index([subTopic, difficultyLevel])
+  @@index([subTopic, stage])
   @@index([topic])
-  @@index([programmeCode, subTopic, difficultyLevel], map: "gsMathsQuestions_programme_subTopic_level_idx")
-  @@index([programmeCode, topic, difficultyLevel], map: "gsMathsQuestions_programme_topic_level_idx")
+  @@index([programmeCode, subTopic, stage], map: "gsMathsQuestions_programme_subTopic_level_idx")
+  @@index([programmeCode, topic, stage], map: "gsMathsQuestions_programme_topic_level_idx")
   @@map("gsMathsQuestions")
 }
 
@@ -364,7 +364,7 @@ model GsNvrQuestion {
   /// "Mirror image", "Quarter turn", "Sequence"... Same column name as
   /// gsEnglishQuestions, so the parent report groups by skill here too.
   typeOfQuestion  String
-  difficultyLevel String
+  stage String
   quest           String
 
   /// stemFormat: "svg" | "url" | "none". optionFormat: the same plus "text"
@@ -400,11 +400,11 @@ model GsNvrQuestion {
   programmeCode String    @default("GRAMMAR")
   programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
 
-  @@index([topic, difficultyLevel], map: "gsNvrQuestions_topic_level_idx")
-  @@index([subTopic, difficultyLevel], map: "gsNvrQuestions_subTopic_level_idx")
+  @@index([topic, stage], map: "gsNvrQuestions_topic_level_idx")
+  @@index([subTopic, stage], map: "gsNvrQuestions_subTopic_level_idx")
   @@index([typeOfQuestion], map: "gsNvrQuestions_typeOfQuestion_idx")
-  @@index([programmeCode, topic, difficultyLevel], map: "gsNvrQuestions_programme_topic_level_idx")
-  @@index([programmeCode, subTopic, difficultyLevel], map: "gsNvrQuestions_programme_subTopic_level_idx")
+  @@index([programmeCode, topic, stage], map: "gsNvrQuestions_programme_topic_level_idx")
+  @@index([programmeCode, subTopic, stage], map: "gsNvrQuestions_programme_subTopic_level_idx")
   @@map("gsNvrQuestions")
 }
 
@@ -419,13 +419,13 @@ model TestTrackerNvrMain {
   topic            String?
   /// Null marks a whole-topic test spanning several subtopics.
   subTopic         String?
-  difficultyLevel  String?
+  stage  String?
   completionReason String?
 
   questions TestTrackerNvr[]
 
   @@index([studentId, testStartTime])
-  @@index([studentId, topic, subTopic, difficultyLevel, testStartTime], map: "testTrackerNvrMain_student_round_idx")
+  @@index([studentId, topic, subTopic, stage, testStartTime], map: "testTrackerNvrMain_student_round_idx")
   @@map("testTrackerNvrMain")
 }
 
@@ -469,7 +469,7 @@ model TestTrackerMathMain {
   topic            String?
   /// Null marks a topic-level test spanning several subtopics.
   subTopic         String?
-  difficultyLevel  String?
+  stage  String?
   /// "submitted" | "timed_out" | "abandoned" - a low score that ran out of
   /// time is a different finding from one handed in early.
   completionReason String?
@@ -477,7 +477,7 @@ model TestTrackerMathMain {
   questions TestTrackerMath[]
 
   @@index([studentId, testStartTime])
-  @@index([studentId, topic, subTopic, difficultyLevel, testStartTime], map: "testTrackerMathMain_student_round_idx")
+  @@index([studentId, topic, subTopic, stage, testStartTime], map: "testTrackerMathMain_student_round_idx")
   @@map("testTrackerMathMain")
 }
 
@@ -534,7 +534,7 @@ model TestTrackerEnglishMain {
   /// Reserved: an English round spans several question types, so this stays
   /// null until rounds can be narrowed to one type.
   subTopic        String?
-  difficultyLevel String?
+  stage String?
   yearName        String?
 
   /// Seconds from the story appearing to the first interaction with the
@@ -555,7 +555,7 @@ model TestTrackerEnglishMain {
   questions TestTrackerEnglish[]
 
   @@index([studentId, testStartTime])
-  @@index([studentId, gsEngCompId, difficultyLevel, testStartTime], map: "testTrackerEnglishMain_student_round_idx")
+  @@index([studentId, gsEngCompId, stage, testStartTime], map: "testTrackerEnglishMain_student_round_idx")
   @@map("testTrackerEnglishMain")
 }
 
@@ -613,7 +613,7 @@ model Subject {
   @@unique([yearId, name])
 }
 
-/// Verbal Reasoning MCQs, picked by topic/subTopic + difficultyLevel like Maths.
+/// Verbal Reasoning MCQs, picked by topic/subTopic + stage like Maths.
 /// Created by prisma/sql/021_verbal_reasoning.sql. Ids are BIGINT, as every
 /// id in this schema is since migration 026.
 model GsVrQuestion {
@@ -628,7 +628,7 @@ model GsVrQuestion {
   optionE         String?
   ansChoice       String? @db.VarChar(10)
   explanation     String?
-  difficultyLevel String? @db.VarChar(50)
+  stage String? @db.VarChar(50)
   yearName        String? @db.VarChar(50)
   /// Why each wrong option is wrong, shown when that option was chosen.
   whyWrongA       String?
@@ -644,7 +644,7 @@ model GsVrQuestion {
   programmeCode String    @default("GRAMMAR")
   programme     Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
 
-  @@index([programmeCode, topic, subTopic, difficultyLevel], map: "gsVRQuestions_programme_topic_level_idx")
+  @@index([programmeCode, topic, subTopic, stage], map: "gsVRQuestions_programme_topic_level_idx")
   @@map("gsVRQuestions")
 }
 
@@ -658,7 +658,7 @@ model TestTrackerVrMain {
   topic            String?   @db.VarChar(255)
   /// Null marks a whole-topic test spanning several subtopics.
   subTopic         String?   @db.VarChar(255)
-  difficultyLevel  String?   @db.VarChar(50)
+  stage  String?   @db.VarChar(50)
   completionReason String?   @db.VarChar(100)
 
   questions TestTrackerVr[]

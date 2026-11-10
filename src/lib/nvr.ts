@@ -40,7 +40,7 @@ export const nvrQuestionPublicSelect = {
   optionC: true,
   optionD: true,
   optionE: true,
-  difficultyLevel: true,
+  stage: true,
 } as const;
 
 export interface NvrSubTopicCount {
@@ -60,12 +60,12 @@ export const availableNvrLevels = cachedUntilFlush(
   "nvr-levels",
   async (programme: string): Promise<string[]> => {
     const rows = await prisma.gsNvrQuestion.groupBy({
-      by: ["difficultyLevel"],
+      by: ["stage"],
       where: { programmeCode: programme },
       _count: { _all: true },
     });
 
-    return sortDifficulties(rows.map((row) => row.difficultyLevel));
+    return sortDifficulties(rows.map((row) => row.stage));
   }
 );
 
@@ -80,7 +80,7 @@ export const nvrTopicsForLevel = cachedUntilFlush(
       by: ["topic", "subTopic"],
       where: {
         programmeCode: programme,
-        difficultyLevel: { equals: level, mode: "insensitive" },
+        stage: { equals: level, mode: "insensitive" },
       },
       _count: { _all: true },
     });
@@ -111,7 +111,7 @@ export async function nvrQuestionsForTopic(topic: string, level: string) {
   return prisma.gsNvrQuestion.findMany({
     where: {
       topic: { equals: topic, mode: "insensitive" },
-      difficultyLevel: { equals: level, mode: "insensitive" },
+      stage: { equals: level, mode: "insensitive" },
     },
     orderBy: [{ subTopic: "asc" }, { id: "asc" }],
     select: {
@@ -155,7 +155,7 @@ export async function randomNvrQuestionIds(
     where: {
       programmeCode: programme,
       subTopic: { equals: subTopic, mode: "insensitive" },
-      difficultyLevel: { equals: level, mode: "insensitive" },
+      stage: { equals: level, mode: "insensitive" },
       ...(topic ? { topic: { equals: topic, mode: "insensitive" } } : {}),
     },
     select: { id: true },
@@ -175,7 +175,7 @@ export async function randomNvrQuestionIdsForTopic(
     where: {
       programmeCode: programme,
       topic: { equals: topic, mode: "insensitive" },
-      difficultyLevel: { equals: level, mode: "insensitive" },
+      stage: { equals: level, mode: "insensitive" },
     },
     select: { id: true },
   });
@@ -247,7 +247,7 @@ export async function recentNvrAttempts(
       id: true,
       topic: true,
       subTopic: true,
-      difficultyLevel: true,
+      stage: true,
       questions: {
         select: { isAnsRight: true, question: { select: { topic: true } } },
       },
@@ -257,16 +257,16 @@ export async function recentNvrAttempts(
   const byKey = new Map<string, TestScore[]>();
 
   for (const test of tests) {
-    if (test.questions.length === 0 || !test.difficultyLevel) continue;
+    if (test.questions.length === 0 || !test.stage) continue;
 
     // Subtopic rounds saved before the topic was recorded fall back to the
     // topic of their questions.
     const topic = test.topic ?? test.questions[0].question.topic;
 
     const key = test.subTopic
-      ? nvrCellKey(topic, test.subTopic, test.difficultyLevel)
+      ? nvrCellKey(topic, test.subTopic, test.stage)
       : test.topic
-      ? nvrTopicKey(test.topic, test.difficultyLevel)
+      ? nvrTopicKey(test.topic, test.stage)
       : null;
     if (!key) continue;
 
@@ -298,7 +298,7 @@ export async function nvrTestReview(testId: number, studentId: number) {
       testStartTime: true,
       topic: true,
       subTopic: true,
-      difficultyLevel: true,
+      stage: true,
       completionReason: true,
       questions: {
         orderBy: [{ questionOrder: "asc" }, { id: "asc" }],

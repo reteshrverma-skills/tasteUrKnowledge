@@ -19,7 +19,7 @@ interface Question {
   optionC: string | null;
   optionD: string | null;
   optionE: string | null;
-  difficultyLevel: string | null;
+  stage: string | null;
 }
 
 interface GradedAnswer {

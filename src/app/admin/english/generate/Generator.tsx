@@ -114,7 +114,7 @@ export function Generator({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           yearId,
-          difficultyLevel: level,
+          stage: level,
           count,
           instructions,
           copyrightGuidance: guidance,
@@ -154,7 +154,7 @@ export function Generator({
           yearId,
           title: draft.title,
           story: draft.story,
-          difficultyLevel: draft.basis.level,
+          stage: draft.basis.level,
           questions: draft.questions.map((q) => ({ ...q, topic: "" })),
         }),
       });

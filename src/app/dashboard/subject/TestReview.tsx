@@ -27,7 +27,7 @@ export interface ReviewQuestion {
 
 export interface ReviewTest {
   testStartTime: Date | null;
-  difficultyLevel: string | null;
+  stage: string | null;
   completionReason: string | null;
 }
 
@@ -100,7 +100,7 @@ export function TestReview({
             <h1 className="text-2xl font-bold text-ink">{title}</h1>
             <p className="text-ink-soft text-sm mt-1">
               {[
-                test.difficultyLevel,
+                test.stage,
                 isTopicTest && "whole-topic test",
                 test.testStartTime?.toLocaleString("en-GB", {
                   dateStyle: "medium",

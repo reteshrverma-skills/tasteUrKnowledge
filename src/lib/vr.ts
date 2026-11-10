@@ -51,7 +51,7 @@ const publicSelect = {
   optionC: true,
   optionD: true,
   optionE: true,
-  difficultyLevel: true,
+  stage: true,
 } as const;
 
 export interface VrSubTopicCount {
@@ -71,11 +71,11 @@ export const availableVrLevels = cachedUntilFlush(
   "vr-levels",
   async (programme: string): Promise<string[]> => {
     const rows = await prisma.gsVrQuestion.groupBy({
-      by: ["difficultyLevel"],
+      by: ["stage"],
       where: { programmeCode: programme },
       _count: { _all: true },
     });
-    return sortDifficulties(rows.map((row) => row.difficultyLevel));
+    return sortDifficulties(rows.map((row) => row.stage));
   }
 );
 
@@ -87,7 +87,7 @@ export const vrTopicsForLevel = cachedUntilFlush(
       by: ["topic", "subTopic"],
       where: {
         programmeCode: programme,
-        difficultyLevel: { equals: level, mode: "insensitive" },
+        stage: { equals: level, mode: "insensitive" },
       },
       _count: { _all: true },
     });
@@ -136,7 +136,7 @@ export async function randomVrRound(
   const rows = await prisma.gsVrQuestion.findMany({
     where: {
       programmeCode: programme,
-      difficultyLevel: { equals: level, mode: "insensitive" },
+      stage: { equals: level, mode: "insensitive" },
       ...(subTopic
         ? { subTopic: { equals: subTopic, mode: "insensitive" } }
         : {}),
@@ -220,19 +220,19 @@ export async function recentVrAttempts(
       id: true,
       topic: true,
       subTopic: true,
-      difficultyLevel: true,
+      stage: true,
       questions: { select: { isAnsRight: true } },
     },
   });
 
   const byKey = new Map<string, TestScore[]>();
   for (const test of tests) {
-    if (test.questions.length === 0 || !test.difficultyLevel || !test.topic) {
+    if (test.questions.length === 0 || !test.stage || !test.topic) {
       continue;
     }
     const key = test.subTopic
-      ? vrCellKey(test.topic, test.subTopic, test.difficultyLevel)
-      : vrTopicKey(test.topic, test.difficultyLevel);
+      ? vrCellKey(test.topic, test.subTopic, test.stage)
+      : vrTopicKey(test.topic, test.stage);
 
     const bucket = byKey.get(key) ?? [];
     // Rounds arrive newest-first, so the first three seen are the ones wanted.
@@ -260,7 +260,7 @@ export async function vrTestReview(testId: number, studentId: number) {
       testStartTime: true,
       topic: true,
       subTopic: true,
-      difficultyLevel: true,
+      stage: true,
       completionReason: true,
       questions: {
         orderBy: [{ questionOrder: "asc" }, { id: "asc" }],

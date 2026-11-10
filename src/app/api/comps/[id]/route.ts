@@ -37,7 +37,7 @@ export async function GET(
         compStory: true,
         yearName: true,
         subjectName: true,
-        difficultyLevel: true,
+        stage: true,
         approvedByAdmin: true,
         programmeCode: true,
       },
@@ -60,7 +60,7 @@ export async function GET(
     }
 
     // A locked difficulty must not be reachable by guessing the id either.
-    if (!canAccessLevel(await allowedLevels(session), comp.difficultyLevel)) {
+    if (!canAccessLevel(await allowedLevels(session), comp.stage)) {
       return NextResponse.json(
         { error: "Comprehension not found" },
         { status: 404 }

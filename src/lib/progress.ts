@@ -299,7 +299,7 @@ async function scoreRows(
         SELECT lower(btrim(COALESCE(gq."typeOfQuestion", q."topic"))) AS bucket,
                min(btrim(COALESCE(gq."typeOfQuestion", q."topic"))) AS topic,
                NULL::text AS subtopic,
-               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
+               (array_agg(m."stage" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
                COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
                COUNT(*) FILTER (WHERE m."testStartTime" < ${before}) AS prev_total,
@@ -315,7 +315,7 @@ async function scoreRows(
         SELECT gq."subTopic" AS bucket,
                min(gq."topic") AS topic,
                gq."subTopic" AS subtopic,
-               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
+               (array_agg(m."stage" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
                COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
                COUNT(*) FILTER (WHERE m."testStartTime" < ${before}) AS prev_total,
@@ -332,7 +332,7 @@ async function scoreRows(
         SELECT concat_ws(' · ', gq."topic", gq."subTopic") AS bucket,
                gq."topic" AS topic,
                gq."subTopic" AS subtopic,
-               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
+               (array_agg(m."stage" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
                COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
                COUNT(*) FILTER (WHERE m."testStartTime" AT TIME ZONE 'UTC' < ${before}) AS prev_total,
@@ -348,7 +348,7 @@ async function scoreRows(
         SELECT concat_ws(' · ', gq."topic", gq."subTopic") AS bucket,
                gq."topic" AS topic,
                gq."subTopic" AS subtopic,
-               (array_agg(m."difficultyLevel" ORDER BY m."testStartTime" DESC))[1] AS level,
+               (array_agg(m."stage" ORDER BY m."testStartTime" DESC))[1] AS level,
                COUNT(*)                               AS total,
                COUNT(*) FILTER (WHERE q."isAnsRight") AS correct,
                COUNT(*) FILTER (WHERE m."testStartTime" < ${before}) AS prev_total,
@@ -495,7 +495,7 @@ async function testRows(
       return prisma.$queryRaw<TestRow[]>`
         SELECT m."id", m."testStartTime" AS started,
                COALESCE(c."label", m."topic") AS label,
-               m."difficultyLevel" AS level,
+               m."stage" AS level,
                COUNT(q."id") AS total,
                COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
           FROM "testTrackerEnglishMain" m
@@ -508,7 +508,7 @@ async function testRows(
       return prisma.$queryRaw<TestRow[]>`
         SELECT m."id", m."testStartTime" AS started,
                COALESCE(m."subTopic", m."topic") AS label,
-               m."difficultyLevel" AS level,
+               m."stage" AS level,
                COUNT(q."id") AS total,
                COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
           FROM "testTrackerMathMain" m
@@ -520,7 +520,7 @@ async function testRows(
       return prisma.$queryRaw<TestRow[]>`
         SELECT m."id", m."testStartTime" AT TIME ZONE 'UTC' AS started,
                COALESCE(m."subTopic", m."topic") AS label,
-               m."difficultyLevel" AS level,
+               m."stage" AS level,
                COUNT(q."id") AS total,
                COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
           FROM "testTrackerVRMain" m
@@ -532,7 +532,7 @@ async function testRows(
       return prisma.$queryRaw<TestRow[]>`
         SELECT m."id", m."testStartTime" AS started,
                COALESCE(m."subTopic", m."topic") AS label,
-               m."difficultyLevel" AS level,
+               m."stage" AS level,
                COUNT(q."id") AS total,
                COUNT(q."id") FILTER (WHERE q."isAnsRight") AS correct
           FROM "testTrackerNvrMain" m

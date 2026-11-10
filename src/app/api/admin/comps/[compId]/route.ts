@@ -83,18 +83,18 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { title, story, difficultyLevel, approved } = body as {
+    const { title, story, stage, approved } = body as {
       title?: string;
       story?: string;
-      difficultyLevel?: string;
+      stage?: string;
       /** true shows the passage to students, false hides it again. */
       approved?: boolean;
     };
 
     const level =
-      difficultyLevel === undefined || !difficultyLevel.trim()
-        ? difficultyLevel
-        : canonicalLevel(difficultyLevel);
+      stage === undefined || !stage.trim()
+        ? stage
+        : canonicalLevel(stage);
     if (level === null) {
       return NextResponse.json(
         { error: `Difficulty must be one of ${DIFFICULTY_ORDER.join(", ")}` },
@@ -141,7 +141,7 @@ export async function PATCH(
       data: {
         ...(title !== undefined ? { label: title.trim() } : {}),
         ...(story !== undefined ? { compStory: story.trim() } : {}),
-        ...(level !== undefined ? { difficultyLevel: level || null } : {}),
+        ...(level !== undefined ? { stage: level || null } : {}),
         ...(typeof approved === "boolean"
           ? {
               approvedByAdmin: approved,

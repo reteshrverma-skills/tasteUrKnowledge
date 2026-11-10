@@ -24,7 +24,7 @@ interface Question {
   optionC: string;
   optionD: string;
   optionE: string | null;
-  difficultyLevel: string;
+  stage: string;
 }
 
 interface GradedAnswer {
@@ -341,7 +341,7 @@ export function NvrQuiz() {
               ID {question.id}
             </span>
           </span>
-          <span className={`chip ${difficultyStyle(question.difficultyLevel)}`}>
+          <span className={`chip ${difficultyStyle(question.stage)}`}>
             {question.typeOfQuestion}
           </span>
         </div>

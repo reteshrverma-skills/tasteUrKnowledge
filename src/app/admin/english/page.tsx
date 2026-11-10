@@ -25,7 +25,7 @@ interface Passage {
   compStory: string | null;
   yearName: string | null;
   subjectName: string | null;
-  difficultyLevel: string | null;
+  stage: string | null;
   approvedByAdmin: boolean | null;
   approvedByAdminDate: string | null;
   questions: Question[];
@@ -329,7 +329,7 @@ function PassageCard({
           </p>
           <p className="text-sm text-ink-soft mt-1">
             {passage.yearName ?? "No year"} ·{" "}
-            {passage.difficultyLevel ?? "No level"} ·{" "}
+            {passage.stage ?? "No level"} ·{" "}
             {passage.questions.length} question
             {passage.questions.length === 1 ? "" : "s"} ·{" "}
             {countWords(passage.compStory ?? "")} words
@@ -523,7 +523,7 @@ export default function EnglishAdminPage() {
   };
 
   const levelPassages = passages.filter(
-    (p) => p.difficultyLevel?.toLowerCase() === level.toLowerCase()
+    (p) => p.stage?.toLowerCase() === level.toLowerCase()
   );
 
   return (

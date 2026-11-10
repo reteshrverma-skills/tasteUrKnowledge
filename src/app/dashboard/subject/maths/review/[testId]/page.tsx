@@ -24,8 +24,8 @@ export default async function MathsTestReviewPage({
   return (
     <TestReview
       backHref={`/dashboard/subject/maths${
-        test.difficultyLevel
-          ? `?level=${encodeURIComponent(test.difficultyLevel)}`
+        test.stage
+          ? `?level=${encodeURIComponent(test.stage)}`
           : ""
       }`}
       backLabel="Maths"
@@ -35,7 +35,7 @@ export default async function MathsTestReviewPage({
       retryHref={`/quiz/maths?${new URLSearchParams({
         ...(test.topic ? { topic: test.topic } : {}),
         ...(test.subTopic ? { subTopic: test.subTopic } : {}),
-        level: test.difficultyLevel ?? "",
+        level: test.stage ?? "",
       })}`}
       flagSubject="maths"
       questions={test.questions.map((row) => ({

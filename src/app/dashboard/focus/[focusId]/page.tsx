@@ -60,7 +60,7 @@ export default async function EnglishFocusPage({
       select: {
         gsEngCompId: true,
         typeOfQuestion: true,
-        comp: { select: { difficultyLevel: true } },
+        comp: { select: { stage: true } },
       },
     }),
   ]);
@@ -69,9 +69,9 @@ export default async function EnglishFocusPage({
   const counts = new Map<number, { count: number; level: string | null }>();
   for (const q of candidates) {
     if (!q.typeOfQuestion || normaliseTopic(q.typeOfQuestion) !== wanted) continue;
-    if (!canAccessLevel(access, q.comp.difficultyLevel)) continue;
+    if (!canAccessLevel(access, q.comp.stage)) continue;
     const id = Number(q.gsEngCompId);
-    const entry = counts.get(id) ?? { count: 0, level: q.comp.difficultyLevel };
+    const entry = counts.get(id) ?? { count: 0, level: q.comp.stage };
     entry.count += 1;
     counts.set(id, entry);
   }

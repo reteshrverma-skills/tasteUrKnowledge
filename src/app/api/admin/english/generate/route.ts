@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const level = canonicalLevel(body.difficultyLevel);
+    const level = canonicalLevel(body.stage);
     if (!level) {
       return NextResponse.json(
         { error: "Choose a difficulty level" },
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
             where: { id: { in: referenceIds } },
             select: {
               label: true,
-              difficultyLevel: true,
+              stage: true,
               compStory: true,
               questions: { select: { typeOfQuestion: true } },
             },
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
         : Promise.resolve([]),
       // Every title at this level, approved or not, so the draft is distinct.
       prisma.gsEnglishComp.findMany({
-        where: { difficultyLevel: { equals: level, mode: "insensitive" } },
+        where: { stage: { equals: level, mode: "insensitive" } },
         select: { label: true },
         take: 300,
       }),
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       .filter((r) => r.compStory?.trim())
       .map((r) => ({
         title: r.label?.trim() || "Untitled",
-        level: r.difficultyLevel,
+        level: r.stage,
         story: r.compStory!,
         questionTypes: Array.from(
           new Set(

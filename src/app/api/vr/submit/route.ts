@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
           topic: topic?.trim() || null,
           // Null marks a whole-topic test.
           subTopic: subTopic?.trim() || null,
-          difficultyLevel: level?.trim() || null,
+          stage: level?.trim() || null,
           completionReason: parseCompletionReason(completionReason),
           questions: {
             create: graded.map((g) => ({
