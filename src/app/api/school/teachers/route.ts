@@ -100,6 +100,7 @@ export async function PATCH(request: NextRequest) {
           fName: input.fName,
           lName: input.lName,
           profileName: input.profileName,
+          email: input.email,
           isActive,
           ...(input.password ? { profilePassword: await hashPassword(input.password) } : {}),
           personalDetails: {

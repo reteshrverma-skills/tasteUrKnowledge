@@ -9,6 +9,7 @@ import {
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
 import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
 import { validCountryCode } from "@/lib/countries";
+import { EMAIL_TAKEN_MESSAGE, loginEmail, loginEmailTaken } from "@/lib/login-email";
 import security from "@/config/security.json";
 
 /**
@@ -95,6 +96,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // The email doubles as a login, so it must not belong to another account.
+    const email = loginEmail(emailAddress);
+    if (email && (await loginEmailTaken(email))) {
+      return NextResponse.json({ error: EMAIL_TAKEN_MESSAGE }, { status: 400 });
+    }
+
     const profilePassword = await hashPassword(password);
     const user = await prisma.userProfile.create({
       data: {
@@ -107,6 +114,7 @@ export async function POST(request: NextRequest) {
         isActive: true,
         termsAcceptedAt: new Date(),
         countryCode,
+        email,
         ...(emailAddress?.trim()
           ? { personalDetails: { create: { emailAddress: emailAddress.trim() } } }
           : {}),

@@ -125,7 +125,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="profileName" className="block mb-1.5 text-sm font-medium text-login-body">
-                User ID
+                User ID or email
               </label>
               <input
                 id="profileName"
@@ -135,7 +135,7 @@ export default function LoginPage() {
                 required
                 autoComplete="username"
                 className={fieldClass}
-                placeholder="Enter your user ID"
+                placeholder="Enter your user ID or email"
               />
             </div>
 

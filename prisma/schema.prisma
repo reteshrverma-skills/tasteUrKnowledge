@@ -34,6 +34,10 @@ model UserProfile {
   lName            String?
   /// Login user id
   profileName      String    @unique
+  /// Login email, lower-case and unique (migration 044). Anyone but a student
+  /// can sign in with it instead of profileName; always null for a STUDENT.
+  /// Written alongside userPersonalDetails.emailAddress, the contact email.
+  email            String?   @unique @db.VarChar(254)
   /// bcrypt hash of the login password. Null for a school pupil until a linked
   /// parent sets one for home; their teacher opens them in class (migration 036).
   profilePassword  String?

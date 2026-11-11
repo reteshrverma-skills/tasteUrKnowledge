@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow } from "@/lib/auth";
+import { EMAIL_TAKEN_MESSAGE, loginEmail, loginEmailTaken } from "@/lib/login-email";
 
 /** Blank means "cleared", so an empty string is stored as null, not "". */
 function text(value: unknown): string | null {
@@ -41,9 +42,16 @@ export async function PUT(request: NextRequest) {
       emailAddress: text(body.emailAddress),
     };
 
+    // The email doubles as a login, so it must not belong to another account.
+    const email = loginEmail(contact.emailAddress);
+    if (email && (await loginEmailTaken(email, session.userId))) {
+      return NextResponse.json({ error: EMAIL_TAKEN_MESSAGE }, { status: 400 });
+    }
+
     await prisma.userProfile.update({
       where: { id: session.userId },
       data: {
+        email,
         fName: text(body.fName),
         mName: text(body.mName),
         lName: text(body.lName),

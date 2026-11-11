@@ -9,6 +9,7 @@ import {
 import { displayName } from "@/lib/english";
 import { closeOpenSessions } from "@/lib/login-session";
 import { normaliseProfileName, passwordProblem } from "@/lib/parent";
+import { EMAIL_TAKEN_MESSAGE, loginEmailTaken } from "@/lib/login-email";
 import { defaultEntitlementsForYear } from "@/lib/student";
 
 /**
@@ -114,6 +115,8 @@ export async function staffInputFrom(
   }
 
   if (await loginIdTaken(profileName, editingId)) return "That login ID is already taken";
+  // The email doubles as a login, so it must not belong to another account.
+  if (await loginEmailTaken(email, editingId)) return EMAIL_TAKEN_MESSAGE;
 
   return {
     fName,
@@ -144,6 +147,7 @@ export async function staffAccountData(
     fName: input.fName,
     lName: input.lName,
     profileName: input.profileName,
+    email: input.email,
     profilePassword: await hashPassword(input.password ?? ""),
     userType: role,
     isActive: true,

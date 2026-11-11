@@ -16,6 +16,7 @@ import {
   tooManyRequests,
 } from "@/lib/rate-limit";
 import security from "@/config/security.json";
+import { loginEmail } from "@/lib/login-email";
 
 const LIMITS = security.login;
 
@@ -43,10 +44,21 @@ export async function POST(request: NextRequest) {
     if (wait > 0) return tooManyRequests(wait);
     record(ipKey, LIMITS.windowMinutes);
 
-    // Find user by their login user id
-    const user = await prisma.userProfile.findUnique({
-      where: { profileName },
-    });
+    // Find the account by its user ID or, for anyone but a student, by email.
+    // A user ID can never contain "@", so an "@" means an email address.
+    const identifier = String(profileName).trim();
+    // The login email is unique and lower-case, and never set for a student
+    // (migration 044); the userType check is a second line behind that rule.
+    let user;
+    if (identifier.includes("@")) {
+      const email = loginEmail(identifier);
+      const found = email ? await prisma.userProfile.findUnique({ where: { email } }) : null;
+      user = found && found.userType !== "STUDENT" ? found : null;
+    } else {
+      user = await prisma.userProfile.findUnique({
+        where: { profileName: identifier },
+      });
+    }
 
     if (!user) {
       // Counted like a wrong password, so the limit gives away nothing about
