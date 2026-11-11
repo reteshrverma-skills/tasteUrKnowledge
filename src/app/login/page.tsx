@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GoogleSignIn } from "./GoogleSignIn";
 
 const SUBJECTS = [
   {
@@ -47,6 +48,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   // Sent here by an automatic sign-out: "idle" (no activity) or "elsewhere"
   // (the account signed in on another device). The server snapshot is empty,
   // so the server and browser agree on the first paint and the notice appears
@@ -88,8 +90,38 @@ export default function LoginPage() {
     }
   };
 
+  // "Continue with Google": the server checks Google's token and signs in the
+  // account with that email, then hands back where to go, like the form does.
+  const handleGoogle = useCallback(
+    async (credential: string) => {
+      setError("");
+      setLoading(true);
+      try {
+        const response = await fetch("/api/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setError(data.error || "Google sign-in failed");
+          return;
+        }
+        router.push(data.redirect || "/dashboard");
+      } catch (err) {
+        setError("An error occurred. Please try again.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router]
+  );
+
   const fieldClass =
-    "w-full rounded-lg border border-login-border bg-white px-3.5 py-2.5 text-[15px] text-login-body placeholder:text-ink-faint focus:outline-none focus:border-login-teal focus:ring-1 focus:ring-login-teal";
+    "w-full rounded-lg border border-login-border bg-white px-3.5 py-2.5 text-sm text-login-body placeholder:text-ink-faint focus:outline-none focus:border-login-teal focus:ring-1 focus:ring-login-teal";
+  const iconClass =
+    "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 fill-none stroke-ink-faint [stroke-width:1.8] [stroke-linecap:round] [stroke-linejoin:round]";
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -118,46 +150,94 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
             className="w-full max-w-[400px] mx-auto lg:mx-0 lg:justify-self-end lg:self-center lg:col-start-2 lg:row-start-1 lg:row-span-2 rounded-2xl bg-login-card p-6 sm:p-7 space-y-4"
           >
-            <div className="text-center">
-              <h2 className="font-sans text-[27px] font-semibold text-login-navy">Welcome back!</h2>
-              <p className="mt-1 text-sm text-login-body">Sign in to continue your learning journey.</p>
+            {/* Sign In / Create Account switch; Create Account is its own page. */}
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-login-border/60 p-1">
+              <span
+                aria-current="page"
+                className="rounded-lg bg-white py-2 text-center text-sm font-semibold text-login-navy shadow-sm"
+              >
+                Sign In
+              </span>
+              <Link
+                href="/register"
+                className="rounded-lg py-2 text-center text-sm font-semibold text-login-body hover:text-login-navy transition"
+              >
+                Create Account
+              </Link>
+            </div>
+
+            <GoogleSignIn onCredential={handleGoogle} />
+
+            <div className="flex items-center gap-3 text-xs text-login-body" aria-hidden="true">
+              <span className="h-px flex-1 bg-login-border" />
+              or continue with user ID or email
+              <span className="h-px flex-1 bg-login-border" />
             </div>
 
             <div>
-              <label htmlFor="profileName" className="block mb-1.5 text-sm font-medium text-login-body">
+              <label htmlFor="profileName" className="block mb-1.5 text-sm font-semibold text-login-body">
                 User ID or email
               </label>
-              <input
-                id="profileName"
-                type="text"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-                required
-                autoComplete="username"
-                className={fieldClass}
-                placeholder="Enter your user ID or email"
-              />
+              <div className="relative">
+                <svg viewBox="0 0 24 24" className={iconClass} aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3.5 6.5 8.5 6 8.5-6" />
+                </svg>
+                <input
+                  id="profileName"
+                  type="text"
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  required
+                  autoComplete="username"
+                  className={`${fieldClass} pl-10`}
+                  placeholder="you@example.com or your user ID"
+                />
+              </div>
             </div>
 
             <div>
-              <div className="flex items-baseline justify-between gap-3 mb-1.5">
-                <label htmlFor="password" className="text-sm font-medium text-login-body">
-                  Password
-                </label>
-                <Link href="/forgot-password" className="text-sm text-login-teal hover:underline">
-                  Forgot password?
-                </Link>
+              <label htmlFor="password" className="block mb-1.5 text-sm font-semibold text-login-body">
+                Password
+              </label>
+              <div className="relative">
+                <svg viewBox="0 0 24 24" className={iconClass} aria-hidden="true">
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                </svg>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className={`${fieldClass} pl-10 pr-11`}
+                  placeholder="Your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((shown) => !shown)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-ink-faint hover:text-login-teal transition"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="3" />
+                    {showPassword && <path d="M3 3l18 18" />}
+                  </svg>
+                </button>
               </div>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className={fieldClass}
-                placeholder="Enter your password"
-              />
             </div>
 
             {(signOutReason === "idle" || signOutReason === "elsewhere") && !error && (
@@ -183,19 +263,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-login-cta py-3 text-[15px] font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition"
+              className="w-full rounded-lg bg-login-cta py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition"
             >
-              {loading ? "Logging in…" : "Log In"}
+              {loading ? "Signing in…" : "Sign In"}
             </button>
 
-            <p className="text-center text-sm text-login-body">New to SIGQS?</p>
-            <Link
-              href="/register"
-              className="block w-full rounded-lg border border-login-teal bg-white py-2.5 text-center text-[15px] font-semibold text-login-teal hover:bg-brand-tint transition"
-            >
-              Create an Account
-            </Link>
-            <p className="text-center text-xs text-login-body">Secure access for parents and students</p>
+            <p className="text-center">
+              <Link href="/forgot-password" className="text-sm font-semibold text-login-teal hover:underline">
+                Forgot your password?
+              </Link>
+            </p>
+            <p className="text-center text-xs font-bold text-login-body">
+              Students can sign in with their user ID only.
+            </p>
           </form>
 
           <section className="lg:col-start-1 lg:row-start-2">

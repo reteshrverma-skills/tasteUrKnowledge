@@ -38,16 +38,20 @@ const nextConfig: NextConfig = {
   // nonce-based policy would make every page render per request and lose the
   // caching. 'unsafe-eval' is added in development only, where Next needs it.
   // form-action names Stripe because the Subscribe and Manage billing forms
-  // post here and are redirected on to Stripe.
+  // post here and are redirected on to Stripe. accounts.google.com/gsi is
+  // Google's "Sign in with Google" button on the login page: its script, its
+  // stylesheet, the frame it draws the button in, and the calls it makes.
   headers() {
     const isDev = process.env.NODE_ENV !== "production";
+    const gsi = "https://accounts.google.com/gsi/";
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-      "style-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${gsi}client`,
+      `style-src 'self' 'unsafe-inline' ${gsi}style`,
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
-      `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+      `connect-src 'self'${isDev ? " ws: wss:" : ""} ${gsi}`,
+      `frame-src ${gsi}`,
       "frame-ancestors 'none'",
       "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",
       "base-uri 'self'",
