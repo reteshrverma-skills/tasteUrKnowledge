@@ -51,6 +51,11 @@ jobs:
           # App Service settings, where the REAL values live.
           DATABASE_URL: 'postgresql://user:pass@localhost:5432/db'
           JWT_SECRET: 'build-time-placeholder-not-used-at-runtime'
+          # NOT a placeholder: NEXT_PUBLIC_ values are written into the browser
+          # code at build time, so the App Service setting alone cannot reach
+          # the page. "Continue with Google" needs it here. Public by design.
+          # (The App Service keeps the same value for the server-side check.)
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: '751451750594-p86mr8hnb8pf9n0cq97hoeu5m12ji8u6.apps.googleusercontent.com'
 
       # The clean deploy below takes a .zip file, not a folder. Everything the
       # app needs at runtime goes in (node_modules, the .next build, public,
