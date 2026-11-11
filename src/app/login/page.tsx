@@ -175,8 +175,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="profileName" className="block mb-1.5 text-sm font-semibold text-login-body">
-                User ID or email
+              <label htmlFor="profileName" className="block mb-1.5 text-sm font-bold text-login-body">
+                User ID or email{" "}
+                <span className="font-normal">(Students can sign in with their user ID only)</span>
               </label>
               <div className="relative">
                 <svg viewBox="0 0 24 24" className={iconClass} aria-hidden="true">
@@ -272,9 +273,6 @@ export default function LoginPage() {
               <Link href="/forgot-password" className="text-sm font-semibold text-login-teal hover:underline">
                 Forgot your password?
               </Link>
-            </p>
-            <p className="text-center text-xs font-bold text-login-body">
-              Students can sign in with their user ID only.
             </p>
           </form>
 
