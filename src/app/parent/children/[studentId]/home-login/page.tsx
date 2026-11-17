@@ -6,6 +6,7 @@ import { displayName } from "@/lib/english";
 import { ownsChild, parentProfile } from "@/lib/parent";
 import { ParentNav } from "../../../ParentNav";
 import { HomeLoginForm } from "./HomeLoginForm";
+import { PasscodeForm } from "../../PasscodeForm";
 
 /**
  * A parent setting up home practice for a pupil their school manages: the login
@@ -31,6 +32,7 @@ export default async function HomeLoginPage({
         lName: true,
         profileName: true,
         profilePassword: true,
+        profilePasscode: true,
         school: { select: { name: true } },
       },
     }),
@@ -75,6 +77,11 @@ export default async function HomeLoginPage({
             logging in at home ends a turn in class, and the reverse.
           </p>
           <HomeLoginForm studentId={studentId} hasPassword={Boolean(pupil.profilePassword)} />
+        </section>
+
+        <section className="card p-6 sm:p-8 space-y-3">
+          <h2 className="text-lg font-bold text-ink">Login Pin</h2>
+          <PasscodeForm studentId={studentId} hasPasscode={Boolean(pupil.profilePasscode)} />
         </section>
       </div>
     </div>

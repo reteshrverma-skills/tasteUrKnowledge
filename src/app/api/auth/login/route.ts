@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       // which login IDs exist.
       record(accountKey, LIMITS.lockoutMinutes);
       return NextResponse.json(
-        { error: "Invalid user ID or password" },
+        { error: "Invalid user ID, password or Pin" },
         { status: 401 }
       );
     }
@@ -67,12 +67,18 @@ export async function POST(request: NextRequest) {
     const blocked = await accountBlocked(user);
     if (blocked) return blocked;
 
-    // Verify password
-    const passwordValid = await verifyPassword(password, user.profilePassword);
+    // Verify the password or, for a student, their 6-digit passcode. Both go
+    // through the same lockout, so a passcode is no easier to guess.
+    const secret = String(password);
+    const passwordValid =
+      (await verifyPassword(secret, user.profilePassword)) ||
+      (user.userType === "STUDENT" &&
+        /^\d{6}$/.test(secret) &&
+        (await verifyPassword(secret, user.profilePasscode)));
     if (!passwordValid) {
       record(accountKey, LIMITS.lockoutMinutes);
       return NextResponse.json(
-        { error: "Invalid user ID or password" },
+        { error: "Invalid user ID, password or Pin" },
         { status: 401 }
       );
     }

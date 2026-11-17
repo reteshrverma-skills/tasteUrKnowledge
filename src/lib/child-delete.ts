@@ -64,6 +64,7 @@ export async function deleteChild(studentId: number, mode: DeleteMode) {
         // Frees the child's login id for reuse; still unique.
         profileName: `deleted-${studentId}-${Date.now()}`,
         profilePassword: scrambled,
+        profilePasscode: null,
         isActive: false,
       },
     }),

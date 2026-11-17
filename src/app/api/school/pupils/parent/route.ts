@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     if (body.unlink === true) {
       await prisma.userProfile.update({
         where: { id: studentId },
-        data: { profilePassword: null, studentDetails: { update: { parentId: null } } },
+        data: { profilePassword: null, profilePasscode: null, studentDetails: { update: { parentId: null } } },
       });
       // One session per pupil: an open classroom turn means no home session to
       // end, and the lesson carries on.

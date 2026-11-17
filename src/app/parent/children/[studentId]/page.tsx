@@ -8,6 +8,7 @@ import { ParentNav } from "../../ParentNav";
 import { EditChildForm } from "./EditChildForm";
 import { listProgrammes } from "@/lib/programme";
 import { DeleteChild } from "./DeleteChild";
+import { PasscodeForm } from "../PasscodeForm";
 
 // Deleting a child's profile is hidden from parents for now. The API route and
 // DeleteChild component are intact; set this to true to bring the option back.
@@ -41,6 +42,7 @@ export default async function EditChildPage({
         profileName: true,
         isActive: true,
         programmeCode: true,
+        profilePasscode: true,
         studentDetails: { select: { studentYear: true } },
       },
     }),
@@ -89,6 +91,17 @@ export default async function EditChildPage({
               programmeCode: child.programmeCode,
               isActive: child.isActive,
             }}
+          />
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 mt-6">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Login Pin
+          </h3>
+          <PasscodeForm
+            studentId={studentId}
+            hasPasscode={Boolean(child.profilePasscode)}
+            inputClassName="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
 

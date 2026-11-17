@@ -41,6 +41,9 @@ model UserProfile {
   /// bcrypt hash of the login password. Null for a school pupil until a linked
   /// parent sets one for home; their teacher opens them in class (migration 036).
   profilePassword  String?
+  /// bcrypt hash of a student's 6-digit passcode, accepted at login in place of
+  /// the password (migration 045). Set by a linked parent; null for everyone else.
+  profilePasscode  String?
   userType         UserType  @default(STUDENT)
   /// Legacy one-to-one link, kept only so older data is not lost. The live
   /// link is UserStudentDetails.parentId, which lets one parent hold many

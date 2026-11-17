@@ -159,6 +159,20 @@ export function passwordProblem(
   return null;
 }
 
+/** A student's login passcode: exactly 6 digits, typed twice. */
+export function passcodeProblem(
+  passcode: unknown,
+  confirmPasscode: unknown
+): string | null {
+  if (typeof passcode !== "string" || !/^\d{6}$/.test(passcode)) {
+    return "Pin must be exactly 6 digits";
+  }
+  if (passcode !== confirmPasscode) {
+    return "Pins do not match";
+  }
+  return null;
+}
+
 /** Login ids are compared case-insensitively, so "RV" cannot shadow "rv". */
 export function normaliseProfileName(value: unknown): string | null {
   if (typeof value !== "string") return null;

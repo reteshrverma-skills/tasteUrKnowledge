@@ -49,6 +49,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [mode, setMode] = useState<"user" | "student">("user");
+  const isStudent = mode === "student";
+  const switchMode = (next: "user" | "student") => {
+    setMode(next);
+    setProfileName("");
+    setPassword("");
+    setError("");
+  };
   // Sent here by an automatic sign-out: "idle" (no activity) or "elsewhere"
   // (the account signed in on another device). The server snapshot is empty,
   // so the server and browser agree on the first paint and the notice appears
@@ -150,39 +158,90 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
             className="w-full max-w-[400px] mx-auto lg:mx-0 lg:justify-self-end lg:self-center lg:col-start-2 lg:row-start-1 lg:row-span-2 rounded-2xl bg-login-card p-6 sm:p-7 space-y-4"
           >
-            {/* Sign In / Create Account switch; Create Account is its own page. */}
-            <div className="grid grid-cols-2 gap-1 rounded-xl bg-login-border/60 p-1">
-              <span
-                aria-current="page"
-                className="rounded-lg bg-white py-2 text-center text-sm font-semibold text-login-navy shadow-sm"
-              >
-                Sign In
-              </span>
-              <Link
-                href="/register"
-                className="rounded-lg py-2 text-center text-sm font-semibold text-login-body hover:text-login-navy transition"
-              >
-                Create Account
-              </Link>
+            {/* User/Parent or Student sign-in; both post to the same login API. */}
+            <div role="tablist" className="grid grid-cols-2 overflow-hidden rounded-xl bg-white">
+              {(["user", "student"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === tab}
+                  onClick={() => switchMode(tab)}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl py-3 text-sm font-semibold transition ${
+                    mode === tab
+                      ? "bg-login-cta text-white"
+                      : "text-login-body hover:text-login-navy"
+                  }`}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-6 h-6"
+                    aria-hidden="true"
+                  >
+                    {tab === "user" ? (
+                      <>
+                        <circle cx="9" cy="8" r="3.5" />
+                        <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+                        <circle cx="16.5" cy="8.5" r="3" />
+                        <path d="M17 14a5.5 5.5 0 0 1 4.5 6" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M2 9.5 12 5l10 4.5-10 4.5L2 9.5Z" />
+                        <path d="M6 11.5v4c0 1.5 2.7 3 6 3s6-1.5 6-3v-4" />
+                        <path d="M22 9.5v5" />
+                      </>
+                    )}
+                  </svg>
+                  {tab === "user" ? "User/Parent" : "Student"}
+                </button>
+              ))}
             </div>
 
-            <GoogleSignIn onCredential={handleGoogle} />
+            {/* Both tabs share this cell, so the card keeps its height when
+                switching, and Google's button stays mounted (no re-render). */}
+            <div className="grid">
+              <div
+                className={`col-start-1 row-start-1 space-y-4 ${isStudent ? "invisible" : ""}`}
+                aria-hidden={isStudent}
+              >
+                <GoogleSignIn onCredential={handleGoogle} />
 
-            <div className="flex items-center gap-3 text-xs text-login-body" aria-hidden="true">
-              <span className="h-px flex-1 bg-login-border" />
-              or continue with user ID or email
-              <span className="h-px flex-1 bg-login-border" />
+                <div className="flex items-center gap-3 text-xs text-login-body" aria-hidden="true">
+                  <span className="h-px flex-1 bg-login-border" />
+                  or continue with user ID or email
+                  <span className="h-px flex-1 bg-login-border" />
+                </div>
+              </div>
+              {isStudent && (
+                <p className="col-start-1 row-start-1 self-center rounded-lg bg-explorer-tint px-3.5 py-2.5 text-center text-sm text-login-teal">
+                  Sign in with the user ID and Pin your parent gave you.
+                </p>
+              )}
             </div>
 
             <div>
               <label htmlFor="profileName" className="block mb-1.5 text-sm font-bold text-login-body">
-                User ID or email{" "}
-                <span className="font-normal">(Students can sign in with their user ID only)</span>
+                {isStudent ? "User ID" : "User ID or email"}
               </label>
               <div className="relative">
                 <svg viewBox="0 0 24 24" className={iconClass} aria-hidden="true">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="m3.5 6.5 8.5 6 8.5-6" />
+                  {isStudent ? (
+                    <>
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 21a8 8 0 0 1 16 0" />
+                    </>
+                  ) : (
+                    <>
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="m3.5 6.5 8.5 6 8.5-6" />
+                    </>
+                  )}
                 </svg>
                 <input
                   id="profileName"
@@ -192,14 +251,20 @@ export default function LoginPage() {
                   required
                   autoComplete="username"
                   className={`${fieldClass} pl-10`}
-                  placeholder="you@example.com or your user ID"
+                  placeholder={isStudent ? "Your user ID" : "you@example.com or your user ID"}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block mb-1.5 text-sm font-semibold text-login-body">
-                Password
+              <label htmlFor="password" className="block mb-1.5 text-sm font-bold text-login-body">
+                {isStudent ? (
+                  <>
+                    Pin <span className="font-normal">(set by your parent)</span>
+                  </>
+                ) : (
+                  "Password"
+                )}
               </label>
               <div className="relative">
                 <svg viewBox="0 0 24 24" className={iconClass} aria-hidden="true">
@@ -214,7 +279,7 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   className={`${fieldClass} pl-10 pr-11`}
-                  placeholder="Your password"
+                  placeholder={isStudent ? "Your 6-digit Pin" : "Your password"}
                 />
                 <button
                   type="button"
@@ -266,7 +331,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-lg bg-login-cta py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition"
             >
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? "Signing in…" : isStudent ? "Let's Start Learning!" : "Sign In"}
             </button>
 
             <p className="text-center">

@@ -70,7 +70,7 @@ export function GoogleSignIn({
     api.renderButton(holder.current, {
       type: "standard",
       theme: "outline",
-      size: "large",
+      size: "medium",
       text: "continue_with",
       shape: "rectangular",
       logo_alignment: "center",
@@ -89,7 +89,7 @@ export function GoogleSignIn({
         onLoad={() => setReady(true)}
       />
       {/* Fixed height so the form does not jump when Google's button appears. */}
-      <div ref={holder} className="w-full h-11 flex justify-center" />
+      <div ref={holder} className="w-full h-8 flex justify-center" />
     </>
   );
 }
