@@ -17,6 +17,25 @@ export const STEPS = [
   },
 ];
 
+/** The four steps as a narrow side panel, for the dashboard's right column. */
+export function HowItWorksSteps() {
+  return (
+    <ol className="mt-3 space-y-3">
+      {STEPS.map((step, index) => (
+        <li key={step.title} className="flex gap-3">
+          <span className="w-7 h-7 shrink-0 rounded-full bg-brand-tint text-brand grid place-items-center font-display font-bold text-xs">
+            {index + 1}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-ink">{step.title}</span>
+            <span className="block text-xs text-ink-soft mt-0.5 leading-relaxed">{step.text}</span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 /**
  * The four steps of using SIGQS, on the parent dashboard. Open by default
  * until the first child is added; after that it folds away so the children's

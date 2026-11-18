@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { ProgrammeOption, YearOption } from "../AddChildForm";
 
 const inputClass =
-  "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
+  "w-full px-3 py-2 bg-surface border border-line-strong rounded-lg text-sm text-ink focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand";
 
 export interface EditChildInitial {
   fName: string;
@@ -89,33 +89,33 @@ export function EditChildForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-poor-tint border border-poor/25 text-poor px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
       {saved && (
-        <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-good-tint border border-good/25 text-good px-4 py-3 rounded-lg text-sm">
           Saved.
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
+          <label className="block text-sm font-semibold text-ink-soft mb-1">First name</label>
           <input type="text" name="fName" value={form.fName} onChange={handleChange} required className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Middle name</label>
+          <label className="block text-sm font-semibold text-ink-soft mb-1">Middle name</label>
           <input type="text" name="mName" value={form.mName} onChange={handleChange} className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
+          <label className="block text-sm font-semibold text-ink-soft mb-1">Last name</label>
           <input type="text" name="lName" value={form.lName} onChange={handleChange} required className={inputClass} />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">School year</label>
+        <label className="block text-sm font-semibold text-ink-soft mb-1">School year</label>
         <select name="studentYear" value={form.studentYear} onChange={handleChange} required className={inputClass}>
           <option value="">Choose a year</option>
           {years.map((year) => (
@@ -127,7 +127,7 @@ export function EditChildForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Preparing for</label>
+        <label className="block text-sm font-semibold text-ink-soft mb-1">Preparing for</label>
         <select name="programmeCode" value={form.programmeCode} onChange={handleChange} required className={inputClass}>
           {programmes.map((programme) => (
             <option
@@ -142,7 +142,7 @@ export function EditChildForm({
             </option>
           ))}
         </select>
-        <p className={`text-xs mt-1 ${programmeChanged ? "text-amber-700 font-medium" : "text-gray-500"}`}>
+        <p className={`text-xs mt-1 ${programmeChanged ? "text-warm font-medium" : "text-ink-faint"}`}>
           {programmeChanged
             ? "Saving switches the subjects and questions your child sees. Past results stay in their history."
             : "Your child sees only this programme's subjects and questions."}
@@ -157,19 +157,19 @@ export function EditChildForm({
           onChange={handleChange}
           className="w-4 h-4"
         />
-        <span className="text-sm text-gray-700">
+        <span className="text-sm text-ink-soft">
           <span className="font-medium">Account active</span>
-          <span className="block text-xs text-gray-500">
+          <span className="block text-xs text-ink-faint">
             Turn this off to stop your child logging in. Their work is kept.
           </span>
         </span>
       </label>
 
-      <section className="border-t border-gray-200 pt-5">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+      <section className="border-t border-line pt-5">
+        <h3 className="text-xs font-semibold text-ink-faint uppercase tracking-wide mb-1">
           Change password
         </h3>
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-xs text-ink-faint mb-3">
           Leave both boxes empty to keep the current password.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -199,7 +199,7 @@ export function EditChildForm({
       <button
         type="submit"
         disabled={saving}
-        className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 transition"
+        className="btn-primary w-full sm:w-auto px-6 py-2.5"
       >
         {saving ? "Saving..." : "Save changes"}
       </button>

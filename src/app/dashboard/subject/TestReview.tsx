@@ -1,9 +1,8 @@
 import Link from "next/link";
+import { StudentTopBar } from "../TopBar";
 import { scoreStyle } from "@/lib/level-style";
 import { FlagUnclear } from "./FlagUnclear";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
-import { LogoutButton } from "@/components/LogoutButton";
-import { BrandLogo } from "@/components/BrandLogo";
 import { PupilSchoolHeader } from "@/components/SchoolHeader";
 import { QuotedText } from "@/components/QuotedText";
 
@@ -79,14 +78,7 @@ export function TestReview({
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center gap-4">
-          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
-            <BrandLogo height={56} />
-          </span>
-          <LogoutButton />
-        </div>
-      </nav>
+      <StudentTopBar active="subjects" />
 
       <div className="max-w-3xl mx-auto px-5 sm:px-8 pt-4 pb-10">
         <Link

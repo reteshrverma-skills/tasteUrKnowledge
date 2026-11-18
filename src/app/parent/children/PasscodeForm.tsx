@@ -53,7 +53,7 @@ export function PasscodeForm({
     set: (v: string) => void
   ) => (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink-soft mb-1">
         {label}
       </label>
       <input
@@ -77,7 +77,7 @@ export function PasscodeForm({
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-ink-faint">
         {hasPasscode ? "A Pin is set. Enter a new one to reset it." : "No Pin set yet."} Your
         child can type the 6-digit Pin instead of their password on the login page.
       </p>
@@ -86,19 +86,19 @@ export function PasscodeForm({
         {field(`confirmPasscode-${studentId}`, "Confirm Pin", confirmPasscode, setConfirmPasscode)}
       </div>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-poor">
           {error}
         </p>
       )}
       {saved && (
-        <p role="status" className="text-sm text-green-700 font-semibold">
+        <p role="status" className="text-sm text-good font-semibold">
           ✓ Pin saved.
         </p>
       )}
       <button
         type="submit"
         disabled={saving}
-        className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 transition"
+        className="btn-primary px-6 py-2.5"
       >
         {saving ? "Saving…" : hasPasscode ? "Reset Pin" : "Set Pin"}
       </button>

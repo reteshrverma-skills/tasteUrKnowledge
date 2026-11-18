@@ -65,9 +65,9 @@ export function DeleteChild({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 mt-6 border border-red-200">
-      <h3 className="text-xl font-bold text-red-700">Delete profile</h3>
-      <p className="text-gray-600 text-sm mt-1">
+    <div className="card p-5 sm:p-6 border border-poor/25">
+      <h3 className="text-xl font-bold text-poor">Delete profile</h3>
+      <p className="text-ink-soft text-sm mt-1">
         Any active subscription for this child is cancelled first.
       </p>
 
@@ -84,13 +84,13 @@ export function DeleteChild({
             className={`text-left rounded-lg border-2 p-4 transition ${
               mode === option.mode
                 ? "border-red-500 bg-red-50"
-                : "border-gray-200 hover:border-red-300"
+                : "border-line hover:border-red-300"
             }`}
           >
-            <span className="block font-semibold text-gray-800">
+            <span className="block font-semibold text-ink">
               {option.title}
             </span>
-            <span className="block text-sm text-gray-600 mt-1">
+            <span className="block text-sm text-ink-soft mt-1">
               {option.detail}
             </span>
           </button>
@@ -99,7 +99,7 @@ export function DeleteChild({
 
       {chosen && (
         <div className="mt-5 space-y-3">
-          <label className="block text-sm text-gray-700">
+          <label className="block text-sm text-ink-soft">
             To confirm <strong>{chosen.title.toLowerCase()}</strong>, type the
             login id <strong>{profileName}</strong>:
             <input
@@ -107,11 +107,11 @@ export function DeleteChild({
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               autoComplete="off"
-              className="mt-1.5 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="mt-1.5 w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </label>
 
-          {error && <p className="text-sm text-red-700">{error}</p>}
+          {error && <p className="text-sm text-poor">{error}</p>}
 
           <div className="flex gap-3">
             <button
@@ -121,7 +121,7 @@ export function DeleteChild({
                 setConfirm("");
                 setError("");
               }}
-              className="px-5 py-2.5 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition"
+              className="btn-quiet px-5 py-2.5"
             >
               Cancel
             </button>

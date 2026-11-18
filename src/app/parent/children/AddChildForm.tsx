@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export interface YearOption {
   id: string;
@@ -9,7 +10,7 @@ export interface YearOption {
 }
 
 const inputClass =
-  "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
+  "w-full px-3 py-2 bg-surface border border-line-strong rounded-lg text-sm text-ink focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand";
 
 const EMPTY = {
   fName: "",
@@ -18,6 +19,8 @@ const EMPTY = {
   profileName: "",
   password: "",
   confirmPassword: "",
+  passcode: "",
+  confirmPasscode: "",
   studentYear: "",
   countryCode: "",
   programmeCode: "",
@@ -61,6 +64,8 @@ export function AddChildForm({
   };
   const [form, setForm] = useState(blank);
   const [error, setError] = useState("");
+  // The children are listed on the dashboard, so say so when one is added.
+  const [created, setCreated] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleChange = (
@@ -73,6 +78,7 @@ export function AddChildForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setCreated("");
     setSaving(true);
 
     try {
@@ -88,6 +94,7 @@ export function AddChildForm({
         return;
       }
 
+      setCreated(`${form.fName.trim()}'s profile was created - login id ${data.child?.profileName ?? form.profileName}.`);
       setForm(blank);
       router.refresh();
     } catch (err) {
@@ -101,26 +108,34 @@ export function AddChildForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-poor-tint border border-poor/25 text-poor px-4 py-3 rounded-lg text-sm">
           {error}
+        </div>
+      )}
+      {created && (
+        <div role="status" className="bg-good-tint border border-good/25 text-good px-4 py-3 rounded-lg text-sm">
+          {created}{" "}
+          <Link href="/parent" className="font-semibold underline underline-offset-2">
+            Back to dashboard
+          </Link>
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
             First name
           </label>
           <input type="text" name="fName" value={form.fName} onChange={handleChange} required className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
             Middle name
           </label>
           <input type="text" name="mName" value={form.mName} onChange={handleChange} className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
             Last name
           </label>
           <input type="text" name="lName" value={form.lName} onChange={handleChange} required className={inputClass} />
@@ -129,7 +144,7 @@ export function AddChildForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
             Child&apos;s login id
           </label>
           <input
@@ -141,12 +156,12 @@ export function AddChildForm({
             className={inputClass}
             placeholder="e.g. nayasha.v"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-ink-faint mt-1">
             3-30 characters. Letters, numbers, dot, dash or underscore.
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
             School year
           </label>
           <select
@@ -163,14 +178,14 @@ export function AddChildForm({
               </option>
             ))}
           </select>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-ink-faint mt-1">
             Decides which work your child is shown.
           </p>
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-ink-soft mb-1">
           Preparing for
         </label>
         <select
@@ -191,13 +206,13 @@ export function AddChildForm({
             </option>
           ))}
         </select>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-ink-faint mt-1">
           Your child sees only this programme&apos;s subjects and questions.
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-ink-soft mb-1">
           Country
         </label>
         <select
@@ -218,23 +233,66 @@ export function AddChildForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
             Password
           </label>
           <input type="password" name="password" value={form.password} onChange={handleChange} required className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
             Confirm password
           </label>
           <input type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required className={inputClass} />
         </div>
       </div>
 
+      {/* Optional: a 6-digit Pin the child can sign in with instead of the password. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
+            Login Pin <span className="font-normal text-ink-faint">(optional)</span>
+          </label>
+          <input
+            type="password"
+            name="passcode"
+            value={form.passcode}
+            onChange={handleChange}
+            inputMode="numeric"
+            pattern="\d{6}"
+            maxLength={6}
+            autoComplete="new-password"
+            title="6 digits"
+            className={inputClass}
+            placeholder="6 digits"
+          />
+          <p className="text-xs text-ink-faint mt-1">
+            Your child can sign in with this instead of the password.
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-ink-soft mb-1">
+            Confirm Pin
+          </label>
+          <input
+            type="password"
+            name="confirmPasscode"
+            value={form.confirmPasscode}
+            onChange={handleChange}
+            inputMode="numeric"
+            pattern="\d{6}"
+            maxLength={6}
+            autoComplete="new-password"
+            required={form.passcode !== ""}
+            title="6 digits"
+            className={inputClass}
+          />
+        </div>
+      </div>
+
       <button
         type="submit"
         disabled={saving}
-        className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 transition"
+        className="btn-primary w-full sm:w-auto px-6 py-2.5"
       >
         {saving ? "Creating..." : "Create profile"}
       </button>

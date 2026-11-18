@@ -68,9 +68,9 @@ export default async function SubjectProgressPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <ParentNav parentName={profile ? displayName(profile) : "Parent"} />
+      <ParentNav parentName={profile ? displayName(profile) : "Parent"} active="children" />
 
-      <div className="w-full px-4 sm:px-6 lg:px-10 py-8 sm:py-10 space-y-5">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 space-y-5">
         <Link
           href="/parent"
           className="text-sm font-medium text-ink-soft hover:text-brand transition"

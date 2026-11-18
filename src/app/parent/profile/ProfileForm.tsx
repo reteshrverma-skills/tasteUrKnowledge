@@ -19,7 +19,7 @@ export interface ParentDetails {
 }
 
 const inputClass =
-  "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
+  "w-full px-3 py-2 bg-surface border border-line-strong rounded-lg text-sm text-ink focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand";
 
 function Field({
   label,
@@ -38,7 +38,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-semibold text-ink-soft mb-1">
         {label}
       </label>
       <input
@@ -98,18 +98,18 @@ export function ProfileForm({ initial }: { initial: ParentDetails }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-poor-tint border border-poor/25 text-poor px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
       {saved && (
-        <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-good-tint border border-good/25 text-good px-4 py-3 rounded-lg text-sm">
           Your details have been saved.
         </div>
       )}
 
       <section>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <h3 className="eyebrow mb-3">
           Your name
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -120,7 +120,7 @@ export function ProfileForm({ initial }: { initial: ParentDetails }) {
       </section>
 
       <section>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <h3 className="eyebrow mb-3">
           Contact
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -131,7 +131,7 @@ export function ProfileForm({ initial }: { initial: ParentDetails }) {
       </section>
 
       <section>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <h3 className="eyebrow mb-3">
           Address
         </h3>
         <div className="space-y-3">
@@ -151,7 +151,7 @@ export function ProfileForm({ initial }: { initial: ParentDetails }) {
       <button
         type="submit"
         disabled={saving}
-        className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 transition"
+        className="btn-primary w-full sm:w-auto px-6 py-2.5"
       >
         {saving ? "Saving..." : "Save changes"}
       </button>

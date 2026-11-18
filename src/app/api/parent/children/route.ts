@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionOrThrow, hashPassword } from "@/lib/auth";
-import { normaliseProfileName, passwordProblem } from "@/lib/parent";
+import { normaliseProfileName, passcodeProblem, passwordProblem } from "@/lib/parent";
 import { defaultEntitlementsForYear } from "@/lib/student";
 import { validCountryCode } from "@/lib/countries";
 import { DEFAULT_PROGRAMME, validProgrammeCode } from "@/lib/programme";
@@ -53,6 +53,17 @@ export async function POST(request: NextRequest) {
     const problem = passwordProblem(body.password, body.confirmPassword);
     if (problem) {
       return NextResponse.json({ error: problem }, { status: 400 });
+    }
+
+    // Optional 6-digit Pin, checked the same way as setting it later.
+    const wantsPasscode =
+      (typeof body.passcode === "string" && body.passcode !== "") ||
+      (typeof body.confirmPasscode === "string" && body.confirmPasscode !== "");
+    if (wantsPasscode) {
+      const pinProblem = passcodeProblem(body.passcode, body.confirmPasscode);
+      if (pinProblem) {
+        return NextResponse.json({ error: pinProblem }, { status: 400 });
+      }
     }
 
     const studentYear = text(body.studentYear);
@@ -115,6 +126,7 @@ export async function POST(request: NextRequest) {
         lName,
         profileName: loginId,
         profilePassword,
+        ...(wantsPasscode ? { profilePasscode: await hashPassword(body.passcode) } : {}),
         userType: "STUDENT",
         isActive: true,
         countryCode,

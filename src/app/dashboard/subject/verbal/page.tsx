@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StudentTopBar } from "../../TopBar";
 import { levelButtonStyle } from "@/lib/level-style";
 import { LevelLabel } from "../LevelIcon";
 import { getSession } from "@/lib/auth";
@@ -17,9 +18,7 @@ import {
   vrTopicKey,
   vrTopicsForLevel,
 } from "@/lib/vr";
-import { LogoutButton } from "@/components/LogoutButton";
-import { BrandLogo } from "@/components/BrandLogo";
-import { PupilSchoolHeader } from "@/components/SchoolHeader";
+import { WithProfileCard } from "../../ProfileColumn";
 
 /**
  * Verbal Reasoning picker, the same shape as Maths: choose a difficulty at the top, then open a topic to
@@ -66,23 +65,16 @@ export default async function VerbalPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="w-full px-5 sm:px-8 lg:px-12 py-3.5 flex justify-between items-center gap-4">
-          <span className="font-display text-lg font-bold text-brand inline-flex items-center gap-2">
-            <BrandLogo height={56} />
-          </span>
-          <LogoutButton />
-        </div>
-      </nav>
+      <StudentTopBar active="subjects" />
 
-      <div className="w-full px-5 sm:px-8 lg:px-12 pt-4 pb-10 sm:pb-14">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
+        <WithProfileCard subject={"Verbal"}>
         <Link
           href="/dashboard"
           className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
         >
           ← Subjects
         </Link>
-        <PupilSchoolHeader className="mb-3" />
         <header className="mb-7 text-center">
           {/* The level in the heading, so the student can see which one they chose. */}
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">
@@ -243,7 +235,7 @@ export default async function VerbalPage({
                                 aria-hidden="true"
                                 className={`btn-primary shrink-0 px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
                               >
-                                Start practice
+                                Practice
                               </span>
                             </div>
                           );
@@ -257,6 +249,7 @@ export default async function VerbalPage({
             )}
           </>
         )}
+        </WithProfileCard>
       </div>
     </div>
   );

@@ -1,56 +1,49 @@
-import { PERSON_NAME_CLASS } from "@/components/SchoolLogo";
-import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { programmeOf } from "@/lib/programme";
-import { APPROVED_COMP, SUBJECT_ORDER, displayName } from "@/lib/english";
-import { MATHS_SUBJECT_NAME } from "@/lib/maths";
-import { NVR_SUBJECT_NAME } from "@/lib/nvr";
-import { isVrSubject } from "@/lib/vr";
-import Link from "next/link";
-import { BrandLogo } from "@/components/BrandLogo";
-import { SchoolHeader } from "@/components/SchoolHeader";
-import { pupilSchoolFor } from "@/lib/school-logo";
+import { DEFAULT_PROGRAMME, programmeOf } from "@/lib/programme";
+import { SeniorHome } from "./SeniorHome";
+import { loadGrammarHome } from "./grammar-home";
 import {
-  focusPracticeHref,
-  openFocusTopics,
-  type FocusTopic,
-} from "@/lib/focus";
+  SidePanel,
+  StudentHomeShell,
+  StudyTips,
+  SubjectPost,
+  SubjectsHeading,
+  WelcomeCard,
+} from "./StudentHome";
+import Link from "next/link";
+import { focusPracticeHref } from "@/lib/focus";
 
 /**
- * One mark per subject, so a child recognises where they are going before
- * reading the word. Flat colour rather than a gradient: four gradients side by
- * side compete with each other and with the difficulty chips further in.
+ * One mark and one line per subject, so a child recognises where they are
+ * going before reading the word.
  */
-const SUBJECT_STYLES: Record<
-  string,
-  { bar: string; glyph: string; mark: string }
-> = {
+const SUBJECT_STYLES: Record<string, { tile: string; mark: string; blurb: string }> = {
   English: {
-    bar: "bg-master",
-    glyph: "bg-master-tint text-master",
+    tile: "bg-master-tint text-master",
     mark: "Aa",
+    blurb: "Comprehension passages with questions on meaning, vocabulary and inference.",
   },
   Maths: {
-    bar: "bg-explorer",
-    glyph: "bg-explorer-tint text-explorer",
+    tile: "bg-explorer-tint text-explorer",
     mark: "7+3",
+    blurb: "Arithmetic, problem solving, fractions, shapes and data.",
   },
   Verbal: {
-    bar: "bg-starter",
-    glyph: "bg-starter-tint text-starter",
+    tile: "bg-starter-tint text-starter",
     mark: "“”",
+    blurb: "Word puzzles, codes, analogies and letter sequences.",
   },
   "Non-Verbal": {
-    bar: "bg-challenger",
-    glyph: "bg-challenger-tint text-challenger",
+    tile: "bg-challenger-tint text-challenger",
     mark: "◧",
+    blurb: "Shapes, patterns, rotations and spatial reasoning.",
   },
 };
 
 const FALLBACK_STYLE = {
-  bar: "bg-ink-faint",
-  glyph: "bg-ground text-ink-soft",
+  tile: "bg-ground text-ink-soft",
   mark: "?",
+  blurb: "Practice questions for this subject.",
 };
 
 export default async function DashboardPage() {
@@ -58,230 +51,86 @@ export default async function DashboardPage() {
   const session = await getSession();
   // Counts only this programme's content: Grammar School, GCSE or A-Level.
   const programme = programmeOf(session);
-  const isAdmin = session?.userType === "ADMIN";
 
-  // Independent reads, so they go to the database together rather than
-  // one after another.
-  const [
-    profile,
-    subjectRows,
-    compCounts,
-    mathsCount,
-    nvrCount,
-    vrCount,
-    focusTopics,
-    pupilSchool,
-  ] = await Promise.all([
-      session
-        ? prisma.userProfile.findUnique({
-            where: { id: session.userId },
-            select: {
-              fName: true,
-              mName: true,
-              lName: true,
-              profileName: true,
-              userType: true,
-            },
-          })
-        : null,
-      // Subjects come from the Subject table, but the four canonical ones are
-      // always shown so a student never lands on an empty page.
-      prisma.subject.findMany({
-        select: { name: true },
-        distinct: ["name"],
-        orderBy: { order: "asc" },
-      }),
-      // Comprehensions are no longer filed by year - difficulty level alone
-      // decides what a student may open - so every comprehension counts here.
-      prisma.gsEnglishComp.groupBy({
-        by: ["subjectName"],
-        // Counts only what a student can open.
-        where: { ...APPROVED_COMP, programmeCode: programme },
-        _count: { _all: true },
-      }),
-      // Maths, Non-Verbal and Verbal each live in their own table, counted as
-      // questions rather than comprehensions. A subject missing from here
-      // reads as "Coming soon" however much content it actually has.
-      prisma.gsMathsQuestion.count({ where: { programmeCode: programme } }),
-      prisma.gsNvrQuestion.count({ where: { programmeCode: programme } }),
-      prisma.gsVrQuestion.count({ where: { programmeCode: programme } }),
-      // What a parent has asked this child to work on.
-      session?.userType === "STUDENT"
-        ? openFocusTopics(session.userId)
-        : Promise.resolve([] as FocusTopic[]),
-      pupilSchoolFor(session),
-    ]);
+  // GCSE and A-Level students get their own social-style home.
+  if (session?.userType === "STUDENT" && programme !== DEFAULT_PROGRAMME) {
+    return <SeniorHome session={session} />;
+  }
 
-  const studentName = profile ? displayName(profile) : "Student";
-
-  const subjectNames = Array.from(
-    new Set([...SUBJECT_ORDER, ...subjectRows.map((s) => s.name)])
-  );
-
-  const countFor = (name: string) => {
-    if (name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase()) {
-      return mathsCount;
-    }
-    if (name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase()) {
-      return nvrCount;
-    }
-    if (isVrSubject(name)) return vrCount;
-    return (
-      compCounts.find(
-        (row) => row.subjectName?.toLowerCase() === name.toLowerCase()
-      )?._count._all ?? 0
-    );
-  };
+  const { card, firstName, subjects, focusTopics } = await loadGrammarHome(session);
 
   return (
-    <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="w-full px-5 sm:px-8 lg:px-12 py-3.5 flex justify-between items-center gap-4">
-          <span className="flex items-center gap-2 font-display text-lg font-bold text-brand">
-            <BrandLogo height={56} />
-          </span>
-          <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="btn-quiet px-3.5 py-1.5 text-sm"
-              >
-                Admin
-              </Link>
-            )}
-            <form action="/api/auth/logout" method="POST">
-              <button
-                type="submit"
-                className="text-sm font-medium text-ink-soft hover:text-poor transition"
-              >
-                Log out
-              </button>
-            </form>
-          </div>
-        </div>
-      </nav>
-
-      <div className="w-full px-5 sm:px-8 lg:px-12 py-10 sm:py-14">
-        {pupilSchool ? (
-          <SchoolHeader
-            {...pupilSchool}
-            line="Pick a subject to start practising"
-            className="mb-9"
-          />
-        ) : (
-          <div className="mb-9 flex items-center gap-4">
-            <span className="w-12 h-12 rounded-full bg-brand text-white grid place-items-center font-display text-lg font-semibold shrink-0">
-              {studentName.charAt(0).toUpperCase()}
-            </span>
-            <div>
-              <h1 className={PERSON_NAME_CLASS}>
-                Hello, {studentName}
-              </h1>
-              <p className="text-ink-soft text-sm mt-0.5">
-                Pick a subject to start practising
-              </p>
-            </div>
-          </div>
-        )}
-
-        {focusTopics.length > 0 && (
-          <section className="card p-5 sm:p-6 mb-6 border-l-4 border-l-brand">
-            <h2 className="font-display text-lg font-bold text-ink">
-              Your focus this week
-            </h2>
-            <p className="text-sm text-ink-soft mt-0.5">
-              Chosen by your parent - a short round on each will help most.
-            </p>
-            <ul className="mt-4 space-y-2">
-              {focusTopics.map((focus) => (
-                <li
-                  key={focus.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3"
-                >
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-ink truncate">
-                      {focus.label}
-                    </span>
-                    <span className="block text-xs text-ink-faint">
-                      {focus.subject}
-                      {focus.level ? ` · ${focus.level}` : ""}
-                    </span>
-                  </span>
-                  <Link
-                    href={focusPracticeHref(focus)}
-                    className="btn-primary px-4 py-2 text-sm whitespace-nowrap"
-                  >
-                    Start
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {subjectNames.map((name) => {
+    <StudentHomeShell
+      {...card}
+      feed={
+        <>
+          <WelcomeCard eyebrow="11+ GRAMMAR SCHOOL PREPARATION" title={`Hello, ${firstName}!`}>
+            Pick a subject to start practising. A short round every day builds confidence fast.
+          </WelcomeCard>
+          <SubjectsHeading />
+          {subjects.map(({ name, count, countsQuestions }) => {
             const style = SUBJECT_STYLES[name] ?? FALLBACK_STYLE;
-            const count = countFor(name);
-            // Maths and Non-Verbal are banks of individual questions;
-            // English is a shelf of comprehensions. The tile counts whichever
-            // the subject actually holds.
-            const countsQuestions =
-              name.toLowerCase() === MATHS_SUBJECT_NAME.toLowerCase() ||
-              name.toLowerCase() === NVR_SUBJECT_NAME.toLowerCase() ||
-              isVrSubject(name);
-            const ready = count > 0;
-
             return (
-              <Link
+              <SubjectPost
                 key={name}
-                href={`/dashboard/subject/${encodeURIComponent(name)}`}
-                aria-disabled={!ready}
-                className={`card group relative overflow-hidden p-5 transition hover:-translate-y-0.5 hover:shadow-lg ${
-                  ready ? "" : "opacity-60"
-                }`}
-              >
-                {/* A single colour bar carries the subject's identity */}
-                <span
-                  className={`absolute inset-x-0 top-0 h-1 ${style.bar}`}
-                  aria-hidden="true"
-                />
-
-                <span
-                  className={`w-11 h-11 rounded-xl grid place-items-center font-display font-semibold text-sm mb-4 ${style.glyph}`}
-                  aria-hidden="true"
-                >
-                  {style.mark}
-                </span>
-
-                <h2 className="font-display text-lg font-semibold text-ink group-hover:text-brand transition">
-                  {name}
-                </h2>
-
-                <p className="text-sm text-ink-soft mt-1 tabular">
-                  {!ready
-                    ? "Coming soon"
-                    : countsQuestions
+                name={name}
+                blurb={style.blurb}
+                tile={style.tile}
+                mark={style.mark}
+                detail={
+                  countsQuestions
                     ? `${count.toLocaleString()} questions`
-                    : `${count} comprehension${count === 1 ? "" : "s"}`}
-                </p>
-
-                {ready && (
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand">
-                    Start
-                    <span
-                      aria-hidden="true"
-                      className="transition-transform group-hover:translate-x-0.5"
-                    >
-                      →
-                    </span>
-                  </span>
-                )}
-              </Link>
+                    : `${count} comprehension${count === 1 ? "" : "s"}`
+                }
+                href={count > 0 ? `/dashboard/subject/${encodeURIComponent(name)}` : undefined}
+              />
             );
           })}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      side={
+        <>
+          {/* What a parent has asked this child to work on. */}
+          <SidePanel title="Your focus this week">
+            {focusTopics.length > 0 ? (
+              <>
+                <p className="text-xs text-ink-faint mt-0.5">
+                  Chosen by your parent - a short round on each will help most.
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {focusTopics.map((focus) => (
+                    <li
+                      key={focus.id}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2.5"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-ink truncate">
+                          {focus.label}
+                        </span>
+                        <span className="block text-xs text-ink-faint">
+                          {focus.subject}
+                          {focus.level ? ` · ${focus.level}` : ""}
+                        </span>
+                      </span>
+                      <Link
+                        href={focusPracticeHref(focus)}
+                        className="btn-primary px-3 py-1.5 text-sm whitespace-nowrap"
+                      >
+                        Start
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="mt-3 rounded-lg bg-ground px-3 py-5 text-center text-sm text-ink-soft">
+                Nothing set yet. When your parent picks topics to focus on, they will show here.
+              </p>
+            )}
+          </SidePanel>
+          <StudyTips />
+        </>
+      }
+    />
   );
 }

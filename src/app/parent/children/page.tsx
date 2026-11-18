@@ -1,22 +1,22 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { displayName } from "@/lib/english";
-import { listChildren, listYears, parentProfile } from "@/lib/parent";
-import { ParentNav } from "../ParentNav";
+import { listYears, parentProfile } from "@/lib/parent";
 import { AddChildForm } from "./AddChildForm";
 import { DEFAULT_COUNTRY_CODE, listCountries } from "@/lib/countries";
 import { listProgrammes } from "@/lib/programme";
+import { WelcomeCard } from "@/app/dashboard/StudentHome";
+import { ParentFrame } from "../ParentFrame";
 
-/** Children Profile: every child on the account, and the form to add another. */
+/**
+ * Children Profile: the form to add a child. The children themselves are
+ * listed on the dashboard, each with its Edit or Home login button.
+ */
 export default async function ChildrenProfilePage() {
   const session = await getSession();
   if (!session || session.userType !== "PARENT") redirect("/login");
 
-  const profile = await parentProfile(session.userId);
-  const parentName = profile ? displayName(profile) : "Parent";
-  const [children, years, countries, programmes] = await Promise.all([
-    listChildren(session.userId),
+  const [profile, years, countries, programmes] = await Promise.all([
+    parentProfile(session.userId),
     listYears(),
     listCountries(),
     listProgrammes(),
@@ -25,86 +25,24 @@ export default async function ChildrenProfilePage() {
   const defaultCountry = profile?.countryCode ?? DEFAULT_COUNTRY_CODE;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <ParentNav parentName={parentName} />
+    <ParentFrame active="children">
+      <WelcomeCard eyebrow="CHILDREN PROFILE" title="Add a child">
+        Each child gets their own login and practises as themselves.
+      </WelcomeCard>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <Link
-          href="/parent"
-          className="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
-        >
-          ← Back to dashboard
-        </Link>
-
-        <div className="mt-4 mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">Children Profile</h2>
-          <p className="text-gray-600 mt-1">
-            Each child gets their own login and practises as themselves.
-          </p>
-        </div>
-
-        {children.length > 0 && (
-          <div className="mb-8 space-y-2">
-            {children.map((child) =>
-              child.schoolName ? (
-                // Managed by the school: only the home login is the parent's to set.
-                <div
-                  key={child.studentId}
-                  className="flex items-center gap-3 bg-white rounded-lg shadow-sm px-4 py-3 border-l-4 border-gray-300"
-                >
-                  <span className="font-semibold text-gray-800">{child.name}</span>
-                  <span className="text-xs text-gray-500">
-                    {child.yearName ?? "no year set"}
-                  </span>
-                  <span className="ml-auto text-xs text-gray-500">
-                    Managed by {child.schoolName}
-                  </span>
-                  <Link
-                    href={`/parent/children/${child.studentId}/home-login`}
-                    className="text-xs font-bold text-indigo-600"
-                  >
-                    Home login →
-                  </Link>
-                </div>
-              ) : (
-              <Link
-                key={child.studentId}
-                href={`/parent/children/${child.studentId}`}
-                className="flex items-center gap-3 bg-white rounded-lg shadow-sm hover:shadow-md transition px-4 py-3 border-l-4 border-indigo-500"
-              >
-                <span className="font-semibold text-gray-800">
-                  {child.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {child.profileName}
-                  {child.yearName ? ` · ${child.yearName}` : " · no year set"}
-                </span>
-                <span className="ml-auto text-xs font-bold text-indigo-600">
-                  Edit →
-                </span>
-              </Link>
-              )
-            )}
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-1">
-            Add a child
-          </h3>
-          <p className="text-sm text-gray-600 mb-5">
-            {years.length === 0
-              ? "No school years have been set up yet, so a child cannot be given one."
-              : "Your child will sign in with the login id you choose here."}
-          </p>
-          <AddChildForm
-            years={years}
-            countries={countries}
-            defaultCountry={defaultCountry}
-            programmes={programmes}
-          />
-        </div>
+      <div className="card p-5 sm:p-6">
+        <p className="text-sm text-ink-soft mb-5">
+          {years.length === 0
+            ? "No school years have been set up yet, so a child cannot be given one."
+            : "Your child will sign in with the login id you choose here."}
+        </p>
+        <AddChildForm
+          years={years}
+          countries={countries}
+          defaultCountry={defaultCountry}
+          programmes={programmes}
+        />
       </div>
-    </div>
+    </ParentFrame>
   );
 }

@@ -40,11 +40,17 @@ export async function listProgrammes(): Promise<ProgrammeOption[]> {
   return rows.map((r) => ({ code: r.code, name: r.name, available: r.isActive }));
 }
 
-/** The stored code for a submitted programme, or null if not an active one. */
-export async function validProgrammeCode(value: unknown): Promise<string | null> {
+/**
+ * The stored code for a submitted programme, or null if not an active one.
+ * `includeInactive` also accepts "coming soon" programmes (used by sign-up).
+ */
+export async function validProgrammeCode(
+  value: unknown,
+  { includeInactive = false }: { includeInactive?: boolean } = {}
+): Promise<string | null> {
   if (typeof value !== "string" || !value.trim()) return null;
   const found = await prisma.programme.findFirst({
-    where: { code: value.trim().toUpperCase(), isActive: true },
+    where: { code: value.trim().toUpperCase(), ...(includeInactive ? {} : { isActive: true }) },
     select: { code: true },
   });
   return found?.code ?? null;
