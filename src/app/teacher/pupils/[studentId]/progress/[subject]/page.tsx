@@ -22,7 +22,6 @@ import {
 } from "../../../../../parent/children/[studentId]/progress/[subject]/ProgressBars";
 import { SUBJECT_HEADING, SUBJECT_TONE } from "../../../../../parent/ChildProgress";
 import { TeacherHeader } from "../../../../TeacherHeader";
-import { TeacherNav } from "../../../../TeacherNav";
 import { pupilHref } from "../../../../links";
 
 function formatDay(date: Date | null) {
@@ -69,7 +68,6 @@ export default async function TeacherSubjectProgressPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <TeacherNav userId={staff.userId} />
 
       <div className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-5">
         <Link

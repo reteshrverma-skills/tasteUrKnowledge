@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { difficultyStyle } from "@/lib/level-style";
-import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 // The difficulty ladder, in teaching order. Kept here rather than imported
 // from lib/student, which pulls the database client into the browser bundle.
@@ -181,15 +180,12 @@ export function Generator({
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center gap-4">
-          <Link href="/admin/english" className="text-brand hover:text-brand-hover font-medium">
-            ← English Comprehension
-          </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-brand">Generate with Claude</h1>
-          <ProfileMenu initial="A" items={ADMIN_MENU} />
-        </div>
-      </nav>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <Link href="/admin/english" className="text-brand hover:text-brand-hover font-medium">
+          ← English Comprehension
+        </Link>
+        <h1 className="text-2xl font-bold text-brand">Generate with Claude</h1>
+      </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         <form onSubmit={generate} className="card p-6 sm:p-8 space-y-6">

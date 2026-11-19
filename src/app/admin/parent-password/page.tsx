@@ -1,10 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { listAccounts } from "@/lib/admin-password";
 import { AccountPasswordForm } from "../AccountPasswordForm";
-import { BrandLogo } from "@/components/BrandLogo";
-import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /**
  * Admin-only screen for resetting a parent's password.
@@ -20,18 +17,6 @@ export default async function AdminParentPasswordPage() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link
-            href="/admin"
-            className="text-2xl font-bold text-brand inline-flex items-center gap-2"
-          >
-            <BrandLogo height={56} />
-            Admin
-          </Link>
-          <ProfileMenu initial="A" items={ADMIN_MENU} />
-        </div>
-      </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">

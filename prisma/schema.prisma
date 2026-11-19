@@ -95,6 +95,10 @@ model UserProfile {
   focusTopics     StudentFocus[]           @relation("FocusStudent")
   /// Topics this PARENT has set for their children.
   focusSet        StudentFocus[]           @relation("FocusSetBy")
+  /// GCSE / A-Level subjects and exam boards this STUDENT chose (migration 046).
+  subjects        StudentSubject[]
+  /// A-Level test papers loaded for this STUDENT (migration 047).
+  aLevelTests     TestLoadALevel[]
 
   /// Grammar School, GCSE or A-Level (migration 032). Every student query
   /// filters on it, so a child only ever sees their own programme's content.
@@ -145,6 +149,7 @@ model Programme {
 
   users          UserProfile[]
   schools        School[]
+  studentSubjects StudentSubject[]
   englishComps   GsEnglishComp[]
   mathsQuestions GsMathsQuestion[]
   nvrQuestions   GsNvrQuestion[]
@@ -767,4 +772,64 @@ model ClassroomSession {
   @@index([teacherId, endedAt])
   @@index([studentId, endedAt])
   @@map("classroomSession")
+}
+
+/// A GCSE / A-Level student's subject and its awarding organisation (migration
+/// 046). Codes come from src/config/senior-subjects.json. Rows are never
+/// deleted: a subject taken off keeps its row with isSelected = false.
+model StudentSubject {
+  id            BigInt      @id @default(autoincrement())
+  studentId     BigInt
+  student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  programmeCode String
+  programme     Programme   @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+  /// e.g. "Mathematics", "PHYSICS", "CHEMISTRY"
+  subjectCode   String
+  /// e.g. "AQA", "EDEXCEL"
+  boardCode     String
+  isSelected    Boolean     @default(true)
+  createdAt     DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime    @default(now()) @db.Timestamptz(3)
+
+  @@unique([studentId, programmeCode, subjectCode])
+  @@map("studentSubject")
+}
+
+/// An A-Level test paper loaded for a student (migration 047). subject and
+/// board are codes from src/config/senior-subjects.json, e.g. "Mathematics", "AQA".
+model TestLoadALevel {
+  id           BigInt                 @id @default(autoincrement())
+  testName     String
+  studentId    BigInt
+  student      UserProfile            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject      String
+  board        String
+  awardedMarks Int                    @default(0)
+  totalMarks   Int
+  uploadDate   DateTime               @default(now()) @db.Timestamptz(3)
+  testDate     DateTime?              @db.Date
+
+  details TestLoadALevelDetail[]
+
+  @@index([studentId, subject, testDate])
+  @@map("testLoadALevel")
+}
+
+/// One question or sub-question of a loaded A-Level test, with its marks.
+model TestLoadALevelDetail {
+  id            BigInt         @id @default(autoincrement())
+  testId        BigInt
+  test          TestLoadALevel @relation(fields: [testId], references: [id], onDelete: Cascade)
+  qNumber       Int            @db.SmallInt
+  /// e.g. "a", "b(ii)"; null when the question has no parts.
+  subQuestionNo String?
+  topic         String?
+  subtopic      String?
+  awardedMarks  Int            @default(0)
+  totalMarks    Int
+  updateDate    DateTime       @default(now()) @db.Timestamptz(3)
+
+  @@index([testId, qNumber])
+  @@index([topic, subtopic])
+  @@map("testLoadALevelDetail")
 }

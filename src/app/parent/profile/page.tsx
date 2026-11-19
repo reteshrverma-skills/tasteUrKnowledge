@@ -17,7 +17,7 @@ export default async function MyProfilePage() {
   const details = profile.personalDetails;
 
   return (
-    <ParentFrame active="profile">
+    <ParentFrame>
       <WelcomeCard eyebrow="MY PROFILE" title={displayName(profile)}>
         Your login id is <span className="font-semibold text-ink">{profile.profileName}</span> and
         cannot be changed.

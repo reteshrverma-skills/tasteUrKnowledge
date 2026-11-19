@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { StudentTopBar } from "../../TopBar";
 import { levelButtonStyle } from "@/lib/level-style";
 import { getSession } from "@/lib/auth";
 import { programmeOf } from "@/lib/programme";
@@ -26,6 +25,7 @@ import {
   sortDifficulties,
 } from "@/lib/student";
 import { WithProfileCard } from "../../ProfileColumn";
+import { SubjectHeader } from "../../StudentHome";
 
 /**
  * One subject's comprehensions, banded by difficulty. Each card carries the
@@ -126,7 +126,6 @@ export default async function SubjectPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <StudentTopBar active="subjects" />
 
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={name}>
@@ -136,19 +135,10 @@ export default async function SubjectPage({
         >
           ← Subjects
         </Link>
-        <header className="mb-8 text-center">
-          {/* The level in the heading, so the student can see which one they chose. */}
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink">
-            {name}
-            {activeLevel && (
-              <span className="text-ink-soft font-semibold"> ({activeLevel})</span>
-            )}
-          </h1>
-          <p className="text-ink-soft text-sm mt-1">
+        <SubjectHeader title={name} level={activeLevel}>
             Each comprehension gives you {QUESTIONS_PER_COMP_ROUND} random
             questions, so it is worth coming back to.
-          </p>
-        </header>
+          </SubjectHeader>
 
         {comps.length === 0 ? (
           <div className="card p-12 text-center">
@@ -167,7 +157,7 @@ export default async function SubjectPage({
         ) : (
           <>
             {/* Same difficulty selector as Maths and Non-Verbal */}
-            <div className="mb-7">
+            <div className="card p-5 mb-6">
               <h2 className="eyebrow mb-2.5">Stage</h2>
               <div className="flex flex-wrap gap-2">
                 {levels.map((level) => {

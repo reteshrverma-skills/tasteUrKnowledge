@@ -6,7 +6,6 @@ import { listChildren, parentProfile } from "@/lib/parent";
 import { difficultyStyle } from "@/lib/student";
 import { formatDuration, timeSpentBySubject } from "@/lib/progress";
 import { recordSubscription, stripe, subscriptionFor } from "@/lib/billing";
-import { ParentNav } from "./ParentNav";
 import { ChildProgress } from "./ChildProgress";
 import { HowItWorksSteps } from "./HowItWorks";
 import { ProfileCard, SidePanel, WelcomeCard } from "@/app/dashboard/StudentHome";
@@ -113,7 +112,6 @@ export default async function ParentDashboardPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <ParentNav parentName={parentName} active="home" />
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)_300px] items-start">
         {/* Left: the parent's own card. */}

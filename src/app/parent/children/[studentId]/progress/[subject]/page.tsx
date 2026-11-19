@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { displayName } from "@/lib/english";
-import { ownsChild, parentProfile } from "@/lib/parent";
+import { ownsChild } from "@/lib/parent";
 import {
   MIN_ATTEMPTED,
   STRONG_THRESHOLD,
@@ -18,7 +18,6 @@ import { difficultyStyle, scoreStyle } from "@/lib/level-style";
 import { openFocusTopics } from "@/lib/focus";
 import { AreaBars, BarLegend, FamilyBars, Trend } from "./ProgressBars";
 import { PractiseButton } from "./PractiseButton";
-import { ParentNav } from "../../../../ParentNav";
 import { SUBJECT_HEADING, SUBJECT_TONE } from "../../../../ChildProgress";
 
 function formatDay(date: Date | null) {
@@ -50,12 +49,11 @@ export default async function SubjectProgressPage({
   if (!subject || !Number.isInteger(studentId)) notFound();
   if (!(await ownsChild(session.userId, studentId))) notFound();
 
-  const [child, profile, times, detail, openFocus] = await Promise.all([
+  const [child, times, detail, openFocus] = await Promise.all([
     prisma.userProfile.findUnique({
       where: { id: studentId },
       select: { fName: true, mName: true, lName: true, profileName: true },
     }),
-    parentProfile(session.userId),
     timeSpentBySubject(studentId),
     subjectDetail(studentId, subject),
     openFocusTopics(studentId),
@@ -68,7 +66,6 @@ export default async function SubjectProgressPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <ParentNav parentName={profile ? displayName(profile) : "Parent"} active="children" />
 
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 space-y-5">
         <Link

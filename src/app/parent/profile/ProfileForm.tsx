@@ -53,7 +53,14 @@ function Field({
   );
 }
 
-export function ProfileForm({ initial }: { initial: ParentDetails }) {
+export function ProfileForm({
+  initial,
+  endpoint = "/api/parent/profile",
+}: {
+  initial: ParentDetails;
+  /** Parents: /api/parent/profile. GCSE / A-Level students: /api/student/profile. */
+  endpoint?: string;
+}) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
   const [error, setError] = useState("");
@@ -72,7 +79,7 @@ export function ProfileForm({ initial }: { initial: ParentDetails }) {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/parent/profile", {
+      const response = await fetch(endpoint, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

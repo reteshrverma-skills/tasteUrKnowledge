@@ -6,38 +6,43 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { GoogleSignIn } from "./GoogleSignIn";
 
-const SUBJECTS = [
+/** The programmes shown under "Explore learning pathways". */
+const PATHWAYS = [
   {
-    name: "Mathematics",
+    name: "11+ Preparation",
+    note: "Grammar School Entrance",
     tile: "bg-explorer-tint text-explorer",
     icon: (
       <>
-        <rect x="5" y="3" width="14" height="18" rx="2" />
-        <path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" />
+        <path d="M2 9.5 12 5l10 4.5-10 4.5L2 9.5Z" />
+        <path d="M6 11.5v4c0 1.5 2.7 3 6 3s6-1.5 6-3v-4" />
+        <path d="M22 9.5v5" />
       </>
     ),
   },
   {
-    name: "English",
-    tile: "bg-starter-tint text-starter",
+    name: "GCSE",
+    note: "Subject-wise Practice",
+    tile: "bg-good-tint text-good",
     icon: <path d="M12 6.5C10 5 7 4.5 3 4.5v14c4 0 7 .5 9 2 2-1.5 5-2 9-2v-14c-4 0-7 .5-9 2Zm0 0v14" />,
   },
   {
-    name: "Verbal Reasoning",
-    tile: "bg-challenger-tint text-challenger",
-    icon: (
-      <path d="M12 5a3 3 0 0 0-5.5-1.6A3 3 0 0 0 4 8a3.5 3.5 0 0 0 .5 6A3.5 3.5 0 0 0 9 19.5 3 3 0 0 0 12 18m0-13a3 3 0 0 1 5.5-1.6A3 3 0 0 1 20 8a3.5 3.5 0 0 1-.5 6 3.5 3.5 0 0 1-4.5 5.5A3 3 0 0 1 12 18m0-13v13" />
-    ),
-  },
-  {
-    name: "Non-Verbal Reasoning",
+    name: "A-Level",
+    note: "Advanced Learning",
     tile: "bg-warm-tint text-warm",
     icon: (
       <>
-        <path d="m12 3 3.5 6h-7L12 3Z" />
-        <circle cx="7" cy="17" r="3.5" />
-        <rect x="14" y="13.5" width="7" height="7" rx="1.5" />
+        <circle cx="12" cy="8.5" r="5" />
+        <path d="m9 13-1.5 8 4.5-2.5 4.5 2.5L15 13" />
       </>
+    ),
+  },
+  {
+    name: "More to come",
+    note: "Future Learning Pathways",
+    tile: "bg-navigator-tint text-navigator",
+    icon: (
+      <path d="M12 5a3 3 0 0 0-5.5-1.6A3 3 0 0 0 4 8a3.5 3.5 0 0 0 .5 6A3.5 3.5 0 0 0 9 19.5 3 3 0 0 0 12 18m0-13a3 3 0 0 1 5.5-1.6A3 3 0 0 1 20 8a3.5 3.5 0 0 1-.5 6 3.5 3.5 0 0 1-4.5 5.5A3 3 0 0 1 12 18m0-13v13" />
     ),
   },
 ];
@@ -142,15 +147,17 @@ export default function LoginPage() {
         <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-8 py-8 grid gap-x-10 gap-y-7 lg:grid-cols-[55fr_45fr]">
           <section className="lg:col-start-1 lg:row-start-1">
             <p className="inline-block rounded-full bg-explorer-tint px-3 py-1 text-xs font-semibold tracking-wide text-login-teal">
-              11+ GRAMMAR SCHOOL PREPARATION
+              INTELLIGENT LEARNING PLATFORM
             </p>
-            <h1 className="font-sans mt-4 text-3xl lg:text-[40px] lg:leading-[1.2] font-semibold text-login-navy">
-              Build confidence. Achieve your potential.
+            {/* display: table shrinks the heading to its first line, so "Achieve more." centres under it. */}
+            <h1 className="font-sans mt-4 table text-3xl lg:text-[34px] xl:text-[38px] lg:leading-[1.25] font-semibold text-login-navy">
+              <span className="block sm:whitespace-nowrap">Learn smarter. Practise better.</span>
+              <span className="block text-center text-[#D99A19]">Achieve more.</span>
             </h1>
-            <span className="block mt-4 h-1 w-12 rounded-full bg-login-gold" aria-hidden="true" />
+            <span className="block mt-4 h-1 w-16 rounded-full bg-login-gold" aria-hidden="true" />
             <p className="mt-4 text-base text-login-body">
-              Structured practice and intelligent assessment to help every student progress with
-              confidence.
+              Structured learning, intelligent practice and personalised assessments to help every
+              learner build knowledge, confidence and achieve their potential.
             </p>
           </section>
 
@@ -342,10 +349,10 @@ export default function LoginPage() {
           </form>
 
           <section className="lg:col-start-1 lg:row-start-2">
-            <h2 className="font-sans text-lg font-semibold text-login-body">Everything you need to practise</h2>
+            <h2 className="font-sans text-lg font-semibold text-login-body">Explore learning pathways</h2>
             <ul className="mt-3 grid grid-cols-2 gap-3">
-              {SUBJECTS.map((subject) => (
-                <li key={subject.name} className={`rounded-xl p-3.5 ${subject.tile}`}>
+              {PATHWAYS.map((pathway) => (
+                <li key={pathway.name} className={`rounded-xl p-3.5 sm:p-4 ${pathway.tile}`}>
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -356,9 +363,10 @@ export default function LoginPage() {
                     className="w-7 h-7"
                     aria-hidden="true"
                   >
-                    {subject.icon}
+                    {pathway.icon}
                   </svg>
-                  <p className="mt-2 text-[15px] font-medium text-login-body">{subject.name}</p>
+                  <p className="mt-2 text-[15px] font-semibold text-login-body">{pathway.name}</p>
+                  <p className="text-xs text-ink-soft">{pathway.note}</p>
                 </li>
               ))}
             </ul>
@@ -375,7 +383,7 @@ export default function LoginPage() {
               >
                 <path d="M4 20v-4M10 20v-8M16 20v-6M22 20V9M3 11l6-5 5 3 7-6" />
               </svg>
-              Practise • Improve • Track progress
+              Learn • Practise • Assess • Progress
             </p>
           </section>
         </div>

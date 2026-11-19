@@ -2,11 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { adminStats, countryStats, monthlyRegistrations } from "@/lib/admin-stats";
-import { BrandLogo } from "@/components/BrandLogo";
 import { StatsPanel } from "@/components/StatsPanel";
 import { CountryStatsTable } from "@/components/CountryStatsTable";
 import { MonthlyBarChart } from "@/components/MonthlyBarChart";
-import { ADMIN_MENU, DIRECTOR_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /**
  * The Product Director's home, full width and split in half: user statistics
@@ -34,20 +32,6 @@ export default async function DirectorPage() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="w-full px-4 sm:px-6 lg:px-10 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <span className="justify-self-start text-sm font-medium text-ink-soft">
-            Product Director
-          </span>
-          <BrandLogo height={56} />
-          <div className="justify-self-end">
-            <ProfileMenu
-              initial={session.profileName}
-              items={session.userType === "ADMIN" ? ADMIN_MENU : DIRECTOR_MENU}
-            />
-          </div>
-        </div>
-      </nav>
 
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

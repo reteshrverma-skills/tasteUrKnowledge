@@ -42,7 +42,7 @@ export default async function HomeLoginPage({
   const name = displayName(pupil);
 
   return (
-    <ParentFrame active="children">
+    <ParentFrame>
       <WelcomeCard eyebrow="HOME LOGIN" title={`Home login for ${name}`}>
         {name} can practise at home by logging in on the normal login page. Their school still
         manages their details.

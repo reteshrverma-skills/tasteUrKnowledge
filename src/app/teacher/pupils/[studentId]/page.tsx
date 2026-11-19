@@ -6,7 +6,6 @@ import { pupilFor, requireSchoolStaff } from "@/lib/school";
 import { timeSpentBySubject } from "@/lib/progress";
 import { ChildProgress } from "../../../parent/ChildProgress";
 import { TeacherHeader } from "../../TeacherHeader";
-import { TeacherNav } from "../../TeacherNav";
 import { pupilSubjectHref } from "../../links";
 
 /**
@@ -45,7 +44,6 @@ export default async function TeacherPupilPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <TeacherNav userId={staff.userId} />
 
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         <Link href="/teacher" className="text-sm font-medium text-ink-soft hover:text-brand transition">

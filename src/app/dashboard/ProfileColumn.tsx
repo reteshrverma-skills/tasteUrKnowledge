@@ -54,7 +54,7 @@ export async function WithProfileCard({
 
   return (
     <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-6 items-start">
-      <ProfileCard {...card} className="lg:top-20" />
+      <ProfileCard {...card} className="lg:sticky lg:top-20" />
       <div className="min-w-0">{children}</div>
     </div>
   );

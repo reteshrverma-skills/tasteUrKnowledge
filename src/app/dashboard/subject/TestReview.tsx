@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { StudentTopBar } from "../TopBar";
 import { scoreStyle } from "@/lib/level-style";
 import { FlagUnclear } from "./FlagUnclear";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
@@ -78,7 +77,6 @@ export function TestReview({
 
   return (
     <div className="min-h-screen bg-ground">
-      <StudentTopBar active="subjects" />
 
       <div className="max-w-3xl mx-auto px-5 sm:px-8 pt-4 pb-10">
         <Link

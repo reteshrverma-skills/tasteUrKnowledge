@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { displayName } from "@/lib/english";
-import { BrandLogo } from "@/components/BrandLogo";
 import { CreateSchoolForm } from "./CreateSchoolForm";
 import { EditSchoolForm, SchoolListItem } from "./SchoolListItem";
-import { ADMIN_MENU, DIRECTOR_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 /**
  * Product Director: create schools, each with its first School Admin, and see
@@ -71,20 +69,11 @@ export default async function DirectorSchoolsPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="w-full px-4 sm:px-6 lg:px-10 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <Link href="/director" className="justify-self-start text-sm font-medium text-ink-soft hover:text-brand">
-            ← Statistics
-          </Link>
-          <BrandLogo height={56} />
-          <div className="justify-self-end">
-            <ProfileMenu
-              initial={session.profileName}
-              items={session.userType === "ADMIN" ? ADMIN_MENU : DIRECTOR_MENU}
-            />
-          </div>
-        </div>
-      </nav>
+      <div className="w-full px-4 sm:px-6 lg:px-10 pt-6">
+        <Link href="/director" className="text-sm font-medium text-ink-soft hover:text-brand">
+          ← Statistics
+        </Link>
+      </div>
 
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         <header>

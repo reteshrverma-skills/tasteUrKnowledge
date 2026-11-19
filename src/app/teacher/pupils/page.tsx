@@ -9,7 +9,6 @@ import {
   PupilListItem,
 } from "@/components/SchoolForms";
 import { TeacherHeader } from "../TeacherHeader";
-import { TeacherNav } from "../TeacherNav";
 
 const BASE_HREF = "/teacher/pupils";
 
@@ -50,7 +49,6 @@ export default async function TeacherPupilsPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <TeacherNav userId={staff.userId} />
 
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         <Link href="/teacher" className="text-sm font-medium text-ink-soft hover:text-brand transition">

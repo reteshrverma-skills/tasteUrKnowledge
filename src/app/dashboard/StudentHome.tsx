@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { StudentTopBar } from "./TopBar";
 import type { ProfileCardData } from "./grammar-home";
 
 /**
@@ -27,7 +26,6 @@ export function StudentHomeShell({
 }) {
   return (
     <div className="min-h-screen bg-ground">
-      <StudentTopBar active="home" />
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)_300px] items-start">
         {/* Left: profile card. */}
@@ -56,10 +54,10 @@ export function ProfileCard({
   subtitle,
   userId,
   stats,
-  className = "lg:top-20",
+  className = "lg:sticky lg:top-20",
 }: ProfileCardData & { className?: string }) {
   return (
-    <aside className={`card overflow-hidden lg:sticky ${className}`}>
+    <aside className={`card overflow-hidden ${className}`}>
       <div className="h-16 bg-gradient-to-r from-brand to-login-teal" />
       <div className="px-4 pb-4 -mt-8 text-center">
         <span className="mx-auto w-16 h-16 rounded-full border-4 border-surface bg-brand text-white grid place-items-center font-display text-2xl font-semibold">
@@ -100,6 +98,37 @@ export function WelcomeCard({
   );
 }
 
+/**
+ * The heading card at the top of a subject page, in the same style as the
+ * home page's greeting card. The chosen level shows beside the subject name.
+ */
+export function SubjectHeader({
+  title,
+  level,
+  className = "mb-6",
+  children,
+}: {
+  title: string;
+  level?: string | null;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <header className={`card p-5 ${className}`}>
+      <p className="text-xs font-semibold tracking-wide text-login-teal">YOUR SUBJECT</p>
+      <h1 className="mt-1 flex flex-wrap items-center gap-2 font-display text-xl font-semibold text-ink">
+        {title}
+        {level && (
+          <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-sm font-medium text-brand">
+            {level}
+          </span>
+        )}
+      </h1>
+      <p className="mt-1.5 text-sm text-ink-soft">{children}</p>
+    </header>
+  );
+}
+
 /** "Your subjects" heading; the Subjects button in the top bar jumps here. */
 export function SubjectsHeading() {
   return (
@@ -117,9 +146,12 @@ export function SubjectPost({
   tile,
   mark,
   href,
+  board,
 }: {
   name: string;
   blurb: string;
+  /** The awarding organisation chosen on My Profile, e.g. "AQA · 7357". */
+  board?: string;
   /** e.g. "1,240 questions"; ignored while the subject is coming soon. */
   detail?: string;
   tile: string;
@@ -137,6 +169,11 @@ export function SubjectPost({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <h4 className="font-semibold text-ink">{name}</h4>
+          {board && (
+            <span className="rounded-full bg-brand-tint px-2 py-0.5 text-xs font-medium text-brand">
+              {board}
+            </span>
+          )}
           {href ? (
             detail && (
               <span className="rounded-full bg-good-tint px-2 py-0.5 text-xs font-medium text-good tabular">

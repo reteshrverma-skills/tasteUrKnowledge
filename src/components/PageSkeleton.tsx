@@ -6,9 +6,17 @@ import { BrandLogo } from "@/components/BrandLogo";
  * the old page sits frozen until the new one is ready, which feels slower than
  * it is.
  */
-export function PageSkeleton({ cards = 4 }: { cards?: number }) {
+export function PageSkeleton({
+  cards = 4,
+  bar = true,
+}: {
+  cards?: number;
+  /** false when the area's layout already draws the real top bar. */
+  bar?: boolean;
+}) {
   return (
     <div className="min-h-screen bg-ground" aria-busy="true" aria-live="polite">
+      {bar && (
       <nav className="bg-surface border-b border-line">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
           <span className="h-4 w-24 rounded bg-line animate-pulse" />
@@ -16,6 +24,7 @@ export function PageSkeleton({ cards = 4 }: { cards?: number }) {
           <span className="justify-self-end h-4 w-16 rounded bg-line animate-pulse" />
         </div>
       </nav>
+      )}
 
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10">
         <span className="sr-only">Loading…</span>

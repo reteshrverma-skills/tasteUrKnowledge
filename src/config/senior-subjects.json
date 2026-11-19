@@ -1,0 +1,64 @@
+{
+  "_readme": [
+    "GCSE and A-Level subjects and the awarding organisations offered for each. Edit here; no code change needed.",
+    "Keys are programme codes from the programme table (ALEVEL, GCSE).",
+    "subjects[].code and boards[].code are what is stored against a student (studentSubject table) - do not rename a code once students have chosen it; change name or specCode instead.",
+    "Add a subject or a board by adding an entry; it appears on the student's My Profile page straight away."
+  ],
+  "ALEVEL": {
+    "subjects": [
+      {
+        "code": "Mathematics",
+        "name": "Mathematics",
+        "boards": [
+          { "code": "AQA", "name": "AQA", "specCode": "7357" },
+          { "code": "EDEXCEL", "name": "Pearson Edexcel", "specCode": "9MA0" }
+        ]
+      },
+      {
+        "code": "PHYSICS",
+        "name": "Physics",
+        "boards": [
+          { "code": "AQA", "name": "AQA", "specCode": "7408" },
+          { "code": "EDEXCEL", "name": "Pearson Edexcel", "specCode": "9PH0" }
+        ]
+      },
+      {
+        "code": "CHEMISTRY",
+        "name": "Chemistry",
+        "boards": [
+          { "code": "AQA", "name": "AQA", "specCode": "7405" },
+          { "code": "EDEXCEL", "name": "Pearson Edexcel", "specCode": "9CH0" }
+        ]
+      }
+    ]
+  },
+  "GCSE": {
+    "subjects": [
+      {
+        "code": "Mathematics",
+        "name": "Mathematics",
+        "boards": [
+          { "code": "AQA", "name": "AQA", "specCode": "8300" },
+          { "code": "EDEXCEL", "name": "Pearson Edexcel", "specCode": "1MA1" }
+        ]
+      },
+      {
+        "code": "PHYSICS",
+        "name": "Physics",
+        "boards": [
+          { "code": "AQA", "name": "AQA", "specCode": "8463" },
+          { "code": "EDEXCEL", "name": "Pearson Edexcel", "specCode": "1PH0" }
+        ]
+      },
+      {
+        "code": "CHEMISTRY",
+        "name": "Chemistry",
+        "boards": [
+          { "code": "AQA", "name": "AQA", "specCode": "8462" },
+          { "code": "EDEXCEL", "name": "Pearson Edexcel", "specCode": "1CH0" }
+        ]
+      }
+    ]
+  }
+}

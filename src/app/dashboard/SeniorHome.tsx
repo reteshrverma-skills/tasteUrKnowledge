@@ -1,8 +1,10 @@
-﻿import { cache } from "react";
+import Link from "next/link";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import type { ProfileCardData } from "./grammar-home";
 import { displayName } from "@/lib/english";
 import type { Session } from "@/lib/auth";
+import { studentChoices, subjectsFor } from "@/lib/senior-subjects";
 import {
   SidePanel,
   StudentHomeShell,
@@ -43,7 +45,7 @@ const SUBJECTS: Record<string, Subject[]> = {
 
 /** The GCSE / A-Level profile card and greeting. cache() so one request reads it once. */
 export const loadSeniorHome = cache(async (session: Session) => {
-  const profile = await prisma.userProfile.findUnique({
+  const [profile, choices] = await Promise.all([prisma.userProfile.findUnique({
     where: { id: session.userId },
     select: {
       fName: true,
@@ -52,11 +54,22 @@ export const loadSeniorHome = cache(async (session: Session) => {
       profileName: true,
       programme: { select: { code: true, name: true } },
     },
-  });
+  }), studentChoices(session.userId, session.programme)]);
+
+  // Subject name -> "AQA · 7357" for the subjects chosen on My Profile.
+  const boardByName = new Map<string, string>();
+  for (const subject of subjectsFor(session.programme)) {
+    const choice = choices.find((c) => c.subjectCode === subject.code);
+    const board = subject.boards.find((b) => b.code === choice?.boardCode);
+    if (board) boardByName.set(subject.name, `${board.name} · ${board.specCode}`);
+  }
 
   const name = profile ? displayName(profile) : "Student";
   const programmeName = profile?.programme.name ?? session.programme;
-  const subjects = SUBJECTS[profile?.programme.code ?? session.programme] ?? SUBJECTS.GCSE;
+  // Only the subjects the student chose on My Profile.
+  const subjects = (SUBJECTS[profile?.programme.code ?? session.programme] ?? SUBJECTS.GCSE).filter(
+    (s) => boardByName.has(s.name)
+  );
   const card: ProfileCardData = {
     name,
     subtitle: `${programmeName} student`,
@@ -64,14 +77,14 @@ export const loadSeniorHome = cache(async (session: Session) => {
     stats: [
       { label: "Practice sessions", value: "0" },
       { label: "Questions answered", value: "0" },
-      { label: "Subjects", value: String(subjects.length) },
+      { label: "Subjects chosen", value: String(boardByName.size) },
     ],
   };
-  return { card, firstName: profile?.fName?.trim() || name, programmeName, subjects };
+  return { card, firstName: profile?.fName?.trim() || name, programmeName, subjects, boardByName };
 });
 
 export async function SeniorHome({ session }: { session: Session }) {
-  const { card, firstName, programmeName, subjects } = await loadSeniorHome(session);
+  const { card, firstName, programmeName, subjects, boardByName } = await loadSeniorHome(session);
 
   return (
     <StudentHomeShell
@@ -83,8 +96,21 @@ export async function SeniorHome({ session }: { session: Session }) {
             one - each with topic-by-topic questions, timed papers and feedback on every answer.
           </WelcomeCard>
           <SubjectsHeading />
+          {subjects.length === 0 && (
+            <div className="card p-5 text-sm text-ink-soft">
+              You have not chosen any subjects yet.{" "}
+              <Link href="/dashboard/profile" className="font-medium text-brand hover:underline">
+                Choose them on My Profile
+              </Link>
+              .
+            </div>
+          )}
           {subjects.map((subject) => (
-            <SubjectPost key={subject.name} {...subject} />
+            <SubjectPost
+              key={subject.name}
+              {...subject}
+              board={boardByName.get(subject.name)}
+            />
           ))}
         </>
       }

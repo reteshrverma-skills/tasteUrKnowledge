@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { difficultyStyle } from "@/lib/level-style";
 import { LevelLabel } from "@/app/dashboard/subject/LevelIcon";
-import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 interface Question {
   id: number;
@@ -528,20 +527,12 @@ export default function EnglishAdminPage() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <nav className="bg-surface border-b border-line">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link
-            href="/admin"
-            className="text-brand hover:text-brand-hover font-medium"
-          >
-            ← Back
-          </Link>
-          <h1 className="text-2xl font-bold text-brand">
-            English Comprehension
-          </h1>
-          <ProfileMenu initial="A" items={ADMIN_MENU} />
-        </div>
-      </nav>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <Link href="/admin" className="text-brand hover:text-brand-hover font-medium">
+          ← Back
+        </Link>
+        <h1 className="text-2xl font-bold text-brand">English Comprehension</h1>
+      </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
         {error && (

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { StudentTopBar } from "../../TopBar";
 import { levelButtonStyle } from "@/lib/level-style";
 import { LevelLabel } from "../LevelIcon";
 import { getSession } from "@/lib/auth";
@@ -19,6 +18,7 @@ import {
   vrTopicsForLevel,
 } from "@/lib/vr";
 import { WithProfileCard } from "../../ProfileColumn";
+import { SubjectHeader } from "../../StudentHome";
 
 /**
  * Verbal Reasoning picker, the same shape as Maths: choose a difficulty at the top, then open a topic to
@@ -65,7 +65,6 @@ export default async function VerbalPage({
 
   return (
     <div className="min-h-screen bg-ground">
-      <StudentTopBar active="subjects" />
 
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={"Verbal"}>
@@ -75,19 +74,10 @@ export default async function VerbalPage({
         >
           ← Subjects
         </Link>
-        <header className="mb-7 text-center">
-          {/* The level in the heading, so the student can see which one they chose. */}
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink">
-            {VR_SUBJECT_FULL}
-            {activeLevel && (
-              <span className="text-ink-soft font-semibold"> ({activeLevel})</span>
-            )}
-          </h1>
-          <p className="text-ink-soft text-sm mt-1">
+        <SubjectHeader title={VR_SUBJECT_FULL} level={activeLevel}>
             Pick a difficulty, open a topic, choose a subtopic — you get up to{" "}
             {QUESTIONS_PER_VR_ROUND} random questions.
-          </p>
-        </header>
+          </SubjectHeader>
 
         {levels.length === 0 ? (
           <div className="card p-12 text-center">
@@ -101,7 +91,7 @@ export default async function VerbalPage({
         ) : (
           <>
             {/* Difficulty selector */}
-            <div className="mb-7">
+            <div className="card p-5 mb-6">
               <h2 className="eyebrow mb-2.5">Stage</h2>
               <div className="flex flex-wrap gap-2">
                 {levels.map((level) => {

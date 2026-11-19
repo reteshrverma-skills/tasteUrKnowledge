@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { BrandLogo } from "@/components/BrandLogo";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { RefreshQuestionBank } from "./RefreshQuestionBank";
-import { ADMIN_MENU, ProfileMenu } from "@/components/ProfileMenu";
 
 export default async function AdminPage() {
   // The proxy guards /admin; the page checks the role as well.
@@ -13,12 +11,6 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-ground">
       {/* Navigation */}
-      <nav className="bg-surface border-b border-line">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-brand inline-flex items-center gap-2"><BrandLogo height={56} />Admin</h1>
-          <ProfileMenu initial="A" items={ADMIN_MENU} />
-        </div>
-      </nav>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

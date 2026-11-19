@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { listPupils, listYears, requireSchoolStaff } from "@/lib/school";
 import { PupilGrid } from "./PupilGrid";
 import { TeacherHeader } from "./TeacherHeader";
-import { TeacherNav } from "./TeacherNav";
 
 /**
  * The teacher's dashboard: the pupils of the Years they take. Test on a pupil
@@ -21,7 +20,6 @@ export default async function TeacherPage() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <TeacherNav userId={staff.userId} />
 
       <main className="w-full px-4 sm:px-6 lg:px-10 py-8 space-y-8">
         <TeacherHeader

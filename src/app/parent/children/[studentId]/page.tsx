@@ -53,7 +53,7 @@ export default async function EditChildPage({
   if (!child) notFound();
 
   return (
-    <ParentFrame active="children">
+    <ParentFrame>
       <WelcomeCard eyebrow="EDIT CHILD" title={displayName(child)}>
         Login id <span className="font-semibold text-ink">{child.profileName}</span> - this
         cannot be changed.

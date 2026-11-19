@@ -25,7 +25,7 @@ export default async function ChildrenProfilePage() {
   const defaultCountry = profile?.countryCode ?? DEFAULT_COUNTRY_CODE;
 
   return (
-    <ParentFrame active="children">
+    <ParentFrame>
       <WelcomeCard eyebrow="CHILDREN PROFILE" title="Add a child">
         Each child gets their own login and practises as themselves.
       </WelcomeCard>
