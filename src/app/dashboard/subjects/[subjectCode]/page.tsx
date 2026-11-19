@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSeniorStudent } from "@/lib/student-account";
-import { studentChoices, subjectsFor } from "@/lib/senior-subjects";
+import { codeAliases, studentChoices, subjectsFor } from "@/lib/senior-subjects";
 import { scoreStyle } from "@/lib/level-style";
 import { loadSeniorHome } from "../../SeniorHome";
 import { ProfileCard } from "../../StudentHome";
@@ -35,7 +35,10 @@ export default async function SeniorSubjectDetailPage({
     loadSeniorHome(session),
     studentChoices(session.userId, session.programme),
     prisma.testLoadALevel.findMany({
-      where: { studentId: session.userId, subject: code },
+      where: {
+        studentId: session.userId,
+        OR: codeAliases(code).map((c) => ({ subject: { equals: c, mode: "insensitive" as const } })),
+      },
       orderBy: [{ testDate: "desc" }, { uploadDate: "desc" }],
       select: {
         id: true,

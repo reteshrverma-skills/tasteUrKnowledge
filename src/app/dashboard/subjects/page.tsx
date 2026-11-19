@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSeniorStudent } from "@/lib/student-account";
-import { studentChoices, subjectsFor } from "@/lib/senior-subjects";
+import { canonicalCode, studentChoices, subjectsFor } from "@/lib/senior-subjects";
 import { scoreStyle } from "@/lib/level-style";
 import { loadSeniorHome } from "../SeniorHome";
 import { ProfileCard, WelcomeCard } from "../StudentHome";
@@ -33,7 +33,7 @@ export default async function SeniorSubjectsPage() {
     const choice = choices.find((c) => c.subjectCode === subject.code);
     const board = subject.boards.find((b) => b.code === choice?.boardCode);
     if (!board) return [];
-    const own = tests.filter((t) => t.subject === subject.code);
+    const own = tests.filter((t) => canonicalCode(session.programme, t.subject) === subject.code);
     const awarded = own.reduce((n, t) => n + t.awardedMarks, 0);
     const total = own.reduce((n, t) => n + t.totalMarks, 0);
     return [{ subject, board, tests: own, latest: own[0], overall: total ? percent(awarded, total) : null }];

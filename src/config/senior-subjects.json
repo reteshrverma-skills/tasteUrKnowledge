@@ -16,7 +16,7 @@
         ]
       },
       {
-        "code": "PHYSICS",
+        "code": "Physics",
         "name": "Physics",
         "boards": [
           { "code": "AQA", "name": "AQA", "specCode": "7408" },
@@ -24,7 +24,7 @@
         ]
       },
       {
-        "code": "CHEMISTRY",
+        "code": "Chemistry",
         "name": "Chemistry",
         "boards": [
           { "code": "AQA", "name": "AQA", "specCode": "7405" },
@@ -44,7 +44,7 @@
         ]
       },
       {
-        "code": "PHYSICS",
+        "code": "Physics",
         "name": "Physics",
         "boards": [
           { "code": "AQA", "name": "AQA", "specCode": "8463" },
@@ -52,7 +52,7 @@
         ]
       },
       {
-        "code": "CHEMISTRY",
+        "code": "Chemistry",
         "name": "Chemistry",
         "boards": [
           { "code": "AQA", "name": "AQA", "specCode": "8462" },

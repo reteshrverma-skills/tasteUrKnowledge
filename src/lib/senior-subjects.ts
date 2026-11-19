@@ -60,7 +60,29 @@ export function validChoices(
   return { choices };
 }
 
-/** The student's current choices for their programme. */
+/** Codes used before the rename to subject names (migrations 048, 049). */
+const LEGACY_CODES: Record<string, string> = { maths: "mathematics" };
+
+/**
+ * The config code for a stored or loaded subject code, ignoring case and
+ * mapping old codes (MATHS -> Mathematics); null for a subject not offered.
+ */
+export function canonicalCode(programme: string, raw: string): string | null {
+  const key = raw.trim().toLowerCase();
+  const wanted = LEGACY_CODES[key] ?? key;
+  return subjectsFor(programme).find((s) => s.code.toLowerCase() === wanted)?.code ?? null;
+}
+
+/** A config code and the old codes that mean the same subject, e.g. ["Mathematics", "maths"]. */
+export function codeAliases(code: string): string[] {
+  const key = code.toLowerCase();
+  return [code, ...Object.keys(LEGACY_CODES).filter((old) => LEGACY_CODES[old] === key)];
+}
+
+/**
+ * The student's current choices for their programme, with codes in the
+ * config's spelling. Rows for subjects no longer offered are left out.
+ */
 export async function studentChoices(
   studentId: number,
   programme: string
@@ -69,7 +91,15 @@ export async function studentChoices(
     where: { studentId, programmeCode: programme, isSelected: true },
     select: { subjectCode: true, boardCode: true },
   });
-  return rows;
+  const choices = new Map<string, SubjectChoice>();
+  for (const row of rows) {
+    const subjectCode = canonicalCode(programme, row.subjectCode);
+    // A row already in the config's spelling wins over an old-code duplicate.
+    if (subjectCode && (!choices.has(subjectCode) || row.subjectCode === subjectCode)) {
+      choices.set(subjectCode, { subjectCode, boardCode: row.boardCode });
+    }
+  }
+  return [...choices.values()];
 }
 
 /**
@@ -82,6 +112,8 @@ export async function saveChoices(
   choices: SubjectChoice[]
 ): Promise<void> {
   const chosen = new Set(choices.map((c) => c.subjectCode));
+  // Old-code rows (e.g. MATHS) are switched off too; the config-spelt row
+  // created below replaces them. Nothing is deleted.
   await prisma.$transaction([
     prisma.studentSubject.updateMany({
       where: {
