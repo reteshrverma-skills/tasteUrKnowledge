@@ -26,17 +26,19 @@ export default async function AdminNvrTopicPage({
   const backHref = `/admin/nvr?level=${encodeURIComponent(level)}`;
 
   return (
-    <div className="min-h-screen bg-ground">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
-        <Link href={backHref} className="text-brand hover:text-brand-hover font-medium">
-          ← Non-Verbal
-        </Link>
-      </div>
+    <>
+      <Link
+        href={backHref}
+        className="inline-block text-sm font-medium text-ink-soft hover:text-brand transition"
+      >
+        ← Non-Verbal
+      </Link>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-ink">{topic}</h1>
-          <p className="text-ink-soft text-sm mt-1 flex items-center gap-2">
+      <div>
+        <header className="card p-5 mb-4">
+          <p className="text-xs font-semibold tracking-wide text-login-teal">NON-VERBAL REASONING</p>
+          <h1 className="mt-1 font-display text-xl font-semibold text-ink">{topic}</h1>
+          <p className="text-ink-soft text-sm mt-1.5 flex items-center gap-2">
             <span className={`chip ${difficultyStyle(level)}`}>{level}</span>
             {questions.length} question{questions.length === 1 ? "" : "s"}
           </p>
@@ -111,6 +113,6 @@ export default async function AdminNvrTopicPage({
           </ol>
         )}
       </div>
-    </div>
+    </>
   );
 }

@@ -8,7 +8,7 @@ import { TopNavLink as NavLink } from "@/components/TopNavLink";
 
 /**
  * The student top bar, the same on every student screen: brand on the left;
- * Home, Subjects, Progress, My Profile (GCSE / A-Level students only), the
+ * Home, Practice ("Subjects" for GCSE / A-Level), Progress, My Profile (GCSE / A-Level students only), the
  * student's initial and Log out on the right.
  * Admins (who may open student pages) also get a link back to /admin.
  *
@@ -37,8 +37,8 @@ export async function StudentTopBar() {
             <path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5" />
           </NavLink>
           <NavLink
-            href={senior ? "/dashboard/subjects" : "/dashboard#subjects"}
-            label="Subjects"
+            href="/dashboard/subjects"
+            label={senior ? "Subjects" : "Practice"}
             match="/dashboard/subject"
           >
             <path d="M4 5.5C6 4.5 9 4.5 12 6c3-1.5 6-1.5 8-.5v13c-2-1-5-1-8 .5-3-1.5-6-1.5-8-.5v-13ZM12 6v13" />

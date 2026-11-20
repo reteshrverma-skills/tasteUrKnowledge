@@ -122,7 +122,7 @@ export function CountryStatsTable({ rows }: { rows: CountryStats[] }) {
       {rows.length === 0 ? (
         <p className="text-sm text-ink-faint mt-4">No accounts yet.</p>
       ) : (
-        <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <ul className="mt-4 grid grid-cols-1 gap-3">
           {rows.map((r) => (
             <li key={r.code ?? "none"}>
               <button

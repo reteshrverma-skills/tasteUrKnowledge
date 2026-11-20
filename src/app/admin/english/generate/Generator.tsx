@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { WelcomeCard } from "@/app/dashboard/StudentHome";
 import { difficultyStyle } from "@/lib/level-style";
 
 // The difficulty ladder, in teaching order. Kept here rather than imported
@@ -179,15 +180,15 @@ export function Generator({
     : [];
 
   return (
-    <div className="min-h-screen bg-ground">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
-        <Link href="/admin/english" className="text-brand hover:text-brand-hover font-medium">
-          ← English Comprehension
-        </Link>
-        <h1 className="text-2xl font-bold text-brand">Generate with Claude</h1>
-      </div>
+    <>
+      <Link href="/admin/english" className="inline-block text-sm font-medium text-ink-soft hover:text-brand transition">
+        ← English Comprehension
+      </Link>
+      <WelcomeCard eyebrow="CONTENT" title="Generate with Claude">
+        Draft a new comprehension from your prompt, a level and reference passages; review it before saving.
+      </WelcomeCard>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div className="space-y-6">
         <form onSubmit={generate} className="card p-6 sm:p-8 space-y-6">
           <div className="grid sm:grid-cols-3 gap-4">
             <label className="block">
@@ -402,6 +403,6 @@ export function Generator({
           </section>
         )}
       </div>
-    </div>
+    </>
   );
 }

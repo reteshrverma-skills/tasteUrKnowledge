@@ -25,43 +25,19 @@ function Figure({
 }
 
 /**
- * Accounts by type, student logins this day, week and month, and practice
- * time, on the Product Director's page. Figures are read fresh on every visit.
+ * Practice time across all students - today, this week, this month and all
+ * time - on the statistics page. Figures are read fresh on every visit.
  */
 export function StatsPanel({ stats }: { stats: AdminStats }) {
-  const { accounts, inactive, studentLogins, practiceMinutes } = stats;
+  const { practiceMinutes } = stats;
   return (
     <section className="card p-6" aria-labelledby="stats-heading">
       <h3 id="stats-heading" className="font-display text-xl font-semibold text-ink">
-        Users at a glance
+        Practice at a glance
       </h3>
 
-      <p className="eyebrow mt-5 mb-2.5">Accounts</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <Figure value={accounts.students} label="Students" />
-        <Figure value={accounts.parents} label="Parents" />
-        <Figure value={accounts.admins} label="Admins" />
-        <Figure value={accounts.directors} label="Product Directors" />
-        <Figure value={accounts.total} label="Total" strong />
-      </div>
-      {inactive > 0 && (
-        <p className="text-xs text-ink-faint mt-2">
-          Includes {inactive.toLocaleString("en-GB")} inactive account{inactive === 1 ? "" : "s"}.
-        </p>
-      )}
-
-      <p className="eyebrow mt-6 mb-2.5">Students who logged in</p>
-      <div className="grid grid-cols-3 gap-3">
-        <Figure value={studentLogins.today} label="Today" strong />
-        <Figure value={studentLogins.week} label="This week" />
-        <Figure value={studentLogins.month} label="This month" />
-      </div>
-      <p className="text-xs text-ink-faint mt-2">
-        Each student counted once per period, however often they log in. UK time; the week starts on Monday.
-      </p>
-
-      <p className="eyebrow mt-6 mb-2.5">Practice time, all students</p>
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <p className="eyebrow mt-5 mb-2.5">Practice time, all students</p>
+      <div className="grid grid-cols-2 gap-3">
         <Figure value={practiceMinutes.today} label="Today" unit="min" strong />
         <Figure value={practiceMinutes.week} label="This week" unit="min" />
         <Figure value={practiceMinutes.month} label="This month" unit="min" />

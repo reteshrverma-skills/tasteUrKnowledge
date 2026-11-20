@@ -52,12 +52,10 @@ export function ProfileMenu({ initial, items }: { initial: string; items: Profil
 
 /** The admin's menu, on every admin page. */
 export const ADMIN_MENU: ProfileMenuItem[] = [
-  { href: "/admin", label: "Admin Panel", hint: "Question banks and tools" },
+  { href: "/admin/mock-tests/access", label: "Mock test access", hint: "Which students can sit each paper" },
   { href: "/dashboard", label: "Student Dashboard", hint: "See the app as a student" },
-  { href: "/admin/parent-password", label: "Parent passwords", hint: "Change a parent's password" },
-  { href: "/admin/admin-password", label: "Admin passwords", hint: "Change an admin's password" },
+  { href: "/admin/passwords", label: "Passwords", hint: "Change a parent's or an admin's password" },
   { href: "/admin/director-accounts", label: "Product Directors", hint: "Create and manage their logins" },
-  { href: "/director", label: "Statistics", hint: "Platform figures and schools" },
 ];
 
 /** The Product Director's menu. */

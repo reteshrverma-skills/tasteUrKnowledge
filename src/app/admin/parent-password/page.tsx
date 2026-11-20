@@ -1,41 +1,6 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
-import { listAccounts } from "@/lib/admin-password";
-import { AccountPasswordForm } from "../AccountPasswordForm";
 
-/**
- * Admin-only screen for resetting a parent's password.
- *
- * The proxy guards every /admin route, but a page that lists accounts checks
- * the role itself rather than trusting the gate alone.
- */
-export default async function AdminParentPasswordPage() {
-  const session = await getSession();
-  if (!session || session.userType !== "ADMIN") redirect("/login");
-
-  const parents = await listAccounts("PARENT");
-
-  return (
-    <div className="min-h-screen bg-ground">
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-ink">
-            Change Parent Password
-          </h2>
-          <p className="text-ink-soft mt-2">
-            Pick a parent and set a new password for their login.
-          </p>
-        </div>
-
-        <div className="card p-6 sm:p-8">
-          <AccountPasswordForm
-            accounts={parents}
-            endpoint="/api/admin/parent-password"
-            noun="parent"
-          />
-        </div>
-      </div>
-    </div>
-  );
+/** Moved: both password screens are now one page at /admin/passwords. */
+export default function OldPasswordPage() {
+  redirect("/admin/passwords?type=parent");
 }

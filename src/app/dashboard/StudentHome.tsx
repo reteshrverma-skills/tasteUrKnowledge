@@ -13,6 +13,7 @@ export function StudentHomeShell({
   subtitle,
   userId,
   stats,
+  left,
   feed,
   side,
 }: {
@@ -20,7 +21,9 @@ export function StudentHomeShell({
   /** e.g. "Grammar School 11+ student" or the pupil's school. */
   subtitle: string;
   userId: string;
-  stats: { label: string; value: string }[];
+  stats: ProfileCardData["stats"];
+  /** Panels under the profile card, e.g. the focus topics. */
+  left?: React.ReactNode;
   feed: React.ReactNode;
   side: React.ReactNode;
 }) {
@@ -28,8 +31,11 @@ export function StudentHomeShell({
     <div className="min-h-screen bg-ground">
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)_300px] items-start">
-        {/* Left: profile card. */}
-        <ProfileCard name={name} subtitle={subtitle} userId={userId} stats={stats} />
+        {/* Left: profile card, and any panels under it. */}
+        <div className="space-y-4 lg:sticky lg:top-20">
+          <ProfileCard name={name} subtitle={subtitle} userId={userId} stats={stats} className="" />
+          {left}
+        </div>
 
         {/* Middle: the feed. */}
         <section id="feed" className="space-y-4 min-w-0">
@@ -69,9 +75,15 @@ export function ProfileCard({
       </div>
       <dl className="border-t border-line px-4 py-3 text-sm space-y-2">
         {stats.map((stat) => (
-          <div key={stat.label} className="flex justify-between gap-3">
-            <dt className="text-ink-soft">{stat.label}</dt>
-            <dd className="font-semibold text-brand tabular">{stat.value}</dd>
+          <div key={stat.label} className="flex items-center justify-between gap-3">
+            <dt className={stat.highlight ? "font-medium text-poor" : "text-ink-soft"}>{stat.label}</dt>
+            <dd
+              className={`font-semibold tabular ${
+                stat.highlight ? "rounded-full bg-poor-tint px-2 text-poor" : "text-brand"
+              }`}
+            >
+              {stat.value}
+            </dd>
           </div>
         ))}
       </dl>

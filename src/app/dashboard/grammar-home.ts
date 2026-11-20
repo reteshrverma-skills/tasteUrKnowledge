@@ -13,7 +13,8 @@ export interface ProfileCardData {
   name: string;
   subtitle: string;
   userId: string;
-  stats: { label: string; value: string }[];
+  /** highlight: shown in red, for a figure that needs the student's attention. */
+  stats: { label: string; value: string; highlight?: boolean }[];
 }
 
 /**
@@ -112,7 +113,7 @@ export const loadGrammarHome = cache(async (session: Session | null) => {
       { label: "Subjects open", value: `${openCount} of ${subjects.length}` },
       { label: "Questions", value: questionTotal.toLocaleString() },
       { label: "Comprehensions", value: comprehensionTotal.toLocaleString() },
-      { label: "Focus topics", value: String(focusTopics.length) },
+      { label: "Focus topics", value: String(focusTopics.length), highlight: focusTopics.length > 0 },
     ],
   };
 

@@ -22,7 +22,7 @@ export default async function SeniorSubjectDetailPage({
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
-  if (!isSeniorStudent(session)) redirect("/dashboard#subjects");
+  if (!isSeniorStudent(session)) redirect("/dashboard/subjects");
 
   const { subjectCode } = await params;
   const wanted = decodeURIComponent(subjectCode).toLowerCase();

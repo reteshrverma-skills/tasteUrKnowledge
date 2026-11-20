@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { WelcomeCard } from "@/app/dashboard/StudentHome";
 import { difficultyStyle } from "@/lib/level-style";
 import { LevelLabel } from "@/app/dashboard/subject/LevelIcon";
 
@@ -526,15 +527,15 @@ export default function EnglishAdminPage() {
   );
 
   return (
-    <div className="min-h-screen bg-ground">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
-        <Link href="/admin" className="text-brand hover:text-brand-hover font-medium">
-          ← Back
-        </Link>
-        <h1 className="text-2xl font-bold text-brand">English Comprehension</h1>
-      </div>
+    <>
+      <Link href="/admin" className="inline-block text-sm font-medium text-ink-soft hover:text-brand transition">
+        ← Back to dashboard
+      </Link>
+      <WelcomeCard eyebrow="CONTENT" title="English Comprehension">
+        Add year-wise comprehension stories with their questions in one go.
+      </WelcomeCard>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+      <div className="space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
@@ -603,6 +604,6 @@ export default function EnglishAdminPage() {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }

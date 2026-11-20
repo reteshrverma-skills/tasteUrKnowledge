@@ -78,27 +78,36 @@ model UserProfile {
   classroomTurns  ClassroomSession[]   @relation("ClassroomStudent")
   classroomOpened ClassroomSession[]   @relation("ClassroomTeacher")
 
-  personalDetails UserPersonalDetails?
-  studentDetails  UserStudentDetails?
+  personalDetails  UserPersonalDetails?
+  studentDetails   UserStudentDetails?
   /// Children, when this profile is a PARENT.
-  children        UserStudentDetails[]     @relation("ParentChildren")
-  paymentDetails  UserPaymentDetails[]
-  mathsTests      TestTrackerMathMain[]
-  mathsAnswers    TestTrackerMath[]
-  englishTests    TestTrackerEnglishMain[]
-  englishAnswers  TestTrackerEnglish[]
-  nvrTests        TestTrackerNvrMain[]
-  nvrAnswers      TestTrackerNvr[]
-  loginSessions   UserLoginSession[]
-  resetTokens     PasswordResetToken[]
+  children         UserStudentDetails[]     @relation("ParentChildren")
+  paymentDetails   UserPaymentDetails[]
+  mathsTests       TestTrackerMathMain[]
+  mathsAnswers     TestTrackerMath[]
+  englishTests     TestTrackerEnglishMain[]
+  englishAnswers   TestTrackerEnglish[]
+  nvrTests         TestTrackerNvrMain[]
+  nvrAnswers       TestTrackerNvr[]
+  loginSessions    UserLoginSession[]
+  resetTokens      PasswordResetToken[]
   /// Topics a parent has asked this child to work on (as the STUDENT).
-  focusTopics     StudentFocus[]           @relation("FocusStudent")
+  focusTopics      StudentFocus[]           @relation("FocusStudent")
   /// Topics this PARENT has set for their children.
-  focusSet        StudentFocus[]           @relation("FocusSetBy")
+  focusSet         StudentFocus[]           @relation("FocusSetBy")
   /// GCSE / A-Level subjects and exam boards this STUDENT chose (migration 046).
-  subjects        StudentSubject[]
+  subjects         StudentSubject[]
+  /// Grammar School mock tests this STUDENT sat (migration 050).
+  mockAttempts     MockTestAttempt[]
+  mockResults      MockTestResult[]
+  mockFinalResults MockTestFinalResult[]
+  /// Mock papers this STUDENT may sit (migration 053).
+  mockAccess       MockTestAccess[]         @relation("MockAccessStudent")
+  /// Mock grants this ADMIN made or withdrew.
+  mockGranted      MockTestAccess[]         @relation("MockAccessGrantedBy")
+  mockRevoked      MockTestAccess[]         @relation("MockAccessRevokedBy")
   /// A-Level test papers loaded for this STUDENT (migration 047).
-  aLevelTests     TestLoadALevel[]
+  aLevelTests      TestLoadALevel[]
 
   /// Grammar School, GCSE or A-Level (migration 032). Every student query
   /// filters on it, so a child only ever sees their own programme's content.
@@ -147,13 +156,14 @@ model Programme {
   /// False: not offered when adding a child (no content loaded yet).
   isActive  Boolean @default(true)
 
-  users          UserProfile[]
-  schools        School[]
+  users           UserProfile[]
+  schools         School[]
   studentSubjects StudentSubject[]
-  englishComps   GsEnglishComp[]
-  mathsQuestions GsMathsQuestion[]
-  nvrQuestions   GsNvrQuestion[]
-  vrQuestions    GsVrQuestion[]
+  mockTests       MockTestGs[]
+  englishComps    GsEnglishComp[]
+  mathsQuestions  GsMathsQuestion[]
+  nvrQuestions    GsNvrQuestion[]
+  vrQuestions     GsVrQuestion[]
 
   @@map("coreProgramme")
 }
@@ -277,7 +287,7 @@ model UserPaymentDetails {
 model GsEnglishComp {
   id                  BigInt    @id @default(autoincrement())
   compStory           String?
-  stage     String?
+  stage               String?
   yearName            String?
   subjectName         String?
   label               String?
@@ -326,25 +336,25 @@ model GsEnglishQuestion {
 /// Standalone Maths MCQs, picked by subTopic + stage.
 /// Unlike English these are not tied to a year or a comprehension.
 model GsMathsQuestion {
-  id              BigInt  @id @default(autoincrement())
-  topic           String?
-  subTopic        String?
-  quest           String?
-  optionA         String?
-  optionB         String?
-  optionC         String?
-  optionD         String?
-  optionE         String?
-  ansChoice       String?
-  stage String?
-  explanation     String?
+  id          BigInt  @id @default(autoincrement())
+  topic       String?
+  subTopic    String?
+  quest       String?
+  optionA     String?
+  optionB     String?
+  optionC     String?
+  optionD     String?
+  optionE     String?
+  ansChoice   String?
+  stage       String?
+  explanation String?
   /// Optional diagram as inline SVG, shown above the options (migration
   /// 033). Executable markup is refused by the database and stripped again
   /// by sanitiseFigure before it is rendered.
-  imageSvg        String?
+  imageSvg    String?
   /// Present in the database and declared here so a schema sync can never
   /// drop it. Nothing reads it - Maths is not scoped by year.
-  yearName        String? @db.VarChar(255)
+  yearName    String? @db.VarChar(255)
 
   trackerRows TestTrackerMath[]
 
@@ -367,17 +377,17 @@ model GsMathsQuestion {
 /// executable (see the nvr_no_markup check in migration 018) and the renderer
 /// strips what survives - a regex blacklist is a second line, never the only one.
 model GsNvrQuestion {
-  id              BigInt  @id @default(autoincrement())
+  id             BigInt  @id @default(autoincrement())
   /// Metadata only. Year stopped gating content; difficulty does that.
-  yearName        String?
-  subjectName     String  @default("Non-Verbal Reasoning")
-  topic           String
-  subTopic        String
+  yearName       String?
+  subjectName    String  @default("Non-Verbal Reasoning")
+  topic          String
+  subTopic       String
   /// "Mirror image", "Quarter turn", "Sequence"... Same column name as
   /// gsEnglishQuestions, so the parent report groups by skill here too.
-  typeOfQuestion  String
-  stage String
-  quest           String
+  typeOfQuestion String
+  stage          String
+  quest          String
 
   /// stemFormat: "svg" | "url" | "none". optionFormat: the same plus "text"
   /// (migration 030) - both are constrained in the database.
@@ -431,7 +441,7 @@ model TestTrackerNvrMain {
   topic            String?
   /// Null marks a whole-topic test spanning several subtopics.
   subTopic         String?
-  stage  String?
+  stage            String?
   completionReason String?
 
   questions TestTrackerNvr[]
@@ -481,7 +491,7 @@ model TestTrackerMathMain {
   topic            String?
   /// Null marks a topic-level test spanning several subtopics.
   subTopic         String?
-  stage  String?
+  stage            String?
   /// "submitted" | "timed_out" | "abandoned" - a low score that ran out of
   /// time is a different finding from one handed in early.
   completionReason String?
@@ -542,12 +552,12 @@ model TestTrackerEnglishMain {
   /// Snapshots taken at submission, so re-tagging a comprehension later cannot
   /// move a past result into a different bucket.
   /// topic holds the comprehension's title.
-  topic           String?
+  topic    String?
   /// Reserved: an English round spans several question types, so this stays
   /// null until rounds can be narrowed to one type.
-  subTopic        String?
-  stage String?
-  yearName        String?
+  subTopic String?
+  stage    String?
+  yearName String?
 
   /// Seconds from the story appearing to the first interaction with the
   /// question pane. English is read-then-answer, and a careful reader and a
@@ -629,25 +639,25 @@ model Subject {
 /// Created by prisma/sql/021_verbal_reasoning.sql. Ids are BIGINT, as every
 /// id in this schema is since migration 026.
 model GsVrQuestion {
-  id              BigInt  @id
-  topic           String? @db.VarChar(255)
-  subTopic        String? @db.VarChar(255)
-  quest           String?
-  optionA         String?
-  optionB         String?
-  optionC         String?
-  optionD         String?
-  optionE         String?
-  ansChoice       String? @db.VarChar(10)
-  explanation     String?
-  stage String? @db.VarChar(50)
-  yearName        String? @db.VarChar(50)
+  id          BigInt  @id
+  topic       String? @db.VarChar(255)
+  subTopic    String? @db.VarChar(255)
+  quest       String?
+  optionA     String?
+  optionB     String?
+  optionC     String?
+  optionD     String?
+  optionE     String?
+  ansChoice   String? @db.VarChar(10)
+  explanation String?
+  stage       String? @db.VarChar(50)
+  yearName    String? @db.VarChar(50)
   /// Why each wrong option is wrong, shown when that option was chosen.
-  whyWrongA       String?
-  whyWrongB       String?
-  whyWrongC       String?
-  whyWrongD       String?
-  whyWrongE       String?
+  whyWrongA   String?
+  whyWrongB   String?
+  whyWrongC   String?
+  whyWrongD   String?
+  whyWrongE   String?
 
   trackerRows TestTrackerVr[]
 
@@ -670,7 +680,7 @@ model TestTrackerVrMain {
   topic            String?   @db.VarChar(255)
   /// Null marks a whole-topic test spanning several subtopics.
   subTopic         String?   @db.VarChar(255)
-  stage  String?   @db.VarChar(50)
+  stage            String?   @db.VarChar(50)
   completionReason String?   @db.VarChar(100)
 
   questions TestTrackerVr[]
@@ -798,16 +808,16 @@ model StudentSubject {
 /// An A-Level test paper loaded for a student (migration 047). subject and
 /// board are codes from src/config/senior-subjects.json, e.g. "Mathematics", "AQA".
 model TestLoadALevel {
-  id           BigInt                 @id @default(autoincrement())
+  id           BigInt      @id @default(autoincrement())
   testName     String
   studentId    BigInt
-  student      UserProfile            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student      UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
   subject      String
   board        String
-  awardedMarks Int                    @default(0)
+  awardedMarks Int         @default(0)
   totalMarks   Int
-  uploadDate   DateTime               @default(now()) @db.Timestamptz(3)
-  testDate     DateTime?              @db.Date
+  uploadDate   DateTime    @default(now()) @db.Timestamptz(3)
+  testDate     DateTime?   @db.Date
 
   details TestLoadALevelDetail[]
 
@@ -832,4 +842,210 @@ model TestLoadALevelDetail {
   @@index([testId, qNumber])
   @@index([topic, subtopic])
   @@map("testLoadALevelDetail")
+}
+
+/// A Grammar School mock paper (migration 050): 2 sets, each with English
+/// (1 passage), Maths, Verbal and Non-Verbal sections. Fixed questions; open
+/// from testDate for availableDays days, closing 23:59:59 Europe/London.
+model MockTestGs {
+  id                  BigInt    @id @default(autoincrement())
+  name                String
+  stage               String?
+  programmeCode       String    @default("GRAMMAR")
+  programme           Programme @relation(fields: [programmeCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+  /// First day students can start.
+  testDate            DateTime  @db.Date
+  availableDays       Int       @default(7) @db.SmallInt
+  /// Break between Set 1 and Set 2, in minutes.
+  breakMinutes        Int       @default(15) @db.SmallInt
+  approvedByAdmin     Boolean   @default(false)
+  approvedByAdminDate DateTime? @db.Timestamptz(3)
+  createdDate         DateTime  @default(now()) @db.Timestamptz(3)
+
+  sections     MockTestGsSection[]
+  comps        MockTestGsComp[]
+  attempts     MockTestAttempt[]
+  finalResults MockTestFinalResult[]
+  access       MockTestAccess[]
+
+  @@index([programmeCode, approvedByAdmin, testDate], map: "mockTestGs_programme_approved_testDate_idx")
+  @@map("mockTestGs")
+}
+
+/// One section of a set. durationMinutes is set by the admin; a set's time
+/// is the sum of its sections.
+model MockTestGsSection {
+  id              BigInt     @id @default(autoincrement())
+  testId          BigInt
+  test            MockTestGs @relation(fields: [testId], references: [id], onDelete: Cascade)
+  setNo           Int        @db.SmallInt
+  /// ENGLISH | MATHS | VERBAL | NON_VERBAL
+  subject         String
+  sectionOrder    Int        @db.SmallInt
+  durationMinutes Int        @db.SmallInt
+
+  questions MockTestGsQuestion[]
+  attempts  MockTestSectionAttempt[]
+
+  @@unique([testId, setNo, subject])
+  @@unique([testId, setNo, sectionOrder])
+  @@map("mockTestGsSection")
+}
+
+/// The comprehension passage of a set (one per set).
+model MockTestGsComp {
+  id        BigInt     @id @default(autoincrement())
+  testId    BigInt
+  test      MockTestGs @relation(fields: [testId], references: [id], onDelete: Cascade)
+  setNo     Int        @db.SmallInt
+  label     String?
+  compStory String
+
+  questions MockTestGsQuestion[]
+
+  @@unique([testId, setNo])
+  @@unique([id, testId, setNo])
+  @@map("mockTestGsComp")
+}
+
+/// One question of a mock paper, in order within its section.
+model MockTestGsQuestion {
+  id             BigInt            @id @default(autoincrement())
+  testId         BigInt
+  setNo          Int               @db.SmallInt
+  subject        String
+  section        MockTestGsSection @relation(fields: [testId, setNo, subject], references: [testId, setNo, subject], onDelete: Cascade, map: "mockTestGsQuestion_section_fkey")
+  /// The set's passage; English questions only.
+  compId         BigInt?
+  comp           MockTestGsComp?   @relation(fields: [compId, testId, setNo], references: [id, testId, setNo], onDelete: Cascade, map: "mockTestGsQuestion_comp_fkey")
+  questionOrder  Int               @db.SmallInt
+  topic          String?
+  subTopic       String?
+  typeOfQuestion String?
+  quest          String
+  /// "none" | "svg" | "url"
+  stemFormat     String            @default("none")
+  stemFigure     String?
+  /// "text" | "svg" | "url"
+  optionFormat   String            @default("text")
+  optionA        String
+  optionB        String
+  optionC        String
+  optionD        String
+  optionE        String?
+  correctAnswer  String            @db.Char(1)
+  explanation    String?
+  createdDate    DateTime          @default(now()) @db.Timestamptz(3)
+
+  results MockTestResult[]
+
+  @@unique([testId, setNo, subject, questionOrder])
+  @@index([compId])
+  @@map("mockTestGsQuestion")
+}
+
+/// A student sitting one set. Unique per paper, student and set: no retakes.
+model MockTestAttempt {
+  id               BigInt      @id @default(autoincrement())
+  testId           BigInt
+  test             MockTestGs  @relation(fields: [testId], references: [id], onDelete: Restrict)
+  studentId        BigInt
+  student          UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  setNo            Int         @db.SmallInt
+  startedAt        DateTime    @default(now()) @db.Timestamptz(3)
+  submittedAt      DateTime?   @db.Timestamptz(3)
+  /// null while in progress; "submitted" | "timed_out" | "paper_closed"
+  completionReason String?
+  marksObtained    Int?
+  totalMarks       Int?
+
+  sections MockTestSectionAttempt[]
+
+  @@unique([testId, studentId, setNo])
+  @@index([studentId, startedAt])
+  @@map("mockTestAttempt")
+}
+
+/// One section of a sitting. endsAt is the deadline the server enforces.
+model MockTestSectionAttempt {
+  id                 BigInt            @id @default(autoincrement())
+  attemptId          BigInt
+  attempt            MockTestAttempt   @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  sectionId          BigInt
+  section            MockTestGsSection @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  startedAt          DateTime          @default(now()) @db.Timestamptz(3)
+  /// startedAt + durationMinutes, cut short at the paper's closing time.
+  endsAt             DateTime          @db.Timestamptz(3)
+  endedAt            DateTime?         @db.Timestamptz(3)
+  completionReason   String?
+  correct            Int?
+  total              Int?
+  passageReadSeconds Decimal?          @db.Decimal(7, 2)
+
+  results MockTestResult[]
+
+  @@unique([attemptId, sectionId])
+  @@map("mockTestSectionAttempt")
+}
+
+/// One answer within a mock section.
+model MockTestResult {
+  id                  BigInt                 @id @default(autoincrement())
+  sectionAttemptId    BigInt
+  sectionAttempt      MockTestSectionAttempt @relation(fields: [sectionAttemptId], references: [id], onDelete: Cascade)
+  /// Restrict: deleting a question must not erase a child's answer to it.
+  questionId          BigInt
+  question            MockTestGsQuestion     @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  studentId           BigInt
+  student             UserProfile            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  /// null when skipped.
+  chosenOption        String?                @db.Char(1)
+  correctOption       String                 @db.Char(1)
+  isCorrect           Boolean                @default(false)
+  isSkipped           Boolean                @default(false)
+  timeSpentOnQuestion Decimal?               @db.Decimal(7, 2)
+  questionOrder       Int?                   @db.SmallInt
+  topic               String?
+  flaggedUnclear      Boolean                @default(false)
+  answeredAt          DateTime               @default(now()) @db.Timestamptz(3)
+
+  @@unique([sectionAttemptId, questionId])
+  @@index([studentId, questionId])
+  @@map("mockTestResults")
+}
+
+/// The student's total for a whole mock paper.
+model MockTestFinalResult {
+  id            BigInt      @id @default(autoincrement())
+  testId        BigInt
+  test          MockTestGs  @relation(fields: [testId], references: [id], onDelete: Restrict)
+  studentId     BigInt
+  student       UserProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  marksObtained Int
+  totalMarks    Int
+  completedAt   DateTime    @default(now()) @db.Timestamptz(3)
+
+  @@unique([testId, studentId])
+  @@map("mockTestFinalResult")
+}
+
+/// A student's right to sit one mock paper (migration 053). Granted by an
+/// admin for now. Withdrawing sets revokedAt; the row is never deleted.
+model MockTestAccess {
+  id        BigInt       @id @default(autoincrement())
+  testId    BigInt
+  test      MockTestGs   @relation(fields: [testId], references: [id], onDelete: Restrict)
+  studentId BigInt
+  student   UserProfile  @relation("MockAccessStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  grantedAt DateTime     @default(now()) @db.Timestamptz(3)
+  grantedBy BigInt?
+  granter   UserProfile? @relation("MockAccessGrantedBy", fields: [grantedBy], references: [id], onDelete: SetNull)
+  /// Null while the student has access.
+  revokedAt DateTime?    @db.Timestamptz(3)
+  revokedBy BigInt?
+  revoker   UserProfile? @relation("MockAccessRevokedBy", fields: [revokedBy], references: [id], onDelete: SetNull)
+
+  @@unique([testId, studentId])
+  @@index([studentId])
+  @@map("mockTestAccess")
 }

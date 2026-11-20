@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WelcomeCard } from "@/app/dashboard/StudentHome";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { programmeOf } from "@/lib/programme";
@@ -31,15 +32,15 @@ export default async function AdminNvrPage({
   const topics = activeLevel ? await nvrTopicsForLevel(programme, activeLevel) : [];
 
   return (
-    <div className="min-h-screen bg-ground">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
-        <Link href="/admin" className="text-brand hover:text-brand-hover font-medium">
-          ← Back
-        </Link>
-        <h1 className="text-2xl font-bold text-brand">Non-Verbal Reasoning</h1>
-      </div>
+    <>
+      <Link href="/admin" className="inline-block text-sm font-medium text-ink-soft hover:text-brand transition">
+        ← Back to dashboard
+      </Link>
+      <WelcomeCard eyebrow="CONTENT" title="Non-Verbal Reasoning">
+        Browse questions by stage and topic, with their database IDs.
+      </WelcomeCard>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+      <div className="space-y-6">
         {levels.length === 0 ? (
           <div className="card p-12 text-center text-ink-soft">
             No Non-Verbal questions in the bank yet.
@@ -99,6 +100,6 @@ export default async function AdminNvrPage({
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }

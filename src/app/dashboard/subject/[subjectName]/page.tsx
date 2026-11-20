@@ -130,7 +130,7 @@ export default async function SubjectPage({
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={name}>
         <Link
-          href="/dashboard"
+          href="/dashboard/subjects"
           className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
         >
           ← Subjects
@@ -249,7 +249,7 @@ export default async function SubjectPage({
                                 level
                               )}`}
                             >
-                              Practice
+                              Practise
                             </span>
                           </span>
                         </div>

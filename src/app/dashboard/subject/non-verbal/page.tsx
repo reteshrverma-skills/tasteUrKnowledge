@@ -70,7 +70,7 @@ export default async function NonVerbalPage({
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={"Non-Verbal"}>
         <Link
-          href="/dashboard"
+          href="/dashboard/subjects"
           className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
         >
           ← Subjects
@@ -227,7 +227,7 @@ export default async function NonVerbalPage({
                                   aria-hidden="true"
                                   className={`btn-primary shrink-0 px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
                                 >
-                                  Practice
+                                  Practise
                                 </span>
                               </div>
                             );

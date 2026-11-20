@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { WelcomeCard } from "@/app/dashboard/StudentHome";
 import { getSession } from "@/lib/auth";
 import { listAccounts } from "@/lib/admin-password";
 import { AccountPasswordForm } from "../AccountPasswordForm";
@@ -16,28 +17,21 @@ export default async function DirectorAccountsPage() {
   const directors = await listAccounts("PRODUCT_DIRECTOR");
 
   return (
-    <div className="min-h-screen bg-ground">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
-        <Link href="/admin" className="text-brand hover:text-brand-hover font-medium">
-          ← Admin Panel
+    <>
+        <Link href="/admin" className="inline-block text-sm font-medium text-ink-soft hover:text-brand transition">
+          ← Back to dashboard
         </Link>
-      </div>
+        <WelcomeCard eyebrow="ACCOUNTS" title="Product Director accounts">
+          A Product Director logs in to read-only platform statistics. They cannot see students&apos; work,
+          parents&apos; details or any admin tools.
+        </WelcomeCard>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-        <header>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink">Product Director accounts</h1>
-          <p className="text-ink-soft mt-1">
-            A Product Director logs in to read-only platform statistics. They cannot see students&apos; work,
-            parents&apos; details or any admin tools.
-          </p>
-        </header>
-
-        <section className="card p-6 sm:p-8">
+        <section className="card p-5 sm:p-6">
           <h2 className="font-display text-lg font-semibold text-ink mb-4">Create an account</h2>
           <CreateDirectorForm />
         </section>
 
-        <section className="card p-6 sm:p-8">
+        <section className="card p-5 sm:p-6">
           <h2 className="font-display text-lg font-semibold text-ink mb-4">
             Current accounts ({directors.length})
           </h2>
@@ -59,7 +53,7 @@ export default async function DirectorAccountsPage() {
         </section>
 
         {directors.length > 0 && (
-          <section className="card p-6 sm:p-8">
+          <section className="card p-5 sm:p-6">
             <h2 className="font-display text-lg font-semibold text-ink mb-4">Change a password</h2>
             <AccountPasswordForm
               accounts={directors}
@@ -68,7 +62,6 @@ export default async function DirectorAccountsPage() {
             />
           </section>
         )}
-      </main>
-    </div>
+    </>
   );
 }
