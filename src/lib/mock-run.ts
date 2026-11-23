@@ -94,7 +94,7 @@ async function finishSection(
 ) {
   const section = run.paper.sections.find((s) => s.id === sectionId)!;
   const questions = await prisma.mockTestGsQuestion.findMany({
-    where: { testId: run.paper.id, setNo: section.setNo, subject: section.subject },
+    where: { testId: run.paper.id, setNo: section.setNo, subject: section.subject, part: section.part },
     select: { id: true, correctAnswer: true, questionOrder: true, typeOfQuestion: true },
   });
   await prisma.mockTestResult.createMany({
@@ -266,7 +266,7 @@ export async function saveAnswer(
   if (Date.now() > phase.endsAt.getTime() + GRACE_MS) return "Time is up for this section";
   const section = run.paper.sections.find((s) => s.id === phase.sectionId)!;
   const q = await prisma.mockTestGsQuestion.findFirst({
-    where: { id: questionId, testId, setNo: section.setNo, subject: section.subject },
+    where: { id: questionId, testId, setNo: section.setNo, subject: section.subject, part: section.part },
   });
   if (!q) return "That question is not in this section";
   if (chosen !== null && (!/^[A-E]$/.test(chosen) || (chosen === "E" && !q.optionE))) return "Unknown option";

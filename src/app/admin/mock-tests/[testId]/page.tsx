@@ -6,7 +6,7 @@ import { sanitiseFigure } from "@/lib/nvr";
 import { DIFFICULTY_ORDER } from "@/lib/student";
 import {
   MOCK_SETS,
-  SUBJECT_LABEL,
+  sectionLabel,
   dateKey,
   formatLondon,
   loadPaper,
@@ -98,7 +98,7 @@ export default async function MockPaperPage({ params }: { params: Promise<{ test
                 sections: paper.sections.map((s) => ({
                   id: String(s.id),
                   setNo: s.setNo,
-                  subject: SUBJECT_LABEL[s.subject] ?? s.subject,
+                  subject: sectionLabel(s.subject, s.part),
                   durationMinutes: s.durationMinutes,
                 })),
               }}
@@ -116,11 +116,11 @@ export default async function MockPaperPage({ params }: { params: Promise<{ test
                 <h3 className="font-semibold text-ink">Set {setNo}</h3>
                 {sections.length === 0 && <p className="text-sm text-ink-soft">Not loaded yet.</p>}
                 {sections.map((section) => {
-                  const qs = questions.filter((q) => q.setNo === setNo && q.subject === section.subject);
+                  const qs = questions.filter((q) => q.setNo === setNo && q.subject === section.subject && q.part === section.part);
                   return (
                     <details key={String(section.id)} className="rounded-lg border border-line">
                       <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink">
-                        {SUBJECT_LABEL[section.subject] ?? section.subject} · {qs.length} questions ·{" "}
+                        {sectionLabel(section.subject, section.part)} · {qs.length} questions ·{" "}
                         {section.durationMinutes} min
                       </summary>
                       <div className="border-t border-line px-4 py-3 space-y-4">

@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 /**
  * Grammar School mock tests (migration 050): dates, readiness checks and the
  * admin's view of a paper. A paper has 2 sets, each with English (one passage,
- * 15-20 questions), Maths, Verbal and Non-Verbal (20 each).
+ * 15-20 questions), Maths and Verbal (20 each), and Non-Verbal (24 questions,
+ * sat as 3 parts of 8, each part its own timed section; migration 058).
  */
 
 export const MOCK_SUBJECTS = ["ENGLISH", "MATHS", "VERBAL", "NON_VERBAL"] as const;
@@ -17,9 +18,26 @@ export const SUBJECT_LABEL: Record<string, string> = {
   NON_VERBAL: "Non-Verbal Reasoning",
 };
 
-/** How many questions a section must have before the paper can be approved. */
+/** Non-Verbal is sat in this many parts, each with NVR_PART_SIZE questions. */
+export const NVR_PARTS = 3;
+export const NVR_PART_SIZE = 8;
+
+/** How many parts (timed sections) a subject is sat in. */
+export function partsOf(subject: string): number {
+  return subject === "NON_VERBAL" ? NVR_PARTS : 1;
+}
+
+/** "Non-Verbal Reasoning · Part 2", or just the subject when it has one part. */
+export function sectionLabel(subject: string, part = 1): string {
+  const name = SUBJECT_LABEL[subject] ?? subject;
+  return partsOf(subject) > 1 ? `${name} · Part ${part}` : name;
+}
+
+/** How many questions a subject must have (across all its parts) before the paper can be approved. */
 export function questionRange(subject: string): [number, number] {
-  return subject === "ENGLISH" ? [15, 20] : [20, 20];
+  if (subject === "ENGLISH") return [15, 20];
+  if (subject === "NON_VERBAL") return [NVR_PARTS * NVR_PART_SIZE, NVR_PARTS * NVR_PART_SIZE];
+  return [20, 20];
 }
 
 const TIME_ZONE = "Europe/London";
@@ -177,12 +195,12 @@ export type Paper = NonNullable<Awaited<ReturnType<typeof loadPaper>>>;
 async function questionStats(testId: bigint) {
   const rows = await prisma.mockTestGsQuestion.findMany({
     where: { testId },
-    select: { setNo: true, subject: true, questionOrder: true },
+    select: { setNo: true, subject: true, part: true, questionOrder: true },
   });
-  const stats = new Map<string, number[]>();
+  const stats = new Map<string, { order: number; part: number }[]>();
   for (const r of rows) {
     const key = `${r.setNo}|${r.subject}`;
-    stats.set(key, [...(stats.get(key) ?? []), r.questionOrder]);
+    stats.set(key, [...(stats.get(key) ?? []), { order: r.questionOrder, part: r.part }]);
   }
   return stats;
 }
@@ -198,16 +216,21 @@ export async function paperProblems(paper: Paper): Promise<string[]> {
   for (const setNo of MOCK_SETS) {
     for (const subject of MOCK_SUBJECTS) {
       const label = `Set ${setNo} ${SUBJECT_LABEL[subject]}`;
-      if (!paper.sections.some((s) => s.setNo === setNo && s.subject === subject)) {
-        problems.push(`${label}: section is missing`);
+      const missing = Array.from({ length: partsOf(subject) }, (_, i) => i + 1).filter(
+        (part) => !paper.sections.some((s) => s.setNo === setNo && s.subject === subject && s.part === part)
+      );
+      if (missing.length) {
+        for (const part of missing) problems.push(`Set ${setNo} ${sectionLabel(subject, part)}: section is missing`);
         continue;
       }
-      const orders = (stats.get(`${setNo}|${subject}`) ?? []).sort((a, b) => a - b);
+      const rows = (stats.get(`${setNo}|${subject}`) ?? []).sort((a, b) => a.order - b.order);
       const [min, max] = questionRange(subject);
-      if (orders.length < min || orders.length > max) {
-        problems.push(`${label}: has ${orders.length} questions, needs ${min === max ? min : `${min}–${max}`}`);
-      } else if (orders.some((o, i) => o !== i + 1)) {
-        problems.push(`${label}: question numbers are not 1 to ${orders.length}`);
+      if (rows.length < min || rows.length > max) {
+        problems.push(`${label}: has ${rows.length} questions, needs ${min === max ? min : `${min}–${max}`}`);
+      } else if (rows.some((r, i) => r.order !== i + 1)) {
+        problems.push(`${label}: question numbers are not 1 to ${rows.length}`);
+      } else if (partsOf(subject) > 1 && rows.some((r) => r.part !== Math.floor((r.order - 1) / NVR_PART_SIZE) + 1)) {
+        problems.push(`${label}: each part must hold ${NVR_PART_SIZE} questions in order`);
       }
     }
     if (!paper.comps.some((c) => c.setNo === setNo)) problems.push(`Set ${setNo}: comprehension passage is missing`);

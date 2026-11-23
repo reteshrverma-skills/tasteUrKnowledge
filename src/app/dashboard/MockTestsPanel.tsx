@@ -74,9 +74,14 @@ function MockTestCard({ paper }: { paper: StudentMockPaper }) {
               : `Closed ${formatLondon(paper.closesAt)}`}
         </p>
         {paper.progress === "finished" ? (
-          <Link href={`/quiz/mock/${paper.id}`} className="mt-3 inline-block btn-quiet px-3.5 py-1.5 text-sm">
-            See results
-          </Link>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href={`/quiz/mock/${paper.id}`} className="inline-block btn-quiet px-3.5 py-1.5 text-sm">
+              See results
+            </Link>
+            <Link href={`/quiz/mock/${paper.id}/review`} className="inline-block btn-quiet px-3.5 py-1.5 text-sm">
+              Review answers
+            </Link>
+          </div>
         ) : (
           paper.window === "open" && (
             <Link href={`/quiz/mock/${paper.id}`} className="mt-3 inline-block btn-primary px-3.5 py-1.5 text-sm">

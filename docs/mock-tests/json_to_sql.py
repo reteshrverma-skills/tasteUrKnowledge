@@ -21,31 +21,41 @@ def q(v):
     assert "$q$" not in s
     return f"$q${s}$q$"
 
-cols = ['"testId"', '"setNo"', '"subject"', '"compId"', '"questionOrder"', '"topic"', '"subTopic"',
+NVR_PART_SIZE, NVR_PARTS, NVR_MINUTES = 8, 3, 4
+part_of = lambda x: (x["questionOrder"] - 1) // NVR_PART_SIZE + 1 if x["subject"] == "NON_VERBAL" else 1
+
+cols = ['"testId"', '"setNo"', '"subject"', '"part"', '"compId"', '"questionOrder"', '"topic"', '"subTopic"',
         '"typeOfQuestion"', '"quest"', '"stemFormat"', '"stemFigure"', '"optionFormat"',
         '"optionA"', '"optionB"', '"optionC"', '"optionD"', '"optionE"', '"correctAnswer"', '"explanation"']
 rows = []
 for x in d["questions"]:
     comp = "v_comp" if x["subject"] == "ENGLISH" else "NULL"
-    vals = ["v_test", str(set_no), q(x["subject"]), comp, str(x["questionOrder"]), q(x["topic"]),
+    vals = ["v_test", str(set_no), q(x["subject"]), str(part_of(x)), comp, str(x["questionOrder"]), q(x["topic"]),
             q(x["subTopic"]), q(x["typeOfQuestion"]), q(x["quest"]), q(x["stemFormat"]), q(x["stemFigure"]),
             q(x["optionFormat"]), q(x["optionA"]), q(x["optionB"]), q(x["optionC"]), q(x["optionD"]),
             q(x["optionE"]), q(x["correctAnswer"]), q(x["explanation"])]
     rows.append("    (" + ", ".join(vals) + ")")
 
-sections = ",\n".join(
-    f"    (v_test, {set_no}, {q(s['subject'])}, {s['sectionOrder']}, {s['durationMinutes']})" for s in d["sections"])
+# Non-Verbal becomes 3 timed parts of 8 questions, 4 minutes each (migration 058).
+section_rows = []
+for s in d["sections"]:
+    if s["subject"] == "NON_VERBAL":
+        section_rows += [(s["subject"], p, s["sectionOrder"] + p - 1, NVR_MINUTES) for p in range(1, NVR_PARTS + 1)]
+    else:
+        section_rows.append((s["subject"], 1, s["sectionOrder"], s["durationMinutes"]))
+sections = ",\n".join(f"    (v_test, {set_no}, {q(sub)}, {part}, {order}, {mins})" for sub, part, order, mins in section_rows)
 counts = {s: sum(x["subject"] == s for x in d["questions"]) for s in ("ENGLISH", "MATHS", "VERBAL", "NON_VERBAL")}
 
 sql = f"""-- {paper['name']} · Set {set_no} · {paper['stage']}: paper, sections, passage and questions.
 -- Generated from {src.name} by json_to_sql.py - edit the JSON, not this file.
 --
---   Questions: English {counts['ENGLISH']}, Maths {counts['MATHS']}, Verbal {counts['VERBAL']}, Non-Verbal {counts['NON_VERBAL']}.
+--   Questions: English {counts['ENGLISH']}, Maths {counts['MATHS']}, Verbal {counts['VERBAL']}, Non-Verbal {counts['NON_VERBAL']}
+--   (Non-Verbal is sat as 3 parts of 8 questions, 4 minutes each).
 --   The paper is created NOT approved (students cannot see it) and opens today
 --   for 7 days; the admin sets the real dates and approves it later.
 --
 -- Insert only. Safe to run again: reuses the paper by name and skips the set
--- if it is already loaded. Needs migration 050 first.
+-- if it is already loaded. Needs migrations 050 and 058 first.
 --
 -- Run once:  npx prisma db execute --file prisma/sql/{out.name} --schema prisma/schema.prisma
 
@@ -70,7 +80,7 @@ BEGIN
         RETURN;
     END IF;
 
-    INSERT INTO public."mockTestGsSection" ("testId", "setNo", "subject", "sectionOrder", "durationMinutes")
+    INSERT INTO public."mockTestGsSection" ("testId", "setNo", "subject", "part", "sectionOrder", "durationMinutes")
     VALUES
 {sections};
 

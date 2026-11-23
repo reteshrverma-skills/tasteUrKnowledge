@@ -213,6 +213,20 @@ export function sanitiseFigure(markup: string | null): string {
 }
 
 /**
+ * Gives an <svg> with a pixel width and height but no viewBox one, so CSS can
+ * shrink it to fit instead of clipping it or forcing a scroll bar.
+ */
+export function withViewBox(markup: string): string {
+  return markup.replace(/<svg\b[^>]*>/i, (tag) => {
+    if (/\sviewBox\s*=/i.test(tag)) return tag;
+    const w = tag.match(/\swidth\s*=\s*["']?([\d.]+)(?:px)?["']?/i)?.[1];
+    const h = tag.match(/\sheight\s*=\s*["']?([\d.]+)(?:px)?["']?/i)?.[1];
+    if (!w || !h) return tag;
+    return tag.replace(/^<svg\b/i, `<svg viewBox="0 0 ${w} ${h}"`);
+  });
+}
+
+/**
  * Key for the per-cell attempt map: one subtopic of one topic at one
  * difficulty. The topic is part of it because subtopic names repeat across
  * topics.

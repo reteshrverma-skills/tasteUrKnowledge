@@ -40,7 +40,8 @@ class MockSet:
     def check(self, story, words_range=(650, 900)):
         count = {s: sum(q["subject"] == s for q in self.questions) for s in SUBJECTS}
         assert 15 <= count["ENGLISH"] <= 20, count
-        assert count["MATHS"] == count["VERBAL"] == count["NON_VERBAL"] == 20, count
+        # Non-Verbal is sat as 3 parts of 8 (migration 058).
+        assert count["MATHS"] == count["VERBAL"] == 20 and count["NON_VERBAL"] == 24, count
         bad = re.compile(r"<script|<foreignObject|<use\b|<animate|<set\b|javascript:|\bon[a-z]+\s*=", re.I)
         allowed = re.compile(r"^(svg|g|path|rect|circle|ellipse|line|polyline|polygon|text|tspan|defs|marker|title|desc)$", re.I)
         for q in self.questions:
@@ -67,7 +68,7 @@ class MockSet:
     def _preview(self, heading, title, story, count, words):
         names = {"ENGLISH": "English", "MATHS": "Maths", "VERBAL": "Verbal Reasoning", "NON_VERBAL": "Non-Verbal Reasoning"}
         parts = [f"<h1>{H.escape(heading)}</h1><p class=meta>English {count['ENGLISH']} · Maths 20 · Verbal 20 · "
-                 f"Non-Verbal 20 · passage {words} words · answer key highlighted</p>"]
+                 f"Non-Verbal 24 (3 parts of 8) · passage {words} words · answer key highlighted</p>"]
         current = None
         for q in self.questions:
             if q["subject"] != current:

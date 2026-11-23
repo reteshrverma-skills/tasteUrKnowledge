@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
+import { QuestionBody } from "./QuestionBody";
 
 export interface RunnerQuestion {
   id: string;
@@ -22,6 +23,8 @@ export type RunnerView =
   | { kind: "closed" }
   | {
       kind: "section";
+      /** The section attempt's id, to keep this sitting's review flags apart. */
+      attemptKey: string;
       setNo: number;
       sectionLabel: string;
       endsAt: number;
@@ -56,6 +59,24 @@ function useCountdown(target: number | null, serverNow: number) {
     return () => clearInterval(timer);
   }, [target, offset]);
   return left;
+}
+
+/** "Mark for review" flags live in localStorage; this event tells the page they changed. */
+const FLAG_EVENT = "mock-flags-change";
+function subscribeFlags(onChange: () => void) {
+  window.addEventListener(FLAG_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(FLAG_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+function readFlags(key: string) {
+  try {
+    return localStorage.getItem(key) ?? "[]";
+  } catch {
+    return "[]";
+  }
 }
 
 /** Seconds since a performance.now() reading. */
@@ -162,7 +183,7 @@ export function MockRunner({
           </div>
         )}
         {view.kind === "break" && <Break breakEnds={view.breakEnds} serverNow={serverNow} sections={sections} busy={busy} onStart={start} />}
-        {view.kind === "finished" && <Finished view={view} sections={sections} />}
+        {view.kind === "finished" && <Finished testId={testId} view={view} sections={sections} />}
       </main>
     </div>
   );
@@ -246,7 +267,7 @@ function Intro({
         <p className="text-xs font-semibold tracking-wide text-login-teal">MOCK TEST</p>
         <h1 className="mt-1 font-display text-2xl font-semibold text-ink">Before you start</h1>
         <ul className="mt-4 space-y-2 text-sm text-ink">
-          <li>• There are 2 sets, each with 4 timed sections: English, Maths, Verbal and Non-Verbal Reasoning.</li>
+          <li>• There are 2 sets. Each has English, Maths and Verbal Reasoning, then Non-Verbal Reasoning in 3 short parts. Every section is timed separately.</li>
           <li>• Each section has its own clock. When it reaches zero, the section closes and you cannot go back to it.</li>
           <li>• You can move between questions and change answers until the section ends. Answers are saved as you go.</li>
           <li>• After Set 1 there is a {breakMinutes}-minute break. You can start Set 2 early; when the break ends it starts by itself.</li>
@@ -281,6 +302,27 @@ function Section({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>(view.answers);
   const [finishing, setFinishing] = useState(false);
+  // Questions the child wants to come back to. Kept in this browser only, so a
+  // reload keeps them; they mean nothing to the marking.
+  const flagKey = `mock-flags:${view.attemptKey}`;
+  const flagRaw = useSyncExternalStore(subscribeFlags, () => readFlags(flagKey), () => "[]");
+  const flagged = useMemo(() => {
+    try {
+      const saved = JSON.parse(flagRaw);
+      return new Set<string>(Array.isArray(saved) ? saved.filter((x) => typeof x === "string") : []);
+    } catch {
+      return new Set<string>();
+    }
+  }, [flagRaw]);
+  const toggleFlag = (id: string) => {
+    const next = new Set(flagged);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    try {
+      localStorage.setItem(flagKey, JSON.stringify([...next]));
+    } catch {}
+    window.dispatchEvent(new Event(FLAG_EVENT));
+  };
   const spent = useRef<Record<string, number>>({});
   const shownAt = useRef<number>(0);
   const left = useCountdown(view.endsAt, serverNow);
@@ -321,7 +363,9 @@ function Section({
 
   const finish = async () => {
     const unanswered = view.questions.length - Object.keys(answers).length;
-    const note = unanswered > 0 ? ` You have ${unanswered} unanswered question${unanswered === 1 ? "" : "s"}.` : "";
+    const marked = view.questions.filter((x) => flagged.has(x.id)).length;
+    let note = unanswered > 0 ? ` You have ${unanswered} unanswered question${unanswered === 1 ? "" : "s"}.` : "";
+    if (marked > 0) note += ` ${marked} question${marked === 1 ? " is" : "s are"} marked for review.`;
     if (!window.confirm(`Finish ${view.sectionLabel} now? You cannot come back to it.${note}`)) return;
     setFinishing(true);
     ended.current = true;
@@ -330,40 +374,22 @@ function Section({
 
   const questionCard = (
     <div className="card p-5 sm:p-6">
-      <p className="text-xs font-semibold tracking-wide text-login-teal">
-        QUESTION {q.order} OF {view.questions.length}
-      </p>
-      <p className="mt-2 text-ink whitespace-pre-line">{q.quest}</p>
-      {q.stem && <div className="mt-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: q.stem }} />}
-      <div className={`mt-4 ${q.optionFormat === "text" ? "space-y-2" : "flex flex-wrap gap-3"}`}>
-        {q.options.map((o) => {
-          const picked = answers[q.id] === o.letter;
-          return (
-            <button
-              key={o.letter}
-              type="button"
-              onClick={() => choose(o.letter)}
-              aria-pressed={picked}
-              className={`flex items-center gap-3 rounded-xl border-2 px-3 py-2 text-left transition ${
-                q.optionFormat === "text" ? "w-full" : ""
-              } ${picked ? "border-brand bg-brand-tint" : "border-line bg-surface hover:border-line-strong"}`}
-            >
-              <span
-                className={`w-7 h-7 shrink-0 rounded-full grid place-items-center text-sm font-semibold ${
-                  picked ? "bg-brand text-white" : "bg-ground text-ink"
-                }`}
-              >
-                {o.letter}
-              </span>
-              {q.optionFormat === "text" ? (
-                <span className="text-sm text-ink">{o.value}</span>
-              ) : (
-                <span dangerouslySetInnerHTML={{ __html: o.value }} />
-              )}
-            </button>
-          );
-        })}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold tracking-wide text-login-teal">
+          QUESTION {q.order} OF {view.questions.length}
+        </p>
+        <button
+          type="button"
+          onClick={() => toggleFlag(q.id)}
+          aria-pressed={flagged.has(q.id)}
+          className={`rounded-lg border px-3 py-1 text-xs font-semibold transition ${
+            flagged.has(q.id) ? "border-warm bg-warm-tint text-warm" : "border-line text-ink-soft hover:border-line-strong"
+          }`}
+        >
+          {flagged.has(q.id) ? "⚑ Marked for review" : "⚐ Mark for review"}
+        </button>
       </div>
+      <QuestionBody q={q} chosen={answers[q.id] ?? null} onChoose={choose} />
       <div className="mt-5 flex items-center justify-between gap-3">
         <button type="button" onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0} className="btn-quiet px-4 py-2 text-sm disabled:opacity-40">
           ← Previous
@@ -386,20 +412,34 @@ function Section({
       <p className="text-sm font-semibold text-ink">
         {Object.keys(answers).length} of {view.questions.length} answered
       </p>
+      {flagged.size > 0 && (
+        <p className="mt-0.5 text-xs text-warm">
+          {view.questions.filter((x) => flagged.has(x.id)).length} marked for review
+        </p>
+      )}
       <div className="mt-3 grid grid-cols-5 gap-1.5">
         {view.questions.map((x, i) => (
           <button
             key={x.id}
             type="button"
             onClick={() => setIndex(i)}
-            aria-label={`Question ${x.order}`}
-            className={`h-8 rounded-md text-xs font-semibold tabular ${
+            aria-label={`Question ${x.order}${flagged.has(x.id) ? ", marked for review" : ""}`}
+            className={`relative h-8 rounded-md text-xs font-semibold tabular ${
               i === index ? "ring-2 ring-brand" : ""
-            } ${answers[x.id] ? "bg-brand text-white" : "bg-ground text-ink-soft"}`}
+            } ${answers[x.id] ? "bg-brand text-white" : "bg-ground text-ink-soft"} ${
+              flagged.has(x.id) ? "outline-2 outline-warm outline-offset-[-2px]" : ""
+            }`}
           >
             {x.order}
+            {flagged.has(x.id) && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-warm" aria-hidden="true" />
+            )}
           </button>
         ))}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-soft">
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-brand" />Answered</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-warm" />For review</span>
       </div>
       <button type="button" onClick={finish} disabled={finishing} className="mt-4 w-full btn-quiet px-3 py-2 text-sm disabled:opacity-50">
         {finishing ? "Finishing..." : "Finish section"}
@@ -470,7 +510,7 @@ function Break({
   );
 }
 
-function Finished({ view, sections }: { view: Extract<RunnerView, { kind: "finished" }>; sections: SectionRow[] }) {
+function Finished({ testId, view, sections }: { testId: string; view: Extract<RunnerView, { kind: "finished" }>; sections: SectionRow[] }) {
   const pct = view.total ? Math.round((view.marks / view.total) * 100) : 0;
   return (
     <div className="max-w-2xl mx-auto space-y-4">
@@ -507,8 +547,11 @@ function Finished({ view, sections }: { view: Extract<RunnerView, { kind: "finis
           </div>
         ))}
       </div>
-      <div className="text-center">
-        <Link href="/dashboard" className="btn-primary px-6 py-2.5">
+      <div className="flex flex-wrap justify-center gap-3">
+        <Link href={`/quiz/mock/${testId}/review`} className="btn-primary px-6 py-2.5">
+          Review answers
+        </Link>
+        <Link href="/dashboard" className="btn-quiet px-6 py-2.5">
           Back to Home
         </Link>
       </div>
