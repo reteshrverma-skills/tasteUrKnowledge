@@ -107,17 +107,50 @@ export function StemFigure({ markup }: { markup: string }) {
 /** An option that is a figure rather than plain text such as a letter code. */
 const isSvgMarkup = (value: string) => /^\s*<svg[\s>]/i.test(value);
 
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+
+/**
+ * The words of an SVG that is only a frame and a line of text (some imported
+ * banks draw "A. ☆ and ✚" into a wide box). Squeezed into a square tile that
+ * text becomes unreadable, so it is shown as text instead. Null for a real
+ * figure.
+ */
+function svgTextOnly(markup: string): string | null {
+  const body = markup.replace(/^\s*<svg[^>]*>|<\/svg>\s*$/gi, "");
+  const tags = body.match(/<\s*([a-z]+)/gi)?.map((t) => t.slice(1).trim().toLowerCase()) ?? [];
+  if (!tags.includes("text") || tags.some((t) => !["rect", "text", "tspan"].includes(t))) return null;
+  if (tags.filter((t) => t === "rect").length > 1) return null;
+
+  const lines = [...body.matchAll(/<tspan[^>]*>([^<]*)<\/tspan>/gi)].map((m) => m[1]);
+  const raw = (lines.length ? lines : [body.replace(/<[^>]*>/g, " ")]).join(" ");
+  const text = raw
+    .replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (whole, e: string) =>
+      e[0] === "#"
+        ? String.fromCodePoint(parseInt(e.slice(e[1] === "x" ? 2 : 1), e[1] === "x" ? 16 : 10))
+        : ENTITIES[e.toLowerCase()] ?? whole
+    )
+    .replace(/\s+/g, " ")
+    .trim()
+    // The tile already carries its letter, so drop a leading "A." / "A:".
+    .replace(/^[A-E][.:)]\s+/, "");
+  return text || null;
+}
+
 export function OptionFigure({ markup }: { markup: string }) {
   // Letter-code and word options ("FM", "27") are text, not figures. Rendered
   // as a text node rather than markup, so nothing in them is ever parsed as
   // HTML.
-  if (!isSvgMarkup(markup)) {
+  const text = isSvgMarkup(markup) ? svgTextOnly(markup) : markup;
+  if (text !== null) {
+    const short = text.length <= 6;
     return (
       <span
         data-nvr-option
-        className="flex w-full aspect-square items-center justify-center text-center font-display text-2xl font-bold tracking-wide break-words"
+        className={`flex w-full aspect-square items-center justify-center text-center font-display break-words ${
+          short ? "text-2xl font-bold tracking-wide" : "text-lg font-semibold leading-snug px-1"
+        }`}
       >
-        {markup}
+        {text}
       </span>
     );
   }
