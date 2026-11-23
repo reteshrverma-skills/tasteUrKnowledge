@@ -16,6 +16,14 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "correct", label: "Correct" },
 ];
 
+/** Same colours as each question's status chip. */
+const FILTER_TONE: Record<Filter, string> = {
+  all: "bg-brand-tint text-brand",
+  wrong: "bg-poor-tint text-poor",
+  skipped: "bg-warm-tint text-warm",
+  correct: "bg-good-tint text-good",
+};
+
 /**
  * A finished mock test, question by question: the child's answer, the
  * correct one and the explanation, one section at a time. Only open once the
@@ -174,8 +182,8 @@ export default async function MockReviewPage({
                 key={x.key}
                 href={href(section.id, x.key)}
                 aria-current={filter === x.key ? "page" : undefined}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                  filter === x.key ? "border-brand bg-brand-tint text-brand" : "border-line text-ink-soft hover:border-line-strong"
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${FILTER_TONE[x.key] ?? FILTER_TONE.all} ${
+                  filter === x.key ? "border-current" : "border-transparent opacity-75 hover:opacity-100"
                 }`}
               >
                 {x.label} <span className="tabular">{counts[x.key]}</span>

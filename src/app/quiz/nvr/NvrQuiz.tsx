@@ -49,14 +49,13 @@ interface FigureOption {
   figure: string;
 }
 
-/** Only the options the question actually offers - E is often absent. */
+/** Options A-D that the question offers; Non-Verbal never shows E. */
 function optionsFor(question: Question): FigureOption[] {
   const all: Array<{ label: string; figure: string | null }> = [
     { label: "A", figure: question.optionA },
     { label: "B", figure: question.optionB },
     { label: "C", figure: question.optionC },
     { label: "D", figure: question.optionD },
-    { label: "E", figure: question.optionE },
   ];
 
   return all.filter((option): option is FigureOption =>

@@ -71,7 +71,8 @@ export async function GET(request: NextRequest) {
         optionB: sanitiseFigure(row.optionB),
         optionC: sanitiseFigure(row.optionC),
         optionD: sanitiseFigure(row.optionD),
-        optionE: row.optionE ? sanitiseFigure(row.optionE) : null,
+        // Non-Verbal offers four options; E is never shown.
+        optionE: null,
       }));
 
     return NextResponse.json({ questions }, { status: 200 });

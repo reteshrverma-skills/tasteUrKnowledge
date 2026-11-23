@@ -59,7 +59,6 @@ export default async function AdminNvrTopicPage({
                 optionB: sanitiseFigure(q.optionB),
                 optionC: sanitiseFigure(q.optionC),
                 optionD: sanitiseFigure(q.optionD),
-                optionE: sanitiseFigure(q.optionE),
               });
 
               return (
@@ -68,9 +67,13 @@ export default async function AdminNvrTopicPage({
                     <p className="font-semibold text-ink">
                       <span className="text-brand">Q{idx + 1}:</span> {q.quest}
                     </p>
-                    <span className="chip shrink-0 bg-ground text-ink border-line-strong tabular">
-                      ID {q.id}
-                    </span>
+                    <Link
+                      href={`/admin/nvr/question?id=${q.id}`}
+                      title="Open this question to review it or change its stage"
+                      className="chip shrink-0 bg-ground text-ink border-line-strong tabular hover:border-brand hover:text-brand"
+                    >
+                      ID {String(q.id)}
+                    </Link>
                   </div>
                   <p className="text-xs text-ink-faint mb-3">
                     {[q.subTopic, q.typeOfQuestion].filter(Boolean).join(" · ")}

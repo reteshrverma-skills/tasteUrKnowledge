@@ -50,7 +50,6 @@ export default async function NvrTestReviewPage({
           optionB: sanitiseFigure(q.optionB),
           optionC: sanitiseFigure(q.optionC),
           optionD: sanitiseFigure(q.optionD),
-          optionE: sanitiseFigure(q.optionE),
         }),
         chosen: row.chosenOption,
         right: row.correctOption ?? q.ansChoice,

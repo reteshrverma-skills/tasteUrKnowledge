@@ -55,6 +55,9 @@ export function levelButtonStyle(level: string): string {
   }
 }
 
+/** The five rungs, in ladder order, as stored in a question's stage. */
+export const NVR_STAGES = ["Starter", "Explorer", "Navigator", "Challenger", "Master"] as const;
+
 /** Who each rung is aimed at, shown with its name on the level buttons. */
 export const LEVEL_STAGES: Record<string, string> = {
   starter: "Year 3",

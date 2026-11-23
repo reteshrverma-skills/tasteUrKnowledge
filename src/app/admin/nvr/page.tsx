@@ -6,6 +6,7 @@ import { programmeOf } from "@/lib/programme";
 import { difficultyStyle } from "@/lib/level-style";
 import { availableNvrLevels, nvrTopicsForLevel } from "@/lib/nvr";
 import { LevelLabel } from "@/app/dashboard/subject/LevelIcon";
+import { NvrIdSearch } from "./NvrIdSearch";
 
 /**
  * Admin view of the Non-Verbal bank: difficulty chips at the top, then each
@@ -41,6 +42,9 @@ export default async function AdminNvrPage({
       </WelcomeCard>
 
       <div className="space-y-6">
+        <div className="card p-5">
+          <NvrIdSearch />
+        </div>
         {levels.length === 0 ? (
           <div className="card p-12 text-center text-ink-soft">
             No Non-Verbal questions in the bank yet.
