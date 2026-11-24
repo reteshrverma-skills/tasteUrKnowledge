@@ -9,11 +9,13 @@ import { loadSeniorHome } from "../../SeniorHome";
 import { ProfileCard } from "../../StudentHome";
 import { formatDate, percent } from "../marks";
 import { TestDateField } from "./TestDateField";
+import { MarksTable } from "./MarksTable";
 
 /**
  * One chosen subject in detail for a GCSE / A-Level student: marks by topic
  * across all their loaded tests, then each test (testLoadALevel) with its
- * question-by-question marks (testLoadALevelDetail).
+ * question-by-question marks (testLoadALevelDetail), which the student can
+ * correct.
  */
 export default async function SeniorSubjectDetailPage({
   params,
@@ -180,41 +182,17 @@ export default async function SeniorSubjectDetailPage({
                       {test.details.length === 0 ? (
                         <p className="text-sm text-ink-soft">No question breakdown for this test.</p>
                       ) : (
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-left text-xs text-ink-faint">
-                              <th className="py-1.5 pr-3 font-medium">Question</th>
-                              <th className="py-1.5 pr-3 font-medium">Topic</th>
-                              <th className="py-1.5 pr-3 font-medium">Subtopic</th>
-                              <th className="py-1.5 font-medium text-right">Marks</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {test.details.map((d) => (
-                              <tr key={String(d.id)} className="border-t border-line">
-                                <td className="py-1.5 pr-3 text-ink tabular whitespace-nowrap">
-                                  {d.qNumber}
-                                  {d.subQuestionNo ? ` ${d.subQuestionNo}` : ""}
-                                </td>
-                                <td className="py-1.5 pr-3 text-ink-soft">{d.topic ?? "-"}</td>
-                                <td className="py-1.5 pr-3 text-ink-soft">{d.subtopic ?? "-"}</td>
-                                <td className="py-1.5 text-right tabular whitespace-nowrap">
-                                  <span
-                                    className={
-                                      d.awardedMarks === d.totalMarks
-                                        ? "text-good font-medium"
-                                        : d.awardedMarks === 0
-                                          ? "text-poor font-medium"
-                                          : "text-ink"
-                                    }
-                                  >
-                                    {d.awardedMarks}/{d.totalMarks}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <MarksTable
+                          testId={String(test.id)}
+                          rows={test.details.map((d) => ({
+                            id: String(d.id),
+                            question: `${d.qNumber}${d.subQuestionNo ? ` ${d.subQuestionNo}` : ""}`,
+                            topic: d.topic,
+                            subtopic: d.subtopic,
+                            awardedMarks: d.awardedMarks,
+                            totalMarks: d.totalMarks,
+                          }))}
+                        />
                       )}
                     </div>
                   </details>
