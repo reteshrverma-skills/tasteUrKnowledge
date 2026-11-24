@@ -46,6 +46,7 @@ export function FigureScale({
       if (!holder || !svg || !viewBox?.width || !viewBox.height || !box) {
         root.style.removeProperty("--nvr-fig");
         root.style.removeProperty("--nvr-stem-w");
+        root.style.removeProperty("--nvr-unit");
         return;
       }
 
@@ -73,6 +74,8 @@ export function FigureScale({
 
       root.style.setProperty("--nvr-fig", `${figure}px`);
       root.style.setProperty("--nvr-stem-w", `${viewBox.width * unit}px`);
+      // Text options are sized in stem units so they match the stem's text.
+      root.style.setProperty("--nvr-unit", `${unit}px`);
     };
 
     fit();
@@ -115,7 +118,14 @@ const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"'
  * text becomes unreadable, so it is shown as text instead. Null for a real
  * figure.
  */
-function svgTextOnly(markup: string): string | null {
+interface SvgText {
+  text: string;
+  fontSize: number;
+  fontFamily: string;
+  fill: string;
+}
+
+function svgTextOnly(markup: string): SvgText | null {
   const body = markup.replace(/^\s*<svg[^>]*>|<\/svg>\s*$/gi, "");
   const tags = body.match(/<\s*([a-z]+)/gi)?.map((t) => t.slice(1).trim().toLowerCase()) ?? [];
   if (!tags.includes("text") || tags.some((t) => !["rect", "text", "tspan"].includes(t))) return null;
@@ -133,14 +143,43 @@ function svgTextOnly(markup: string): string | null {
     .trim()
     // The tile already carries its letter, so drop a leading "A." / "A:".
     .replace(/^[A-E][.:)]\s+/, "");
-  return text || null;
+  if (!text) return null;
+  // Keep the drawing's own type so the option looks like the stem's text.
+  const attr = (name: string) => body.match(new RegExp(`<text[^>]*\\s${name}="([^"]*)"`, "i"))?.[1];
+  return {
+    text,
+    fontSize: Number(attr("font-size")) || 21,
+    fontFamily: attr("font-family") || "Arial,sans-serif",
+    fill: attr("fill") || "#111",
+  };
 }
 
 export function OptionFigure({ markup }: { markup: string }) {
   // Letter-code and word options ("FM", "27") are text, not figures. Rendered
   // as a text node rather than markup, so nothing in them is ever parsed as
   // HTML.
-  const text = isSvgMarkup(markup) ? svgTextOnly(markup) : markup;
+  if (isSvgMarkup(markup)) {
+    const t = svgTextOnly(markup);
+    if (t) {
+      // Same font, weight and on-screen size as the question's text, so an
+      // arrow in an option matches the arrow in the question.
+      return (
+        <span
+          data-nvr-option
+          className="flex w-full aspect-square items-center justify-center text-center break-words leading-snug px-1"
+          style={{
+            fontFamily: t.fontFamily,
+            fontWeight: 400,
+            color: t.fill,
+            fontSize: `calc(${t.fontSize} * var(--nvr-unit, 1.15px))`,
+          }}
+        >
+          {t.text}
+        </span>
+      );
+    }
+  }
+  const text = isSvgMarkup(markup) ? null : markup;
   if (text !== null) {
     const short = text.length <= 6;
     return (
