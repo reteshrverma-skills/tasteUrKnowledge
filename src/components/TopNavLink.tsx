@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 /**
  * One item of a top bar (student, parent). The bars live in layouts and stay
  * mounted between pages, so the active item is worked out here from the
- * address: `match` is a path prefix, or the exact path when `exact` is set.
+ * address: `match` is a path prefix, or the exact path when `exact` is set;
+ * `alsoMatch` is a further path prefix that highlights it too.
  * Leave `match` out for an item that is never highlighted.
  */
 export function TopNavLink({
@@ -14,18 +15,20 @@ export function TopNavLink({
   label,
   match,
   exact = false,
+  alsoMatch,
   children,
 }: {
   href: string;
   label: string;
   match?: string;
+  alsoMatch?: string;
   exact?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const active =
-    match !== undefined &&
-    (exact ? pathname === match : pathname.startsWith(match));
+    (match !== undefined && (exact ? pathname === match : pathname.startsWith(match))) ||
+    (alsoMatch !== undefined && pathname.startsWith(alsoMatch));
   return (
     <Link
       href={href}

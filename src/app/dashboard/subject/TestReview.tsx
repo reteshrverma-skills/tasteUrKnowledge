@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { scoreStyle } from "@/lib/level-style";
 import { FlagUnclear } from "./FlagUnclear";
+import { AnswerGif } from "./AnswerGif";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
 import { PupilSchoolHeader } from "@/components/SchoolHeader";
 import { QuotedText } from "@/components/QuotedText";
@@ -22,6 +23,8 @@ export interface ReviewQuestion {
   whyWrong?: string | null;
   /** Already reported by the student as unclear. */
   flagged?: boolean;
+  /** Where the animated walk-through of the answer is served, when there is one. */
+  gifUrl?: string | null;
 }
 
 export interface ReviewTest {
@@ -211,12 +214,19 @@ export function TestReview({
                 </p>
               )}
 
-              {flagSubject && (
+              {flagSubject ? (
                 <FlagUnclear
                   subject={flagSubject}
                   rowId={row.id}
                   initialFlagged={Boolean(row.flagged)}
+                  aside={row.gifUrl ? <AnswerGif src={row.gifUrl} /> : null}
                 />
+              ) : (
+                row.gifUrl && (
+                  <div className="mt-3 pt-3 border-t border-line flex justify-end">
+                    <AnswerGif src={row.gifUrl} />
+                  </div>
+                )
               )}
             </li>
           ))}

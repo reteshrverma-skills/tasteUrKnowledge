@@ -70,10 +70,10 @@ export default async function NonVerbalPage({
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={"Non-Verbal"}>
         <Link
-          href="/dashboard/subjects"
+          href="/dashboard"
           className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
         >
-          ← Subjects
+          ← Home
         </Link>
         <SubjectHeader title={NVR_SUBJECT_FULL} level={activeLevel}>
             Pick a difficulty, open a topic, choose a subtopic — you get up to{" "}

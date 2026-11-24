@@ -305,7 +305,7 @@ export async function recentNvrAttempts(
  * open someone else's test. Figures still need sanitiseFigure before render.
  */
 export async function nvrTestReview(testId: number, studentId: number) {
-  return prisma.testTrackerNvrMain.findFirst({
+  const test = await prisma.testTrackerNvrMain.findFirst({
     where: { id: testId, studentId },
     select: {
       id: true,
@@ -322,6 +322,7 @@ export async function nvrTestReview(testId: number, studentId: number) {
           chosenOption: true,
           correctOption: true,
           flaggedUnclear: true,
+          questionId: true,
           question: {
             select: {
               quest: true,
@@ -344,4 +345,17 @@ export async function nvrTestReview(testId: number, studentId: number) {
       },
     },
   });
+  if (!test) return null;
+
+  // Which of these questions have an answer GIF - asked separately so the
+  // GIFs themselves (tens of KB each) are never loaded here.
+  const withGif = await prisma.gsNvrQuestion.findMany({
+    where: { id: { in: test.questions.map((r) => r.questionId) }, ansGif: { not: null } },
+    select: { id: true },
+  });
+  const gifIds = new Set(withGif.map((q) => q.id));
+  return {
+    ...test,
+    questions: test.questions.map((r) => ({ ...r, hasGif: gifIds.has(r.questionId) })),
+  };
 }

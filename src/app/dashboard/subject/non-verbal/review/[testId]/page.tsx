@@ -57,6 +57,7 @@ export default async function NvrTestReviewPage({
         explanation: q.ansExplain,
         whyWrong: row.isAnsRight ? null : whyWrong(q, row.chosenOption),
         flagged: row.flaggedUnclear,
+        gifUrl: row.hasGif ? `/api/nvr/gif/${row.id}` : null,
       }))}
     />
   );

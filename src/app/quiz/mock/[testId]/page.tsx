@@ -21,7 +21,7 @@ export default async function MockTestPage({ params }: { params: Promise<{ testI
 
   const paper = await prisma.mockTestGs.findUnique({ where: { id }, select: { programmeCode: true, approvedByAdmin: true } });
   if (!paper || !paper.approvedByAdmin) notFound();
-  if (!canSitMock(session, paper) || !(await hasMockAccess(id, session.userId))) redirect("/dashboard");
+  if (!canSitMock(session, paper) || !(await hasMockAccess(id, session.userId))) redirect("/dashboard/mock-tests");
 
   const run = await syncRun(id, session.userId);
   if (!run) notFound();

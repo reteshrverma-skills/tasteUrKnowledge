@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
     // Only this programme's questions can be graded in this programme.
     const questions = await prisma.gsNvrQuestion.findMany({
       where: { id: { in: ids }, programmeCode: session.programme },
+      select: { id: true, quest: true, typeOfQuestion: true, ansChoice: true, ansExplain: true },
     });
 
     if (questions.length === 0) {

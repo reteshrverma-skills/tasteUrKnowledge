@@ -146,8 +146,8 @@ export function MockRunner({
           {view.kind === "section" ? (
             <SectionClock endsAt={view.endsAt} serverNow={serverNow} label={`Set ${view.setNo} · ${view.sectionLabel}`} />
           ) : (
-            <Link href="/dashboard" className="text-sm font-medium text-ink-soft hover:text-brand">
-              ← Home
+            <Link href="/dashboard/mock-tests" className="text-sm font-medium text-ink-soft hover:text-brand">
+              ← Mock Test
             </Link>
           )}
         </div>
@@ -210,8 +210,8 @@ function Message({ title, children }: { title: string; children: React.ReactNode
     <div className="card p-8 max-w-xl mx-auto text-center">
       <h1 className="font-display text-xl font-semibold text-ink">{title}</h1>
       <p className="mt-2 text-sm text-ink-soft">{children}</p>
-      <Link href="/dashboard" className="mt-5 inline-block btn-primary px-5 py-2">
-        Back to Home
+      <Link href="/dashboard/mock-tests" className="mt-5 inline-block btn-primary px-5 py-2">
+        Back to Mock Test
       </Link>
     </div>
   );
@@ -551,8 +551,8 @@ function Finished({ testId, view, sections }: { testId: string; view: Extract<Ru
         <Link href={`/quiz/mock/${testId}/review`} className="btn-primary px-6 py-2.5">
           Review answers
         </Link>
-        <Link href="/dashboard" className="btn-quiet px-6 py-2.5">
-          Back to Home
+        <Link href="/dashboard/mock-tests" className="btn-quiet px-6 py-2.5">
+          Back to Mock Test
         </Link>
       </div>
     </div>

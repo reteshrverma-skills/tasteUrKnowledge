@@ -11,10 +11,13 @@ export function FlagUnclear({
   subject,
   rowId,
   initialFlagged,
+  aside,
 }: {
   subject: "nvr" | "vr" | "maths";
   rowId: number;
   initialFlagged: boolean;
+  /** Shown at the right-hand end of the same row (e.g. the answer GIF button). */
+  aside?: React.ReactNode;
 }) {
   const [flagged, setFlagged] = useState(initialFlagged);
   const [busy, setBusy] = useState(false);
@@ -68,6 +71,7 @@ export function FlagUnclear({
         </button>
       )}
       {error && <span className="text-poor">{error}</span>}
+      {aside && <div className="ml-auto">{aside}</div>}
     </div>
   );
 }

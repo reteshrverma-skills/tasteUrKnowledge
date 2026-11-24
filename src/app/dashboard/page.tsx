@@ -1,15 +1,13 @@
 import { getSession } from "@/lib/auth";
 import { DEFAULT_PROGRAMME, programmeOf } from "@/lib/programme";
-import { studentMockPapers } from "@/lib/mock-test";
 import { SeniorHome } from "./SeniorHome";
 import { loadGrammarHome } from "./grammar-home";
 import { StudentHomeShell, StudyTips, WelcomeCard } from "./StudentHome";
-import { FocusPanel } from "./GrammarPanels";
-import { MockTestsPanel } from "./MockTestsPanel";
+import { FocusPanel, GrammarSubjectList } from "./GrammarPanels";
 
 /**
- * Home. Grammar School students see their mock tests; the practice subjects
- * are under Subjects (/dashboard/subjects). GCSE and A-Level students get
+ * Home. Grammar School students see their practice subjects; mock tests are
+ * under Mock Test (/dashboard/mock-tests). GCSE and A-Level students get
  * their own home.
  */
 export default async function DashboardPage() {
@@ -23,10 +21,7 @@ export default async function DashboardPage() {
     return <SeniorHome session={session} />;
   }
 
-  const [{ card, firstName, focusTopics }, papers] = await Promise.all([
-    loadGrammarHome(session),
-    session ? studentMockPapers(session.userId, programme) : Promise.resolve([]),
-  ]);
+  const { card, firstName, focusTopics, subjects } = await loadGrammarHome(session);
 
   return (
     <StudentHomeShell
@@ -34,10 +29,11 @@ export default async function DashboardPage() {
       feed={
         <>
           <WelcomeCard eyebrow="11+ GRAMMAR SCHOOL PREPARATION" title={`Hello, ${firstName}!`}>
-            Sit a mock test under exam conditions, or open Subjects to practise topic by topic.
-            A short round every day builds confidence fast.
+            Pick a subject and a stage, then practise topic by topic. Every answer comes with
+            feedback, so a short round each day goes a long way. Ready for the real thing? Open
+            Mock Test.
           </WelcomeCard>
-          <MockTestsPanel papers={papers} />
+          <GrammarSubjectList subjects={subjects} />
         </>
       }
       left={<FocusPanel focusTopics={focusTopics} />}

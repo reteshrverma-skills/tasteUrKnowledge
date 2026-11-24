@@ -130,10 +130,10 @@ export default async function SubjectPage({
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={name}>
         <Link
-          href="/dashboard/subjects"
+          href="/dashboard"
           className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
         >
-          ← Subjects
+          ← Home
         </Link>
         <SubjectHeader title={name} level={activeLevel}>
             Each comprehension gives you {QUESTIONS_PER_COMP_ROUND} random

@@ -6,45 +6,22 @@ import { isSeniorStudent } from "@/lib/student-account";
 import { canonicalCode, studentChoices, subjectsFor } from "@/lib/senior-subjects";
 import { scoreStyle } from "@/lib/level-style";
 import { loadSeniorHome } from "../SeniorHome";
-import { loadGrammarHome } from "../grammar-home";
-import { ProfileCard, StudentHomeShell, StudyTips, WelcomeCard } from "../StudentHome";
-import { FocusPanel, GrammarSubjectList } from "../GrammarPanels";
+import { ProfileCard, WelcomeCard } from "../StudentHome";
 import { percent } from "./marks";
 
 /**
  * Subjects.
  *
- * Grammar School: the four practice subjects (English, Maths, Verbal,
- * Non-Verbal). GCSE and A-Level: the subjects chosen on My Profile, each with
+ * GCSE and A-Level only (Grammar School practice subjects are on Home): the subjects chosen on My Profile, each with
  * its exam board and a summary of the tests loaded for it (testLoadALevel);
  * "View details" opens the subject's tests.
  */
 export default async function SubjectsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  if (!isSeniorStudent(session)) return <GrammarSubjectsPage />;
+  // Grammar School practice subjects are on Home now.
+  if (!isSeniorStudent(session)) redirect("/dashboard");
   return <SeniorSubjectsPage />;
-}
-
-async function GrammarSubjectsPage() {
-  const session = await getSession();
-  const { card, subjects, focusTopics } = await loadGrammarHome(session);
-  return (
-    <StudentHomeShell
-      {...card}
-      feed={
-        <>
-          <WelcomeCard eyebrow="PRACTICE" title="Your subjects">
-            Pick a subject and a stage, then practise topic by topic. Every answer comes with
-            feedback, so a short round each day goes a long way.
-          </WelcomeCard>
-          <GrammarSubjectList subjects={subjects} />
-        </>
-      }
-      left={<FocusPanel focusTopics={focusTopics} />}
-      side={<StudyTips />}
-    />
-  );
 }
 
 async function SeniorSubjectsPage() {

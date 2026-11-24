@@ -27,7 +27,7 @@ export default async function AdminNvrQuestionPage({
   const valid = Number.isSafeInteger(id) && id > 0;
 
   const q = valid
-    ? await prisma.gsNvrQuestion.findFirst({ where: { id, programmeCode: programmeOf(session) } })
+    ? await prisma.gsNvrQuestion.findFirst({ where: { id, programmeCode: programmeOf(session) }, select: questionSelect })
     : null;
 
   return (
@@ -51,7 +51,33 @@ export default async function AdminNvrQuestionPage({
   );
 }
 
-type Question = NonNullable<Awaited<ReturnType<typeof prisma.gsNvrQuestion.findFirst>>>;
+/** Every column but the (large) answer GIF. */
+const questionSelect = {
+  id: true,
+  topic: true,
+  subTopic: true,
+  typeOfQuestion: true,
+  stage: true,
+  quest: true,
+  stemFigure: true,
+  optionA: true,
+  optionB: true,
+  optionC: true,
+  optionD: true,
+  ansChoice: true,
+  ansExplain: true,
+  whyWrongA: true,
+  whyWrongB: true,
+  whyWrongC: true,
+  whyWrongD: true,
+  yearName: true,
+  assetOrigin: true,
+  createdAt: true,
+} as const;
+
+type Question = NonNullable<
+  Awaited<ReturnType<typeof prisma.gsNvrQuestion.findFirst<{ select: typeof questionSelect }>>>
+>;
 
 function QuestionCard({ q }: { q: Question }) {
   const stem = sanitiseFigure(q.stemFigure);
