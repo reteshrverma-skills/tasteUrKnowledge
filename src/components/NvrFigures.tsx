@@ -91,8 +91,55 @@ export function FigureScale({
   );
 }
 
+/**
+ * A text-only stem that lists several items separated by "|" (e.g.
+ * "A: ■ [E] | B: □ | C: ▧"). Squeezed into one SVG line it is hard to read, so
+ * each item gets its own block. Null when the stem is a real figure or a
+ * single line of text.
+ */
+function stemBlocks(markup: string): { t: SvgText; items: { label: string | null; body: string }[] } | null {
+  if (!isSvgMarkup(markup)) return null;
+  const t = svgTextOnly(markup, false);
+  if (!t || !t.text.includes("|")) return null;
+  const items = t.text
+    .split("|")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => {
+      const m = s.match(/^([A-Z0-9]{1,2})\s*[:.)]\s*(.+)$/);
+      return m ? { label: m[1], body: m[2] } : { label: null, body: s };
+    });
+  return items.length > 1 ? { t, items } : null;
+}
+
 /** The question figure, centred in its frame. */
 export function StemFigure({ markup }: { markup: string }) {
+  const blocks = stemBlocks(markup);
+  if (blocks) {
+    const { t, items } = blocks;
+    return (
+      <div className="flex justify-center mb-5">
+        <span className="card-quiet w-full max-w-xl p-3 text-ink">
+          <span
+            className="flex flex-wrap justify-center gap-2"
+            style={{ fontFamily: t.fontFamily, color: t.fill }}
+          >
+            {items.map((item, i) => (
+              <span
+                key={i}
+                className="flex min-w-[4.5rem] flex-col items-center gap-1 rounded-lg border border-current/20 px-3 py-2"
+              >
+                <span className="text-2xl leading-tight whitespace-nowrap">{item.body}</span>
+                {item.label && (
+                  <span className="text-xs font-semibold opacity-60">{item.label}</span>
+                )}
+              </span>
+            ))}
+          </span>
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="flex justify-center mb-5">
       <span className="card-quiet w-full max-w-xl p-3 text-ink">
@@ -125,7 +172,7 @@ interface SvgText {
   fill: string;
 }
 
-function svgTextOnly(markup: string): SvgText | null {
+function svgTextOnly(markup: string, dropLetter = true): SvgText | null {
   const body = markup.replace(/^\s*<svg[^>]*>|<\/svg>\s*$/gi, "");
   const tags = body.match(/<\s*([a-z]+)/gi)?.map((t) => t.slice(1).trim().toLowerCase()) ?? [];
   if (!tags.includes("text") || tags.some((t) => !["rect", "text", "tspan"].includes(t))) return null;
@@ -133,16 +180,16 @@ function svgTextOnly(markup: string): SvgText | null {
 
   const lines = [...body.matchAll(/<tspan[^>]*>([^<]*)<\/tspan>/gi)].map((m) => m[1]);
   const raw = (lines.length ? lines : [body.replace(/<[^>]*>/g, " ")]).join(" ");
-  const text = raw
+  const cleaned = raw
     .replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (whole, e: string) =>
       e[0] === "#"
         ? String.fromCodePoint(parseInt(e.slice(e[1] === "x" ? 2 : 1), e[1] === "x" ? 16 : 10))
         : ENTITIES[e.toLowerCase()] ?? whole
     )
     .replace(/\s+/g, " ")
-    .trim()
-    // The tile already carries its letter, so drop a leading "A." / "A:".
-    .replace(/^[A-E][.:)]\s+/, "");
+    .trim();
+  // An option tile already carries its letter, so drop a leading "A." / "A:".
+  const text = dropLetter ? cleaned.replace(/^[A-E][.:)]\s+/, "") : cleaned;
   if (!text) return null;
   // Keep the drawing's own type so the option looks like the stem's text.
   const attr = (name: string) => body.match(new RegExp(`<text[^>]*\\s${name}="([^"]*)"`, "i"))?.[1];
