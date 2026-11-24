@@ -7,12 +7,12 @@ import { sanitiseFigure } from "@/lib/nvr";
 import { presentOptions } from "@/app/dashboard/subject/TestReview";
 import { FigureScale, OptionFigure, StemFigure } from "@/components/NvrFigures";
 import { NvrIdSearch } from "../NvrIdSearch";
-import { StageEditor } from "./StageEditor";
+import { QuestionEditor } from "./QuestionEditor";
 
 /**
  * One Non-Verbal question looked up by its gsNvrQuestions id: the question as
- * a child sees it, the answer key and explanations, and its stage, which the
- * admin can change here.
+ * a child sees it, the answer key and explanations, and its stage and correct
+ * answer, which the admin can change here.
  */
 export default async function AdminNvrQuestionPage({
   searchParams,
@@ -80,7 +80,12 @@ function QuestionCard({ q }: { q: Question }) {
         <span className="chip shrink-0 bg-ground text-ink border-line-strong tabular">ID {String(q.id)}</span>
       </div>
 
-      <StageEditor id={String(q.id)} stage={q.stage} />
+      <QuestionEditor
+        id={String(q.id)}
+        stage={q.stage}
+        answer={q.ansChoice}
+        letters={options.map((o) => o.label)}
+      />
 
       <div>
         <p className="font-semibold text-ink mb-3">{q.quest}</p>
