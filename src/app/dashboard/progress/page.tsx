@@ -82,9 +82,11 @@ export default async function ProgressPage() {
                 <div className="sm:col-span-2">
                   <dt className="text-ink-faint text-xs">Latest test</dt>
                   <dd className="text-ink truncate">
-                    {latest
-                      ? `${latest.testName} · ${latest.awardedMarks}/${latest.totalMarks} (${percent(latest.awardedMarks, latest.totalMarks)}%)`
-                      : "None yet"}
+                    {!latest
+                      ? "None yet"
+                      : latest.totalMarks > 0
+                        ? `${latest.testName} · ${latest.awardedMarks}/${latest.totalMarks} (${percent(latest.awardedMarks, latest.totalMarks)}%)`
+                        : `${latest.testName} · marks not loaded yet`}
                   </dd>
                 </div>
               </dl>
