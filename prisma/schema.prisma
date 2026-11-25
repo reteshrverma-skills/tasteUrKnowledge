@@ -108,6 +108,7 @@ model UserProfile {
   mockRevoked      MockTestAccess[]         @relation("MockAccessRevokedBy")
   /// A-Level test papers loaded for this STUDENT (migration 047).
   aLevelTests      TestLoadALevel[]
+  papers           StudentPaper[]
 
   /// Grammar School, GCSE or A-Level (migration 032). Every student query
   /// filters on it, so a child only ever sees their own programme's content.
@@ -824,9 +825,53 @@ model TestLoadALevel {
   testDate     DateTime?   @db.Date
 
   details TestLoadALevelDetail[]
+  papers  StudentPaper[]
 
   @@index([studentId, subject, testDate])
   @@map("testLoadALevel")
+}
+
+/// An exam paper a GCSE / A-Level student keeps against one of their
+/// subjects (migration 060). Its files are in Azure Blob Storage. Removing it
+/// sets deletedAt; the row stays.
+model StudentPaper {
+  id          BigInt             @id @default(autoincrement())
+  studentId   BigInt
+  student     UserProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  /// A code from src/config/senior-subjects.json, e.g. "Chemistry".
+  subjectCode String             @db.VarChar(50)
+  name        String             @db.VarChar(120)
+  /// The test this paper belongs to (migration 062); one live paper per test.
+  testId      BigInt?
+  test        TestLoadALevel?    @relation(fields: [testId], references: [id], onDelete: SetNull)
+  createdAt   DateTime           @default(now()) @db.Timestamptz(3)
+  deletedAt   DateTime?          @db.Timestamptz(3)
+  files       StudentPaperFile[]
+
+  @@index([studentId, subjectCode], map: "studentPaper_student_subject_idx")
+  @@map("studentPaper")
+}
+
+/// The merged PDF of a StudentPaper: a blob in AZURE_STORAGE_PAPERS_CONTAINER.
+/// A paper has one live file; adding pages uploads a longer PDF and marks
+/// the old row removed (deletedAt).
+model StudentPaperFile {
+  id          BigInt       @id @default(autoincrement())
+  paperId     BigInt
+  paper       StudentPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  blobName    String       @unique @db.VarChar(300)
+  fileName    String       @db.VarChar(255)
+  contentType String       @db.VarChar(100)
+  sizeBytes   Int
+  /// Pages in the merged PDF (migration 061).
+  pageCount   Int          @default(0)
+  /// Photos / PDFs merged into it so far; at most 15 per paper.
+  sourceCount Int          @default(1)
+  uploadedAt  DateTime     @default(now()) @db.Timestamptz(3)
+  deletedAt   DateTime?    @db.Timestamptz(3)
+
+  @@index([paperId], map: "studentPaperFile_paper_idx")
+  @@map("studentPaperFile")
 }
 
 /// One question or sub-question of a loaded A-Level test, with its marks.

@@ -9,8 +9,6 @@ import {
   SidePanel,
   StudentHomeShell,
   StudyTips,
-  SubjectPost,
-  SubjectsHeading,
   WelcomeCard,
 } from "./StudentHome";
 
@@ -84,7 +82,7 @@ export const loadSeniorHome = cache(async (session: Session) => {
 });
 
 export async function SeniorHome({ session }: { session: Session }) {
-  const { card, firstName, programmeName, subjects, boardByName } = await loadSeniorHome(session);
+  const { card, firstName, programmeName } = await loadSeniorHome(session);
 
   return (
     <StudentHomeShell
@@ -92,26 +90,16 @@ export async function SeniorHome({ session }: { session: Session }) {
       feed={
         <>
           <WelcomeCard eyebrow={`${programmeName.toUpperCase()} PREPARATION`} title={`Welcome, ${firstName}!`}>
-            Your {programmeName} practice space is being prepared. Subjects will open here one by
-            one - each with topic-by-topic questions, timed papers and feedback on every answer.
+            Your {programmeName} practice space is being prepared. Your subjects are under{" "}
+            <Link href="/dashboard/subjects" className="font-medium text-brand hover:underline">
+              Subjects
+            </Link>{" "}
+            and your test results under{" "}
+            <Link href="/dashboard/progress" className="font-medium text-brand hover:underline">
+              Progress
+            </Link>
+            .
           </WelcomeCard>
-          <SubjectsHeading />
-          {subjects.length === 0 && (
-            <div className="card p-5 text-sm text-ink-soft">
-              You have not chosen any subjects yet.{" "}
-              <Link href="/dashboard/profile" className="font-medium text-brand hover:underline">
-                Choose them on My Profile
-              </Link>
-              .
-            </div>
-          )}
-          {subjects.map((subject) => (
-            <SubjectPost
-              key={subject.name}
-              {...subject}
-              board={boardByName.get(subject.name)}
-            />
-          ))}
         </>
       }
       side={

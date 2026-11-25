@@ -15,7 +15,7 @@ import { MarksTable } from "./MarksTable";
  * One chosen subject in detail for a GCSE / A-Level student: marks by topic
  * across all their loaded tests, then each test (testLoadALevel) with its
  * question-by-question marks (testLoadALevelDetail), which the student can
- * correct.
+ * correct, with View / Download for a paper uploaded under Load.
  */
 export default async function SeniorSubjectDetailPage({
   params,
@@ -50,6 +50,19 @@ export default async function SeniorSubjectDetailPage({
         totalMarks: true,
         testDate: true,
         uploadDate: true,
+        // The paper uploaded under Load: its live merged PDF.
+        papers: {
+          where: { deletedAt: null },
+          take: 1,
+          select: {
+            files: {
+              where: { deletedAt: null },
+              orderBy: { uploadedAt: "desc" },
+              take: 1,
+              select: { id: true, pageCount: true },
+            },
+          },
+        },
         details: {
           orderBy: [{ qNumber: "asc" }, { subQuestionNo: "asc" }],
           select: {
@@ -121,8 +134,8 @@ export default async function SeniorSubjectDetailPage({
           )}
         </div>
         <section className="space-y-4 min-w-0">
-          <Link href="/dashboard/subjects" className="text-sm font-medium text-brand hover:underline">
-            ← All subjects
+          <Link href="/dashboard/progress" className="text-sm font-medium text-brand hover:underline">
+            ← Progress
           </Link>
 
           <div className="card p-5">
@@ -156,18 +169,41 @@ export default async function SeniorSubjectDetailPage({
               <h3 className="pt-1 text-sm font-semibold text-ink-soft">Tests</h3>
               {tests.map((test, i) => {
                 const pct = percent(test.awardedMarks, test.totalMarks);
+                const file = test.papers[0]?.files[0];
                 return (
                   <details key={String(test.id)} className="card group" open={i === 0}>
                     <summary className="cursor-pointer list-none p-4 sm:p-5 flex flex-wrap items-center gap-x-3 gap-y-1">
                       <span className="font-semibold text-ink">{test.testName}</span>
-                      <span className={`rounded-full border px-2 py-0.5 text-xs font-medium tabular ${scoreStyle(pct)}`}>
-                        {test.awardedMarks}/{test.totalMarks} · {pct}%
-                      </span>
+                      {test.totalMarks > 0 ? (
+                        <span className={`rounded-full border px-2 py-0.5 text-xs font-medium tabular ${scoreStyle(pct)}`}>
+                          {test.awardedMarks}/{test.totalMarks} · {pct}%
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-line px-2 py-0.5 text-xs font-medium text-ink-faint">
+                          Marks not loaded yet
+                        </span>
+                      )}
                       <span className="text-xs text-ink-faint">
                         {test.testDate ? formatDate(test.testDate) : "No date - open to add one"} ·{" "}
                         {boardName(test.board)}
                       </span>
-                      <span className="ml-auto text-xs font-medium text-brand">
+                      {file && (
+                        <span className="ml-auto flex items-center gap-3 text-xs font-medium">
+                          <a
+                            href={`/api/student/paper-files/${file.id}`}
+                            target="_blank"
+                            rel="noopener"
+                            title={`Paper · ${file.pageCount} ${file.pageCount === 1 ? "page" : "pages"}`}
+                            className="text-brand hover:underline"
+                          >
+                            📄 View paper
+                          </a>
+                          <a href={`/api/student/paper-files/${file.id}?download=1`} className="text-ink-soft hover:text-brand">
+                            ⤓ Download
+                          </a>
+                        </span>
+                      )}
+                      <span className={`${file ? "ml-3" : "ml-auto"} text-xs font-medium text-brand`}>
                         <span className="group-open:hidden">Show questions</span>
                         <span className="hidden group-open:inline">Hide questions</span>
                       </span>
