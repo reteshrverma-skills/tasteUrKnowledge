@@ -417,7 +417,7 @@ function Section({
           {view.questions.filter((x) => flagged.has(x.id)).length} marked for review
         </p>
       )}
-      <div className="mt-3 grid grid-cols-5 gap-1.5">
+      <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(2.25rem,1fr))] gap-1.5">
         {view.questions.map((x, i) => (
           <button
             key={x.id}
@@ -449,7 +449,9 @@ function Section({
 
   if (view.passage) {
     return (
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px] items-start">
+      // Passage on the left takes the extra width; the question with the
+      // question numbers under it on the right.
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] items-start">
         <article className="card p-5 sm:p-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto lg:sticky lg:top-20">
           <h2 className="font-display text-lg font-semibold text-ink">{view.passage.title}</h2>
           {view.passage.story.split("\n\n").map((p, i) => (
@@ -458,8 +460,10 @@ function Section({
             </p>
           ))}
         </article>
-        {questionCard}
-        {navigator}
+        <div className="space-y-5 min-w-0">
+          {questionCard}
+          {navigator}
+        </div>
       </div>
     );
   }

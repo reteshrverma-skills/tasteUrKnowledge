@@ -145,8 +145,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <SiteHeader />
 
-      {/* Fills the first screen on a desktop. */}
-      <main className="flex items-center lg:min-h-[calc(100vh-73px)]">
+      {/* Fills the first screen on a desktop, leaving room for the footer. */}
+      <main className="flex-1 flex items-center">
         {/* On a phone these run in the order written: introduction, login form,
             subjects. On a desktop the form moves to its own column on the right. */}
         <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-8 py-8 grid gap-x-10 gap-y-7 lg:grid-cols-[55fr_45fr]">
@@ -431,6 +431,9 @@ export default function LoginPage() {
         </div>
       </main>
 
+      <footer className="border-t border-login-border px-5 py-4 text-center text-xs text-ink-soft">
+        © {new Date().getFullYear()} SIGQS Lab Ltd. All rights reserved.
+      </footer>
     </div>
   );
 }

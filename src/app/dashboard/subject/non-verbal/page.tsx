@@ -190,8 +190,9 @@ export default async function NonVerbalPage({
                               // subtopic link is stretched over the card.
                               <div
                                 key={subTopic}
-                                className="group/item relative flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
+                                className="group/item relative flex items-stretch gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
                               >
+                                <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
                                 <Link
                                   href={`/quiz/nvr?topic=${encodeURIComponent(
                                     group.topic
@@ -207,7 +208,7 @@ export default async function NonVerbalPage({
                                   </span>
                                 </Link>
 
-                                <span className="relative z-10 ml-auto shrink-0 flex items-center gap-1">
+                                <span className="relative z-10 flex flex-wrap items-center gap-1 empty:hidden">
                                   {recent.map(({ testId, percentage }) => (
                                     <Link
                                       key={testId}
@@ -221,12 +222,13 @@ export default async function NonVerbalPage({
                                     </Link>
                                   ))}
                                 </span>
+                                </div>
 
                                 {/* Looks like a button; the click lands on the
                                     stretched subtopic link underneath. */}
                                 <span
                                   aria-hidden="true"
-                                  className={`btn-primary shrink-0 px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
+                                  className={`btn-primary shrink-0 self-stretch flex items-center px-3 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
                                 >
                                   Practise
                                 </span>

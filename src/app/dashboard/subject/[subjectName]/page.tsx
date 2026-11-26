@@ -199,7 +199,7 @@ export default async function SubjectPage({
                       />
                     </div>
 
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2">
                     {levelComps.map((comp) => {
                       const recent = attemptsByComp.get(Number(comp.id)) ?? [];
 
@@ -209,8 +209,9 @@ export default async function SubjectPage({
                         // stretched over the card instead.
                         <div
                           key={comp.id}
-                          className="card-quiet group relative flex items-center gap-3 px-4 py-3.5 transition hover:border-brand/40 hover:shadow-sm"
+                          className="card-quiet group relative flex items-stretch gap-2 px-3 py-2.5 transition hover:border-brand/40 hover:shadow-sm"
                         >
+                          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
                           {/* Styled like a Maths topic heading: the title in
                               the display face, then how many questions the
                               comprehension holds (each round draws from these). */}
@@ -224,8 +225,8 @@ export default async function SubjectPage({
                             </span>
                           </Link>
 
-                          {/* Last three attempts, newest first, right aligned */}
-                          <span className="ml-auto flex items-center gap-1.5 shrink-0">
+                          {/* Last three attempts, newest first, under the title */}
+                          <span className="relative z-10 flex flex-wrap items-center gap-1 empty:hidden">
                             {recent.map((attempt) => (
                                 <Link
                                   key={attempt.testId}
@@ -242,16 +243,17 @@ export default async function SubjectPage({
                                   {attempt.percentage}%
                                 </Link>
                               ))}
-                            {/* Looks like a button; the click lands on the
-                                stretched quiz link underneath. */}
-                            <span
-                              aria-hidden="true"
-                              className={`btn-primary px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(
-                                level
-                              )}`}
-                            >
-                              Practise
-                            </span>
+                          </span>
+                          </div>
+                          {/* Looks like a button; the click lands on the
+                              stretched quiz link underneath. */}
+                          <span
+                            aria-hidden="true"
+                            className={`btn-primary shrink-0 self-stretch flex items-center px-3 text-xs whitespace-nowrap ${levelButtonStyle(
+                              level
+                            )}`}
+                          >
+                            Practise
                           </span>
                         </div>
                       );
