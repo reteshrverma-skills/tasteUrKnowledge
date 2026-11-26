@@ -68,12 +68,6 @@ export default async function MathsPage({
 
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={"Maths"}>
-        <Link
-          href="/dashboard"
-          className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
-        >
-          ← Home
-        </Link>
         <SubjectHeader title={MATHS_SUBJECT_NAME} level={activeLevel}>
             Pick a difficulty, open a topic, choose a subtopic — you get up to{" "}
             {QUESTIONS_PER_ROUND} random questions.
@@ -91,9 +85,16 @@ export default async function MathsPage({
         ) : (
           <>
             {/* Difficulty selector */}
-            <div className="card p-5 mb-6">
-              <h2 className="eyebrow mb-2.5">Stage</h2>
-              <div className="flex flex-wrap gap-2">
+            {/* Back to Home on the left; the stages stay centred (the empty
+                third column balances the first). */}
+            <div className="mb-6 flex flex-col gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
+              <Link
+                href="/dashboard"
+                className="self-start md:justify-self-start btn-quiet px-3.5 py-2 text-sm"
+              >
+                ← Home
+              </Link>
+              <div className="flex flex-wrap justify-center gap-2" aria-label="Stage">
                 {levels.map((level) => {
                   const isActive = level === activeLevel;
                   return (
@@ -190,8 +191,9 @@ export default async function MathsPage({
                             // link is stretched over the card instead.
                             <div
                               key={subTopic}
-                              className="group/item relative flex items-center gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
+                              className="group/item relative flex items-stretch gap-2 bg-ground hover:bg-surface rounded-lg px-3 py-2.5 border border-transparent hover:border-line-strong transition"
                             >
+                              <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
                               <Link
                                 href={`/quiz/maths?topic=${encodeURIComponent(
                                   group.topic
@@ -204,7 +206,7 @@ export default async function MathsPage({
                               </Link>
 
                               {/* Last 3 scores, newest first */}
-                              <span className="relative z-10 ml-auto shrink-0 flex items-center gap-1">
+                              <span className="relative z-10 flex flex-wrap items-center gap-1 empty:hidden">
                                 {recent.map(({ testId, percentage }) => (
                                   <Link
                                     key={testId}
@@ -218,12 +220,13 @@ export default async function MathsPage({
                                   </Link>
                                 ))}
                               </span>
+                              </div>
 
                               {/* Looks like a button; the click lands on the
                                   stretched subtopic link underneath. */}
                               <span
                                 aria-hidden="true"
-                                className={`btn-primary shrink-0 px-2.5 py-1 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
+                                className={`btn-primary shrink-0 self-stretch flex items-center px-3 text-xs whitespace-nowrap ${levelButtonStyle(activeLevel)}`}
                               >
                                 Practise
                               </span>

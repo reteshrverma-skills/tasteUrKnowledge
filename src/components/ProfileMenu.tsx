@@ -53,6 +53,7 @@ export function ProfileMenu({ initial, items }: { initial: string; items: Profil
 /** The admin's menu, on every admin page. */
 export const ADMIN_MENU: ProfileMenuItem[] = [
   { href: "/admin/mock-tests/access", label: "Mock test access", hint: "Which students can sit each paper" },
+  { href: "/admin/student-papers", label: "Student papers", hint: "Review papers students uploaded" },
   { href: "/dashboard", label: "Student Dashboard", hint: "See the app as a student" },
   { href: "/admin/passwords", label: "Passwords", hint: "Change a parent's or an admin's password" },
   { href: "/admin/director-accounts", label: "Product Directors", hint: "Create and manage their logins" },

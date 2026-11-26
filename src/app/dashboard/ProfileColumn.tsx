@@ -3,7 +3,7 @@ import { DEFAULT_PROGRAMME, programmeOf } from "@/lib/programme";
 import { ENTITLEMENT_LEVELS, allowedLevels } from "@/lib/student";
 import { loadGrammarHome } from "./grammar-home";
 import { loadSeniorHome } from "./SeniorHome";
-import { ProfileCard } from "./StudentHome";
+import { ProfileBanner, ProfileCard } from "./StudentHome";
 
 /** Dashboard subject name -> the name focus topics use for it. */
 const FOCUS_SUBJECT: Record<string, string> = {
@@ -34,6 +34,12 @@ export async function WithProfileCard({
   let card;
   if (senior && session) {
     ({ card } = await loadSeniorHome(session));
+    return (
+      <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-6 items-start">
+        <ProfileCard {...card} className="lg:sticky lg:top-20" />
+        <div className="min-w-0">{children}</div>
+      </div>
+    );
   } else {
     const [home, access] = await Promise.all([loadGrammarHome(session), allowedLevels(session)]);
     const row = home.subjects.find((s) => s.name.toLowerCase() === subject.toLowerCase());
@@ -47,14 +53,15 @@ export async function WithProfileCard({
         row && !row.countsQuestions
           ? { label: "Comprehensions", value: row.count.toLocaleString() }
           : { label: `${subject} questions`, value: (row?.count ?? 0).toLocaleString() },
-        { label: "Focus topics", value: String(focusCount) },
+        { label: "Focus topics", value: String(focusCount), highlight: focusCount > 0 },
       ],
     };
   }
 
+  // Grammar School: the wide profile banner across the top, as on Home.
   return (
-    <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-6 items-start">
-      <ProfileCard {...card} className="lg:sticky lg:top-20" />
+    <div className="space-y-5">
+      <ProfileBanner {...card} />
       <div className="min-w-0">{children}</div>
     </div>
   );

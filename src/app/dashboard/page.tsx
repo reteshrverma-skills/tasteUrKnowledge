@@ -2,8 +2,8 @@ import { getSession } from "@/lib/auth";
 import { DEFAULT_PROGRAMME, programmeOf } from "@/lib/programme";
 import { SeniorHome } from "./SeniorHome";
 import { loadGrammarHome } from "./grammar-home";
-import { StudentHomeShell, StudyTips, WelcomeCard } from "./StudentHome";
-import { FocusPanel, GrammarSubjectList } from "./GrammarPanels";
+import { ProfileBanner } from "./StudentHome";
+import { GrammarSubjectColumns } from "./GrammarPanels";
 
 /**
  * Home. Grammar School students see their practice subjects; mock tests are
@@ -21,23 +21,16 @@ export default async function DashboardPage() {
     return <SeniorHome session={session} />;
   }
 
-  const { card, firstName, focusTopics, subjects } = await loadGrammarHome(session);
+  const { card, focusTopics, subjects } = await loadGrammarHome(session);
 
+  // Stacked full width: profile, the subjects side by side, then each
+  // subject's focus topics underneath.
   return (
-    <StudentHomeShell
-      {...card}
-      feed={
-        <>
-          <WelcomeCard eyebrow="11+ GRAMMAR SCHOOL PREPARATION" title={`Hello, ${firstName}!`}>
-            Pick a subject and a stage, then practise topic by topic. Every answer comes with
-            feedback, so a short round each day goes a long way. Ready for the real thing? Open
-            Mock Test.
-          </WelcomeCard>
-          <GrammarSubjectList subjects={subjects} />
-        </>
-      }
-      left={<FocusPanel focusTopics={focusTopics} />}
-      side={<StudyTips />}
-    />
+    <div className="min-h-screen bg-ground">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 space-y-5">
+        <ProfileBanner {...card} />
+        <GrammarSubjectColumns subjects={subjects} focusTopics={focusTopics} />
+      </main>
+    </div>
   );
 }

@@ -129,12 +129,6 @@ export default async function SubjectPage({
 
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
         <WithProfileCard subject={name}>
-        <Link
-          href="/dashboard"
-          className="inline-block mb-5 text-sm font-medium text-ink-soft hover:text-brand transition"
-        >
-          ← Home
-        </Link>
         <SubjectHeader title={name} level={activeLevel}>
             Each comprehension gives you {QUESTIONS_PER_COMP_ROUND} random
             questions, so it is worth coming back to.
@@ -157,9 +151,16 @@ export default async function SubjectPage({
         ) : (
           <>
             {/* Same difficulty selector as Maths and Non-Verbal */}
-            <div className="card p-5 mb-6">
-              <h2 className="eyebrow mb-2.5">Stage</h2>
-              <div className="flex flex-wrap gap-2">
+            {/* Back to Home on the left; the stages stay centred (the empty
+                third column balances the first). */}
+            <div className="mb-6 flex flex-col gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
+              <Link
+                href="/dashboard"
+                className="self-start md:justify-self-start btn-quiet px-3.5 py-2 text-sm"
+              >
+                ← Home
+              </Link>
+              <div className="flex flex-wrap justify-center gap-2" aria-label="Stage">
                 {levels.map((level) => {
                   const isActive = level === activeLevel;
                   return (

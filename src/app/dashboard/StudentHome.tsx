@@ -91,6 +91,46 @@ export function ProfileCard({
   );
 }
 
+/**
+ * The profile card laid out wide: initial, name and ID on the left, the
+ * counts as tiles across the rest. Used where it spans the whole page.
+ */
+export function ProfileBanner({ name, subtitle, userId, stats }: ProfileCardData) {
+  return (
+    <section className="card overflow-hidden flex flex-col md:flex-row">
+      <div className="flex items-center gap-4 px-5 py-4 bg-gradient-to-r from-brand to-login-teal text-white md:min-w-[300px]">
+        <span className="w-16 h-16 shrink-0 rounded-full border-4 border-white/30 bg-brand grid place-items-center font-display text-2xl font-semibold">
+          {name.charAt(0).toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <p className="font-display text-lg font-semibold truncate">{name}</p>
+          <p className="text-sm text-white/85">{subtitle}</p>
+          <p className="text-xs text-white/70 mt-0.5">@{userId}</p>
+        </div>
+      </div>
+      <dl
+        className={`flex-1 grid grid-cols-2 gap-3 p-4 ${
+          stats.length === 3 ? "sm:grid-cols-3" : stats.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-4"
+        }`}
+      >
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className={`rounded-lg px-3 py-2.5 ${stat.highlight ? "bg-poor-tint" : "bg-ground"}`}
+          >
+            <dt className={`text-xs ${stat.highlight ? "font-medium text-poor" : "text-ink-soft"}`}>
+              {stat.label}
+            </dt>
+            <dd className={`mt-0.5 font-display text-xl font-semibold tabular ${stat.highlight ? "text-poor" : "text-brand"}`}>
+              {stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 /** The greeting card at the top of the feed. */
 export function WelcomeCard({
   eyebrow,
@@ -126,17 +166,20 @@ export function SubjectHeader({
   children: React.ReactNode;
 }) {
   return (
-    <header className={`card p-5 ${className}`}>
-      <p className="text-xs font-semibold tracking-wide text-login-teal">YOUR SUBJECT</p>
-      <h1 className="mt-1 flex flex-wrap items-center gap-2 font-display text-xl font-semibold text-ink">
-        {title}
-        {level && (
-          <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-sm font-medium text-brand">
-            {level}
-          </span>
-        )}
-      </h1>
-      <p className="mt-1.5 text-sm text-ink-soft">{children}</p>
+    <header className={`card p-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-6 ${className}`}>
+      <div className="shrink-0">
+        <p className="text-xs font-semibold tracking-wide text-login-teal">YOUR SUBJECT</p>
+        <h1 className="mt-1 flex flex-wrap items-center gap-2 font-display text-xl font-semibold text-ink">
+          {title}
+          {level && (
+            <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-sm font-medium text-brand">
+              {level}
+            </span>
+          )}
+        </h1>
+      </div>
+      {/* The how-it-works line sits on the right on wider screens. */}
+      <p className="text-sm text-ink-soft md:text-right lg:whitespace-nowrap">{children}</p>
     </header>
   );
 }

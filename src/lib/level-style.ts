@@ -45,7 +45,9 @@ export function levelButtonStyle(level: string): string {
     case "explorer":
       return "bg-explorer text-white hover:brightness-110";
     case "navigator":
-      return "bg-navigator text-white hover:brightness-110";
+      // A lighter purple than the Navigator brand colour, which reads heavy
+      // as a solid button.
+      return "bg-[#9b6bd6] text-white hover:brightness-110";
     case "challenger":
       return "bg-challenger text-white hover:brightness-110";
     case "master":

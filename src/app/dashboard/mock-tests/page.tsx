@@ -3,13 +3,13 @@ import { getSession } from "@/lib/auth";
 import { DEFAULT_PROGRAMME, programmeOf } from "@/lib/programme";
 import { studentMockPapers } from "@/lib/mock-test";
 import { loadGrammarHome } from "../grammar-home";
-import { StudentHomeShell, StudyTips, WelcomeCard } from "../StudentHome";
-import { FocusPanel } from "../GrammarPanels";
+import { ProfileBanner } from "../StudentHome";
 import { MockTestsPanel } from "../MockTestsPanel";
 
 /**
  * Mock Test (Grammar School): the mock papers open now or opening soon, and
  * the ones already sat. GCSE and A-Level students have no mock tests here.
+ * Laid out like Home: profile across the top, the papers side by side.
  */
 export default async function MockTestsPage() {
   const session = await getSession();
@@ -17,25 +17,17 @@ export default async function MockTestsPage() {
   const programme = programmeOf(session);
   if (programme !== DEFAULT_PROGRAMME) redirect("/dashboard");
 
-  const [{ card, focusTopics }, papers] = await Promise.all([
+  const [{ card }, papers] = await Promise.all([
     loadGrammarHome(session),
     studentMockPapers(session.userId, programme),
   ]);
 
   return (
-    <StudentHomeShell
-      {...card}
-      feed={
-        <>
-          <WelcomeCard eyebrow="MOCK TEST" title="Your mock tests">
-            Sit a full paper under exam conditions, then review every answer. Mock tests show how
-            ready you are on the day.
-          </WelcomeCard>
-          <MockTestsPanel papers={papers} />
-        </>
-      }
-      left={<FocusPanel focusTopics={focusTopics} />}
-      side={<StudyTips />}
-    />
+    <div className="min-h-screen bg-ground">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 space-y-5">
+        <ProfileBanner {...card} />
+        <MockTestsPanel papers={papers} />
+      </main>
+    </div>
   );
 }
