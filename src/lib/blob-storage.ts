@@ -24,9 +24,9 @@ interface BlobConfig {
   endpoint: string;
 }
 
-function config(): BlobConfig {
+function config(containerOverride?: string): BlobConfig {
   const connection = process.env.AZURE_STORAGE_CONNECTION_STRING;
-  const container = process.env.AZURE_STORAGE_PAPERS_CONTAINER;
+  const container = containerOverride ?? process.env.AZURE_STORAGE_PAPERS_CONTAINER;
   if (!connection || !container) throw new Error("Paper storage is not configured");
 
   const parts: Record<string, string> = {};
@@ -65,9 +65,10 @@ function sasUrl(
   blobName: string,
   permissions: string,
   minutes: number,
-  response: { contentDisposition?: string; contentType?: string } = {}
+  response: { contentDisposition?: string; contentType?: string } = {},
+  container?: string
 ): string {
-  const c = config();
+  const c = config(container);
   const now = Date.now();
   const st = iso(now - 5 * 60_000); // allow for clock skew
   const se = iso(now + minutes * 60_000);
@@ -139,9 +140,10 @@ export async function deleteBlob(blobName: string): Promise<void> {
 /**
  * The blob's bytes as a stream, read by the server - for when the browser
  * needs the file itself (the page may only talk to this site, not to Azure).
+ * `container` defaults to the papers container.
  */
-export async function getBlob(blobName: string): Promise<Response> {
-  const res = await fetch(sasUrl(blobName, "r", 5), { headers: { "x-ms-version": SAS_VERSION } });
+export async function getBlob(blobName: string, container?: string): Promise<Response> {
+  const res = await fetch(sasUrl(blobName, "r", 5, {}, container), { headers: { "x-ms-version": SAS_VERSION } });
   if (!res.ok) throw new Error(`Blob read failed (${res.status})`);
   return res;
 }

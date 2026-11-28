@@ -51,6 +51,7 @@ export default async function VrTestReviewPage({
             explanation: q.explanation,
             whyWrong: row.isAnsRight ? null : whyWrong(q, row.chosenOption),
             flagged: row.flaggedUnclear,
+            gifUrl: row.hasGif ? `/api/vr/gif/${row.id}` : null,
           };
         })}
     />

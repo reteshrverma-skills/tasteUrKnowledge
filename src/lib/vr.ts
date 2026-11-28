@@ -254,7 +254,7 @@ export async function recentVrAttempts(
  * someone else's test.
  */
 export async function vrTestReview(testId: number, studentId: number) {
-  return prisma.testTrackerVrMain.findFirst({
+  const test = await prisma.testTrackerVrMain.findFirst({
     where: { id: BigInt(testId), studentId: BigInt(studentId) },
     select: {
       testStartTime: true,
@@ -270,6 +270,7 @@ export async function vrTestReview(testId: number, studentId: number) {
           chosenOption: true,
           correctOption: true,
           flaggedUnclear: true,
+          questionId: true,
           question: {
             select: {
               quest: true,
@@ -291,4 +292,21 @@ export async function vrTestReview(testId: number, studentId: number) {
       },
     },
   });
+  if (!test) return null;
+
+  // Which of these questions have an answer GIF - asked separately so the
+  // GIFs themselves are never loaded here.
+  const ids = test.questions.flatMap((r) => (r.questionId == null ? [] : [r.questionId]));
+  const withGif = await prisma.gsVrQuestion.findMany({
+    where: { id: { in: ids }, ansGif: { not: null } },
+    select: { id: true },
+  });
+  const gifIds = new Set(withGif.map((q) => q.id));
+  return {
+    ...test,
+    questions: test.questions.map((r) => ({
+      ...r,
+      hasGif: r.questionId != null && gifIds.has(r.questionId),
+    })),
+  };
 }

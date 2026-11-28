@@ -663,6 +663,10 @@ model GsVrQuestion {
   whyWrongC   String?
   whyWrongD   String?
   whyWrongE   String?
+  /// An animated walk-through of the answer, as a "data:image/gif;base64,..."
+  /// URI. Large, so never select it with a list of questions - the review
+  /// page streams it on demand from /api/vr/gif/[rowId].
+  ansGif      String?
 
   trackerRows TestTrackerVr[]
 
